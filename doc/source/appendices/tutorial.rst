@@ -35,15 +35,15 @@ You should fork the Icepack repository and create a new branch in your fork for 
 * Checkout the branch
 * Port the model and verify you can build and run the model
 
-You may be able to leverage the conda port to build and run the model, you may be working on a supported machine, or you may have to port the model to your machine.  Porting, setting up cases, building, running, and running test suites are all documented in the Icepack User Guide, https://cice-consortium-icepack.readthedocs.io/en/latest/index.html.  There are many ways to setup and run the model.
+Many of these steps are done once per user or machine.  You may be able to leverage the conda port to build and run the model, you may be working on a supported machine, or you may have to port the model to your machine.  Porting, setting up cases, building, running, and running test suites are all documented in the Icepack User Guide, https://cice-consortium-icepack.readthedocs.io/en/latest/index.html.  There are many ways to setup and run the model.
 
 **Note:** The workflow guide is oriented toward setting up CICE rather than Icepack, but the same workflow applies to Icepack standalone.
 
-To summarize the steps in greater details **assuming use of conda in a Mac or Linux environment**.
+To summarize the steps in greater detail **assuming use of conda in a Mac or Linux environment**.
 
-* Create a github account for yourself if you don't have one already
+* Create a github account for yourself if you don't have one already (done once per user)
 
-* Fork the Consortium Icepack repository, go to https://github.com/CICE-Consortium/Icepack and click on the fork button
+* Fork the Consortium Icepack repository, go to https://github.com/CICE-Consortium/Icepack and click on the fork button (done once per user)
 
 * Clone Icepack, sync the main branch, and create a new branch from the main branch.  This will create a branch based on the lastest version of main::
 
@@ -61,14 +61,14 @@ To summarize the steps in greater details **assuming use of conda in a Mac or Li
     git checkout <branchname>
     git status        (Branch should be <branchname>)
 
-* Setup local env and download input datasets::
+* Setup local env and download input datasets (done once per machine)::
 
     mkdir -p ~/icepack-dirs/runs ~/icepack-dirs/input ~/icepack-dirs/baseline
     cd ~/icepack-dirs/input
     curl -O https://zenodo.org/records/3728287/files/Icepack_data-20200326.tar.gz
     tar -xzf Icepack_data-20200326.tar.gz
 
-* Setup the conda environment, see :ref:`laptops`::
+* Setup the conda environment (done once per machine), see :ref:`laptops`::
 
     curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o ~/Downloads/miniconda.sh
     bash ~/Downloads/miniconda.sh
@@ -112,7 +112,29 @@ Look at the output.  Go to the ICE_RUNDIR (defined in **icepack.settings**). A s
   * How does your output compare to the sample output provided for this release?
 
 
-Add a New Tracer and Run Some Tests
+Modify the Configuration or Code
+------------------------------------
+
+* Set Up a Longer Run.  Modify npt in icepack_in.  npt defines the number of timesteps to run.  Details about namelist options are in the documentation (:ref:`case_settings`).
+
+* Modify a physics option.  Change the thermodynamics option from ktherm=2 to ktherm=1 in **icepack_in**, and set sw_redist=.true.  The intent here is to change the namelist option for the current experiment in the case directory.  What is different compared to your first run?  What happens if sw_redist = .false. with ktherm = 1?  Why?
+
+* Undo your latest **icepack_in** changes
+
+* Change a Parameter in the Fortran Code.  Edit **icepack_mechred.F90** and set
+
+    ``fsnowrdg = c1    , & ! snow fraction that survives in ridging``.  
+
+  Rebuild the code before running.  What is different about this run?  What do you think the fsnowrdg parameter is doing here?
+
+* Revert your latest code changes::
+
+    cd ~/Icepack
+    git status
+    git checkout columnphysics/icepack_mechred.F90
+    git status
+
+Add a New Tracer
 --------------------------------------
 
 In this exercise, add a new tracer associated with fluffballs.
@@ -128,21 +150,4 @@ fluff tracer.  Then update the timeseries plotting script to plot the fluffballs
 
 * Modify the physics to create some physics processes, see isotopes or aerosols for some ideas
 
-* Set Up a Longer Run.  Modify npt in icepack_in.  npt defines the number of timesteps to run.  Details about namelist options are in the documentation (:ref:`case_settings`).
-
-* Modify a physics option.  Change the thermodynamics option from ktherm=2 to ktherm=1 in **icepack_in**, and set sw_redist=.true.  The intent here is to change the namelist option for the current experiment in the case directory.  What is different compared to your first run?  What happens if sw_redist = .false. with ktherm = 1?  Why?
-
-* Change a Parameter in the Fortran Code.  Edit **icepack_mechred.F90** and set
-
-    ``fsnowrdg = c1    , & ! snow fraction that survives in ridging``.  
-
-  Rebuild the code before running.  What is different about this run?  What do you think the fsnowrdg parameter is doing here?
-
-* Revert your latest code changes::
-
-    cd ~/Icepack
-    git status
-    git checkout columnphysics/icepack_mechred.F90
-    git status
-
-**NOTE:** The file, **doc/source/tutorial/fluff.diff** in the Icepack repository, contains code differences for this example for a version of Icepack from July, 2024.  They may not be relevant for other code versions, but these diffs provide an example of the typical code differences required to add the tracer, fluff.
+**NOTE:** The file, **doc/source/tutorial/fluff.diff** in the Icepack repository, demonstrates code differences for this fluffball activity as implemented in a version of Icepack from July, 2024.  These code difference may not be directly applicable to other code versions, but these diffs provide an example of the typical code differences required to add the tracer, fluff.
