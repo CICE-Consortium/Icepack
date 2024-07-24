@@ -243,6 +243,9 @@
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
 
+      real (kind=dbl_kind) :: &
+           local_sig_ht
+
       character(len=*),parameter :: &
          subname='(icepack_step_wavefracture)'
 
@@ -256,9 +259,10 @@
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
 
-
+      local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
-      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
+!      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
+      if ((aice > p01).and.(local_sig_ht>0.1_dbl_kind)) then
 
          hbar = vice / aice
 

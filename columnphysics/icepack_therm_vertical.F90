@@ -20,7 +20,7 @@
       module icepack_therm_vertical
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, p001, p5, puny
+      use icepack_parameters, only: c0, c1, c2, p001, p5, puny
       use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, calc_Tsfc, rsnw_fall, rsnw_tmax
@@ -484,8 +484,10 @@
                                         fbot_xfer_type,     &
                                         strocnxT, strocnyT, &
                                         Tbot,     fbot,     &
-                                        rside,    Cdn_ocn,  &
-                                        fside,    wlat)
+                                        rsiden,    Cdn_ocn,  &
+                                        wlat,      aicen, &
+                                        afsdn,     nfsd,     &
+                                        floe_rad_c, floe_binwidth)
 
       real (kind=dbl_kind), intent(in) :: &
          dt                  ! time step
@@ -513,14 +515,35 @@
 
       real (kind=dbl_kind), intent(out) :: &
          Tbot    , & ! ice bottom surface temperature (deg C)
-         fbot    , & ! heat flux to ice bottom  (W/m^2)
-         rside   , & ! fraction of ice that melts laterally
-         fside       ! lateral heat flux (W/m^2)
+         fbot        ! heat flux to ice bottom  (W/m^2)
+
+      real (kind=dbl_kind), dimension(:), intent(out) :: &
+         rsiden      ! fraction of ice that melts laterally
 
       real (kind=dbl_kind), intent(out), optional :: &
          wlat        ! lateral melt rate (m/s)
 
+      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
+         floe_rad_c     , & ! fsd size bin centre in m (radius)
+         floe_binwidth      ! fsd size bin width in m (radius)
+
+      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+         aicen     ! ice concentration
+
+      real (kind=dbl_kind), dimension (:,:), intent(in), optional :: &
+         afsdn     ! area floe size distribution
+
+      integer (kind=int_kind), intent(in), optional :: &
+         nfsd        ! number of floe size categories
+
       ! local variables
+      real (kind=dbl_kind), dimension (ncat) :: &
+         delta_an  , & ! change in the ITD
+         G_radialn     ! lateral melt rate in FSD (m/s)
+
+      real (kind=dbl_kind) :: &
+         rside     , & !
+         fside       ! lateral heat flux (W/m^2)
 
       integer (kind=int_kind) :: &
          n              , & ! thickness category index
@@ -534,6 +557,7 @@
       real (kind=dbl_kind) :: &
          deltaT    , & ! SST - Tbot >= 0
          ustar     , & ! skin friction velocity for fbot (m/s)
+         bin1_arealoss, &
          xtmp          ! temporary variable
 
       ! Parameters for bottom melting
@@ -555,11 +579,11 @@
       ! Identify grid cells where ice can melt.
       !-----------------------------------------------------------------
 
-      rside = c0
-      fside = c0
+      rsiden(:) = c0
       Tbot  = Tf
       fbot  = c0
       wlat_loc = c0
+      if (present(wlat)) wlat=c0
 
       if (aice > puny .and. frzmlt < c0) then ! ice can melt
 
@@ -599,10 +623,55 @@
          rside = wlat_loc*dt*pi/(floeshape*floediam) ! Steele
          rside = max(c0,min(rside,c1))
 
+         if (rside == c0) return ! nothing more to do so get out
+
+         rsiden(:) = rside
+
+         if (tr_fsd) then ! alter rsiden now since floes are not of size floediam
+
+         do n = 1, ncat
+
+            G_radialn(n) = -wlat_loc ! negative
+
+            if (any(afsdn(:,n) < c0)) then
+               write(warnstr,*) subname, 'lateral_melt B afsd < 0 ',n
+               call icepack_warnings_add(warnstr)
+            endif
+
+            ! CMB there was a lot of wasted calcs here, particularly the multiplcataion and then division by aicen(n)
+            ! that has been removed. The results aren't quite bfb without the extra calc but results are
+            ! negligeably different
+            bin1_arealoss = -afsdn(1,n)  / floe_binwidth(1) ! when scaled by *G_radialn(n)*dt*aicen(n)
+
+            delta_an(n) = c0
+            do k = 1, nfsd
+               ! this is delta_an(n) when scaled by *G_radialn(n)*dt*aicen(n)
+               delta_an(n) = delta_an(n) + ((c2/floe_rad_c(k)) * afsdn(k,n)) ! delta_an < 0
+            end do
+
+            ! add negative area loss from fsd
+            delta_an(n) = (delta_an(n) - bin1_arealoss)*G_radialn(n)*dt
+
+            if (delta_an(n) > c0) then
+               write(warnstr,*) subname, 'ERROR delta_an > 0 ',delta_an(n)
+               call icepack_warnings_add(warnstr)
+            endif
+
+            ! following original code, not necessary for fsd
+            if (aicen(n) > c0) rsiden(n) = MIN(-delta_an(n),c1)
+
+            if (rsiden(n) < c0) then
+               write(warnstr,*) subname, 'ERROR rsiden < 0 ',rsiden(n)
+               call icepack_warnings_add(warnstr)
+            endif
+
+         enddo ! ncat
+         endif ! if tr_fsd
+
       !-----------------------------------------------------------------
       ! Compute heat flux associated with this value of rside.
       !-----------------------------------------------------------------
-
+         fside = c0
          do n = 1, ncat
 
             etot = c0
@@ -617,21 +686,31 @@
             enddo                  ! nilyr
 
             ! lateral heat flux, fside < 0
-            fside = fside + rside*etot/dt
+            fside = fside + rsiden(n)*etot/dt
 
          enddo                     ! n
 
       !-----------------------------------------------------------------
       ! Limit bottom and lateral heat fluxes if necessary.
-      ! FYI: fside is not yet correct for fsd, may need to adjust fbot further
+      ! Limit rside so we don't melt laterally more ice than frzmlt permits
+      ! FYI: fside is not yet correct for fsd, furthermore rside is
+      ! what matters in lateral melt. fside is simply used here to limit rside
+      ! and fsd code disregards rside anyway. So new idea is to make fside an upper limit
+      ! on what the lateral heat flux could be given fzmlt and fbot, which gave bfb same
+      ! answers until additional mods were made in icepack_therm_itd to utlize it.
       !-----------------------------------------------------------------
 
          xtmp = frzmlt/(fbot + fside - puny)
          xtmp = min(xtmp, c1)
+         xtmp = max(xtmp, c0)
          fbot  = fbot  * xtmp
-         rside = rside * xtmp
-         fside = fside * xtmp
 
+         do n = 1, ncat
+            rsiden(n) = rsiden(n) * xtmp  ! xtmp is almost always 1 so usually nothing happens here
+         enddo ! ncat
+
+!         write(warnstr,*) 'FBM ',rsiden(1), xtmp
+!         call icepack_warnings_add(warnstr)
       endif
 
       if (present(wlat)) wlat=wlat_loc
@@ -2089,8 +2168,8 @@
                                     strocnxT    , strocnyT    , &
                                     fbot        ,               &
                                     Tbot        , Tsnice      , &
-                                    frzmlt      , rside       , &
-                                    fside       , wlat        , &
+                                    frzmlt      , rsiden      , &
+                                    wlat        ,               &
                                     fsnow       , frain       , &
                                     fpond       , fsloss      , &
                                     fsurf       , fsurfn      , &
@@ -2137,7 +2216,9 @@
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice, &
-                                    zlvs)
+                                    zlvs        , &
+                                    afsdn       , nfsd        , &
+                                    floe_rad_c,   floe_binwidth)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2212,9 +2293,7 @@
          strocnxT    , & ! ice-ocean stress, x-direction
          strocnyT    , & ! ice-ocean stress, y-direction
          fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
-         frzmlt      , & ! freezing/melting potential         (W/m^2)
-         rside       , & ! fraction of ice that melts laterally
-         fside       , & ! lateral heat flux                  (W/m^2)
+         frzmlt      , & ! freezing/melting potential         (W/m^2)       !CMB notes this is not changing so should be in only I think
          sst         , & ! sea surface temperature                (C)
          Tf          , & ! freezing temperature                   (C)
          Tbot        , & ! ice bottom surface temperature     (deg C)
@@ -2227,7 +2306,7 @@
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
       real (kind=dbl_kind), intent(out), optional :: &
-         wlat            ! lateral melt rate                    (m/s)
+         wlat            ! lateral melt rate (m/s)
 
       real (kind=dbl_kind), intent(inout), optional :: &
          fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
@@ -2261,6 +2340,16 @@
          H2_18O_ocn  , & ! ocean concentration of H2_18O      (kg/kg)
          zlvs            ! atm level height for scalars (if different than zlvl) (m)
 
+      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
+         floe_rad_c, &  ! fsd size bin centre in m (radius)
+         floe_binwidth  ! fsd size bin width in m (radius)
+
+      real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
+         afsdn        ! afsd tracer
+
+      integer (kind=int_kind), intent(in), optional :: &
+         nfsd         ! number of fsd categories
+
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          aicen_init  , & ! fractional area of ice
          vicen_init  , & ! volume per unit area of ice            (m)
@@ -2276,6 +2365,7 @@
          ipnd        , & ! melt pond refrozen lid thickness       (m)
          iage        , & ! volume-weighted ice age
          FY          , & ! area-weighted first-year ice area
+         rsiden      , & ! fraction of ice that melts laterally
          fsurfn      , & ! net flux to top surface, excluding fcondtop
          fcondtopn   , & ! downward cond flux at top surface  (W m-2)
          fcondbotn   , & ! downward cond flux at bottom surface (W m-2)
@@ -2419,13 +2509,6 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
-         if (tr_fsd) then
-            if (.not.(present(wlat))) then
-               call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
-               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-               return
-            endif
-         endif
       endif
 
       !-----------------------------------------------------------------
@@ -2495,6 +2578,9 @@
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
       !  call to coupler.
       ! Compute lateral and bottom heat fluxes.
+      ! CMB notes this routine does not adust frzmlt! instead fhocn is variable
+      ! CMB sent back to ocn with "actual" heat flux used. It is computed as energy residual
+      ! CMB of Etot change minus top surface fluxes so does not even depend on fbot of fside
       !-----------------------------------------------------------------
 
       call frzmlt_bottom_lateral (dt,                   &
@@ -2505,9 +2591,11 @@
                                   ustar_min,            &
                                   fbot_xfer_type,       &
                                   strocnxT,  strocnyT,  &
-                                  Tbot,      fbot,      &
-                                  rside,     Cdn_ocn,   &
-                                  fside,     wlat)
+                                  Tbot,       fbot,     &
+                                  rsiden,     Cdn_ocn,   &
+                                  wlat,       aicen,  &
+                                  afsdn,      nfsd,      &
+                                  floe_rad_c, floe_binwidth)
 
       if (icepack_warnings_aborted(subname)) return
 
