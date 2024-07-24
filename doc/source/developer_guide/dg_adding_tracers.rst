@@ -56,6 +56,10 @@ Changes to setup, namelist, and build files either need to be tested by generati
 a new case or by modifying the same files in an existing case before running.
 Code changes can be tested by rebuilding and rerunning an existing case.
 
+The appendix has a tutorial activity, :ref:`tutorialfluff`, where a tracer is added to 
+Icepack.  A set of code differences are provided there as an example of how this could
+be done in practice.
+
 #. Define a new tracer.  First, setup the tracer cpp in **configuration/scripts/icepack.settings**
    and **configuration/scripts/icepack.build**
 
@@ -129,7 +133,7 @@ Code changes can be tested by rebuilding and rerunning an existing case.
      new capability is turned off.  You can create an option file with your preferred
      configuration in **configuration/scripts/options**.
 
-#. If your tracer depends on ocean or atmosphere forcing, use isotopes as an example
+#. If your tracer depends on ocean or atmosphere forcing
 
    - Initialize the sources and sinks in **icedrv_flux.F90**
 

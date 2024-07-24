@@ -115,7 +115,7 @@ Look at the output.  Go to the ICE_RUNDIR (defined in **icepack.settings**). A s
 Modify the Configuration or Code
 ------------------------------------
 
-* Set Up a Longer Run.  Modify npt in icepack_in.  npt defines the number of timesteps to run.  Details about namelist options are in the documentation (:ref:`case_settings`).
+* Set up a longer Run.  Modify ``npt`` in icepack_in.  ``npt`` defines the number of timesteps to run.  Details about namelist options are in the documentation (:ref:`case_settings`).
 
 * Modify a physics option.  Change the thermodynamics option from ktherm=2 to ktherm=1 in **icepack_in**, and set sw_redist=.true.  The intent here is to change the namelist option for the current experiment in the case directory.  What is different compared to your first run?  What happens if sw_redist = .false. with ktherm = 1?  Why?
 
@@ -133,6 +133,8 @@ Modify the Configuration or Code
     git status
     git checkout columnphysics/icepack_mechred.F90
     git status
+
+.. _tutorialfluff:
 
 Add a New Tracer
 --------------------------------------
