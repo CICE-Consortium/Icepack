@@ -1106,10 +1106,10 @@
 
          if (tr_aero) then
             do k = 1, n_aero
-               faero_ocn(k) = faero_ocn(k) + (vsnon(n) &
+               faero_ocn(k) = faero_ocn(k) + (vsnon_init(n) &
                     *(trcrn(nt_aero  +4*(k-1),n)   &
                     + trcrn(nt_aero+1+4*(k-1),n))  &
-                    +  vicen(n) &
+                    +  vicen_init(n) &
                     *(trcrn(nt_aero+2+4*(k-1),n)   &
                     + trcrn(nt_aero+3+4*(k-1),n))) &
                     * rsiden(n) / dt
@@ -1119,8 +1119,8 @@
          if (tr_iso) then
             do k = 1, n_iso
                fiso_ocn(k) = fiso_ocn(k) &
-                    + (vsnon(n)*trcrn(nt_isosno+k-1,n) &
-                    +  vicen(n)*trcrn(nt_isoice+k-1,n)) &
+                    + (vsnon_init(n)*trcrn(nt_isosno+k-1,n) &
+                    +  vicen_init(n)*trcrn(nt_isoice+k-1,n)) &
                     * rsiden(n) / dt
             enddo ! k
          endif    ! tr_iso
