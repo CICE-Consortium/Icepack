@@ -117,8 +117,8 @@ Add a New Tracer and Run Some Tests
 
 In this exercise, add a new tracer associated with fluffballs.
 Call the tracer fluff and make it depend on ice area.  Follow the step-by-step instructions in the :ref:`addtrcr` documentation.
-Once you have implemented the model changes, be sure to add fluffballs output to the standard output diagnostics.  The update 
-the timeseries plotting script to plot the fluffballs values over time.
+Once you have implemented the model changes, be sure to add fluffballs output to the standard output diagnostics and turn on the
+fluff tracer.  Then update the timeseries plotting script to plot the fluffballs values over time.
 
 * First, set the initial value, physics, sources, and sinks of fluff to zero and make sure fluff values remain zero throughout the run
 

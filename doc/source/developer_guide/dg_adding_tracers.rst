@@ -93,33 +93,41 @@ Code changes can be tested by rebuilding and rerunning an existing case.
      (tracer_flags, tracer_sizes, and tracer_indices).  The driver of Icepack will turn
      this tracer on as needed.
 
+#. Update the driver code to initialize the tracer flag and size and allocate space
+   for the tracer.  You will also
+   define dependency, whether the variable is dependent on ice area (aice), ice
+   volume (vice), snow volume (vsno), or something else.  Edit **icedrv_init.F90**.
+
+   - Add ``n_xyz`` to use icedrv_domain_size in subroutine input_data
+
+   - Define ``tr_xyz`` and ``nt_xyz`` variables in subroutine input_data
+
+   - Add a logical namelist variable ``tr_xyz` to tracer_nml
+
+   - Add a line to initialize ``tr_xyz=.false.``
+
+   - Add a check that ``tr_xyz`` and ``n_xyz`` are consistent
+
+   - Add code to increment the number of tracers in use, ``ntrcr``, based on namelist input
+
+   - Add some code to print xyz tracer info to the output file
+
+   - Add calls to subroutines icepack_init_tracer_sizes, icepack_init_tracer_flags, and 
+     icepack_init_tracer_indices to initialize the xyz tracer information in Icepack.
+
+   - Define the tracer dependency in subroutine init_state.  Area tracers can be thought of in terms of averages across 
+     the ice area (the tracer value itself) or averages over the grid cell area (tracer * aice).  
+     Volume tracers can be considered in a similar way, but it can also be helpful to think of 
+     the tracer as the “density” of the variable, which when multiplied by the ice or snow volume 
+     gives the total content of the variable in that volume of the ice or snow.  The “total content” 
+     is often a conserved quantity that can be checked during the calculation.
+
 #. Add the tracer to the default namelist **configuration/scripts/icepack_in**
 
    - Add the namelist flag ``tr_xyz`` to *tracer_nml*.
      Best practice is to set the default namelist values so that the 
      new capability is turned off.  You can create an option file with your preferred
      configuration in **configuration/scripts/options**.
-
-#. Update the driver code to initialize the tracer flag and size.  You will also
-   define dependency, whether the variable is dependent on ice area (aice), ice
-   volume (vice), snow volume (vsno), or something else.  Edit **icedrv_init.F90**.
-
-   - Define ``tr_xyz`` and ``nt_xyz`` variables
-
-   - Add a logical namelist variable ``tr_xyz``
-
-   - Add a line to initialize ``tr_xyz``
-
-   - Add some code to print the namelist variable value to the output file
-
-   - Add code to increment the number of tracers in use, ``ntrcr``, based on namelist input
-
-   - Define the tracer dependency.  Area tracers can be thought of in terms of averages across 
-     the ice area (the tracer value itself) or averages over the grid cell area (tracer * aice).  
-     Volume tracers can be considered in a similar way, but it can also be helpful to think of 
-     the tracer as the “density” of the variable, which when multiplied by the ice or snow volume 
-     gives the total content of the variable in that volume of the ice or snow.  The “total content” 
-     is often a conserved quantity that can be checked during the calculation.
 
 #. If your tracer depends on ocean or atmosphere forcing, use isotopes as an example
 
@@ -143,8 +151,10 @@ Code changes can be tested by rebuilding and rerunning an existing case.
 #. Add the physics calls to Icepack or the driver.  
 
    - Depending on the physics implementation, the
-     new tracer physics calls might be done in **icepack_therm_vertical**, **icedrv_step.F90**, or
+     new tracer physics calls might be done in **icepack_therm_vertical**, **icedrv_step.F90**, and/or
      elsewhere.  See use of subroutines ``update_aerosol``, ``update_isotope``, or ``increment_age``.
+
+   - Pass tracer array into Icepack via public interfaces as needed
    
    - Always use the flag ``tr_xyz`` to determine whether to call these routines.
 
