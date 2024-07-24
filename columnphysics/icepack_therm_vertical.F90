@@ -2810,7 +2810,8 @@
                                        meltsliqn=l_meltsliqn(n), &
                                        frpndn=frpndn(n), &
                                        rfpndn=rfpndn(n), &
-                                       ilpndn=ilpndn(n))
+                                       ilpndn=ilpndn(n), &
+                                       flpndn=flpndn(n))
                if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_pond_topo) then
