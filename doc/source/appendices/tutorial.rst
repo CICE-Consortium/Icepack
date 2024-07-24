@@ -87,7 +87,7 @@ Again, there are many options for setting up the model on hardware, see the Icep
 * Set Up an Icepack Simulation.  See :ref:`quickstart` and :ref:`running_icepack`::
 
     cd ~/Icepack
-    ./icepack.setup --case icepack_test0 --mach conda --env macos -s diag1
+    ./icepack.setup --case icepack_test0 --mach conda --env macos
     cd ~/icepack-dirs/cases/icepack_test0
     ./icepack.build
     ./icepack.submit
