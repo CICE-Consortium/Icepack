@@ -592,7 +592,7 @@ index f471022..70eacbe 100644
  
        end module icedrv_forcing_bgc
 diff --git a/configuration/driver/icedrv_init.F90 b/configuration/driver/icedrv_init.F90
-index c1e738c..c21cfad 100644
+index c1e738c..ed69c07 100644
 --- a/configuration/driver/icedrv_init.F90
 +++ b/configuration/driver/icedrv_init.F90
 @@ -58,7 +58,7 @@ subroutine input_data
@@ -738,13 +738,130 @@ index c1e738c..c21cfad 100644
        endif
 +      if (tr_fluff) then  ! isotopes
 +         do it = 1, n_fluff
-+            trcr_depend(nt_fluff + it -1) = 0   ! area
-+!            trcr_depend(nt_fluff + it -1) = 1   ! ice volume
++!            trcr_depend(nt_fluff + it -1) = 0   ! area
++            trcr_depend(nt_fluff + it -1) = 1   ! ice volume
 +         enddo
 +      endif
        if (tr_aero) then ! volume-weighted aerosols
           do it = 1, n_aero
              trcr_depend(nt_aero+(it-1)*4  ) = 2 ! snow
+diff --git a/configuration/driver/icedrv_restart.F90 b/configuration/driver/icedrv_restart.F90
+index 762d1b3..5a687e8 100644
+--- a/configuration/driver/icedrv_restart.F90
++++ b/configuration/driver/icedrv_restart.F90
+@@ -29,6 +29,7 @@ module icedrv_restart
+           write_restart_snow,      read_restart_snow, &
+           write_restart_fsd,       read_restart_fsd, &
+           write_restart_iso,       read_restart_iso, &
++          write_restart_fluff,     read_restart_fluff, &
+           write_restart_aero,      read_restart_aero
+ 
+       character (len=3), private :: nchar !
+@@ -89,7 +90,7 @@ subroutine dumpfile
+ 
+       logical (kind=log_kind) :: &
+          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
+-         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
++         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd, tr_fluff
+ !         skl_bgc, z_tracers
+ 
+       integer (kind=int_kind) :: dims(2)
+@@ -115,7 +116,7 @@ subroutine dumpfile
+ 
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+-          tr_brine_out=tr_brine, &
++          tr_brine_out=tr_brine, tr_fluff_out=tr_fluff, &
+           tr_pond_topo_out=tr_pond_topo, &
+           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+ !      call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
+@@ -224,6 +225,7 @@ subroutine dumpfile
+       if (tr_aero)      call write_restart_aero(dims)      ! ice aerosols
+       if (tr_brine)     call write_restart_hbrine(dims)    ! brine height
+       if (tr_fsd)       call write_restart_fsd(dims)       ! floe size distribution
++      if (tr_fluff)     call write_restart_fluff(dims)     ! fluffballs
+    ! called in icedrv_RunMod.F90 to prevent circular dependencies
+    !      if (skl_bgc .or. z_tracers) &
+    !                        call write_restart_bgc         ! biogeochemistry
+@@ -275,7 +277,7 @@ subroutine restartfile (ice_ic)
+ 
+       logical (kind=log_kind) :: &
+          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
+-         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
++         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd, tr_fluff
+ 
+       character(len=char_len_long) :: filename
+       character(len=*), parameter :: subname='(restartfile)'
+@@ -290,7 +292,7 @@ subroutine restartfile (ice_ic)
+ 
+       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+-           tr_brine_out=tr_brine, &
++           tr_brine_out=tr_brine, tr_fluff_out=tr_fluff, &
+            tr_pond_topo_out=tr_pond_topo, &
+            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+       call icepack_warnings_flush(nu_diag)
+@@ -399,6 +401,7 @@ subroutine restartfile (ice_ic)
+       if (tr_aero)      call read_restart_aero()      ! ice aerosols
+       if (tr_brine)     call read_restart_hbrine      ! brine height
+       if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
++      if (tr_fluff)     call read_restart_fluff()     ! fluffballs
+ 
+       !-----------------------------------------------------------------
+       ! Ensure ice is binned in correct categories
+@@ -768,6 +771,52 @@ end subroutine read_restart_age
+ 
+ !=======================================================================
+ 
++! Dumps all values needed for restarting
++
++      subroutine write_restart_fluff(dims)
++
++      use icedrv_state, only: trcrn
++      use icedrv_domain_size, only: ncat
++
++      integer (kind=int_kind), intent(in), optional :: &
++         dims(:)           ! netcdf dimension IDs
++
++      integer (kind=int_kind) :: nt_fluff
++      character(len=*), parameter :: subname='(write_restart_fluff)'
++
++      call icepack_query_tracer_indices(nt_fluff_out=nt_fluff)
++      call icepack_warnings_flush(nu_diag)
++      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
++          file=__FILE__,line= __LINE__)
++
++      call write_restart_field(nu_dump,trcrn(:,nt_fluff,:),ncat,'fluff',dims)
++
++      end subroutine write_restart_fluff
++
++!=======================================================================
++
++! Reads all values needed for an ice fluff restart
++
++      subroutine read_restart_fluff()
++
++      use icedrv_state, only: trcrn
++      use icedrv_domain_size, only: ncat
++      integer (kind=int_kind) :: nt_fluff
++      character(len=*), parameter :: subname='(read_restart_fluff)'
++
++      write(nu_diag,*) 'min/max fluff (s)'
++
++      call icepack_query_tracer_indices(nt_fluff_out=nt_fluff)
++      call icepack_warnings_flush(nu_diag)
++      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
++          file=__FILE__,line= __LINE__)
++
++      call read_restart_field(nu_restart,trcrn(:,nt_fluff,:),ncat,'fluff')
++
++      end subroutine read_restart_fluff
++
++!=======================================================================
++
+ ! Dumps all values needed for restarting
+ ! author Elizabeth C. Hunke, LANL
+ 
 diff --git a/configuration/driver/icedrv_step.F90 b/configuration/driver/icedrv_step.F90
 index 0f25b56..1dc844d 100644
 --- a/configuration/driver/icedrv_step.F90
