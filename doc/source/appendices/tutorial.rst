@@ -145,4 +145,4 @@ fluff tracer.  Then update the timeseries plotting script to plot the fluffballs
     git checkout columnphysics/icepack_mechred.F90
     git status
 
-**NOTE:** The file, :doc:fluff.diff, contains code differences for this example using a version of Icepack from July, 2024.  They may not be relevant for the latest code, but provides a sample of the typical code differences required to add the tracer, fluff.
+**NOTE:** The file, :doc:`fluff.diff`, contains code differences for this example using a version of Icepack from July, 2024.  They may not be relevant for the latest code, but provides a sample of the typical code differences required to add the tracer, fluff.
