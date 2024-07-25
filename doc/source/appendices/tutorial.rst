@@ -152,4 +152,4 @@ fluff tracer.  Then update the timeseries plotting script to plot the fluffballs
 
 * Modify the physics to create some physics processes, see isotopes or aerosols for some ideas
 
-**NOTE:** The file, **doc/source/tutorial/fluff.diff** in the Icepack repository, demonstrates code differences for this fluffball activity as implemented in a version of Icepack from July, 2024.  These code difference may not be directly applicable to other code versions, but these diffs provide an example of the typical code differences required to add the tracer, fluff.
+**NOTE:** The file, **doc/source/tutorial/fluff.diff** in the Icepack repository, demonstrates code differences for this fluffball activity as implemented in a version of Icepack from July, 2024.  These code differences may not be directly applicable to other code versions, but they provide an example of the typical code modifications required to add the tracer, fluff.
