@@ -45,8 +45,7 @@
 !
 !  Increase isotope in ice or snow surface due to deposition and loss
 !
-      subroutine update_isotope (dt,                  &
-                                nilyr,    nslyr,      &
+      subroutine update_isotope(dt,                   &
                                 meltt,    melts,      &
                                 meltb,    congel,     &
                                 snoice,   evap,       &
@@ -62,9 +61,6 @@
 
 !     use water_isotopes, only: wiso_alpi
       use icepack_parameters, only: ktherm, rhoi, rhos, Tffresh
-
-      integer (kind=int_kind), intent(in) :: &
-        nilyr, nslyr
 
       real (kind=dbl_kind), intent(in) :: &
         dt                     ! time step

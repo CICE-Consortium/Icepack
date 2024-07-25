@@ -30,6 +30,7 @@
       use icepack_parameters, only: saltflux_option
       use icepack_parameters, only: icepack_chkoptargflag
 
+      use icepack_tracers, only: ncat, nilyr, nslyr
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
       use icepack_tracers, only: n_aero, n_iso
@@ -74,8 +75,7 @@
 ! authors: William H. Lipscomb, LANL
 !          C. M. Bitz, UW
 
-      subroutine thermo_vertical (nilyr,       nslyr,     &
-                                  dt,          aicen,     &
+      subroutine thermo_vertical (dt,          aicen,     &
                                   vicen,       vsnon,     &
                                   Tsf,         zSin,      &
                                   zqin,        zqsn,      &
@@ -104,10 +104,6 @@
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
                                   prescribed_ice)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr   , & ! number of ice layers
-         nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt      , & ! time step
@@ -277,8 +273,7 @@
       ! Compute variables needed for vertical thermo calculation
       !-----------------------------------------------------------------
 
-      call init_vertical_profile (nilyr,    nslyr,   &
-                                  aicen,             &
+      call init_vertical_profile (aicen,             &
                                   vicen,    vsnon,   &
                                   hin,      hilyr,   &
                                   hsn,      hslyr,   &
@@ -308,7 +303,6 @@
          if (ktherm == 2) then
 
             call temperature_changes_salinity(dt,                   &
-                                              nilyr,     nslyr,     &
                                               rhoa,      flw,       &
                                               potT,      Qa,        &
                                               shcoef,    lhcoef,    &
@@ -331,7 +325,6 @@
          else ! ktherm
 
             call temperature_changes(dt,                   &
-                                     nilyr,     nslyr,     &
                                      rhoa,      flw,       &
                                      potT,      Qa,        &
                                      shcoef,    lhcoef,    &
@@ -383,8 +376,7 @@
       ! Repartition ice into equal-thickness layers, conserving energy.
       !-----------------------------------------------------------------
 
-      call thickness_changes(nilyr,       nslyr,     &
-                             dt,          yday,      &
+      call thickness_changes(dt,          yday,      &
                              efinal,                 &
                              hin,         hilyr,     &
                              hsn,         hslyr,     &
@@ -461,8 +453,7 @@
       !   state variables.
       !-----------------------------------------------------------------
 
-      call update_state_vthermo(nilyr,   nslyr,   &
-                                Tbot,    Tsf,     &
+      call update_state_vthermo(Tbot,    Tsf,     &
                                 hin,     hsn,     &
                                 zqin,    zSin,    &
                                 zqsn,             &
@@ -481,8 +472,7 @@
 !         William H. Lipscomb, LANL
 !         Elizabeth C. Hunke, LANL
 
-      subroutine frzmlt_bottom_lateral (dt,       ncat,     &
-                                        nilyr,    nslyr,    &
+      subroutine frzmlt_bottom_lateral (dt,                 &
                                         aice,     frzmlt,   &
                                         vicen,    vsnon,    &
                                         qicen,    qsnon,    &
@@ -493,11 +483,6 @@
                                         Tbot,     fbot,     &
                                         rside,    Cdn_ocn,  &
                                         fside,    wlat)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt                  ! time step
@@ -659,8 +644,7 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 
-      subroutine init_vertical_profile(nilyr,    nslyr,    &
-                                       aicen,    vicen,    &
+      subroutine init_vertical_profile(aicen,    vicen,    &
                                        vsnon,              &
                                        hin,      hilyr,    &
                                        hsn,      hslyr,    &
@@ -668,10 +652,6 @@
                                        zqsn,     zTsn,     &
                                        zSin,               &
                                        einit )
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          aicen , & ! concentration of ice
@@ -993,8 +973,7 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 
-      subroutine thickness_changes (nilyr,     nslyr,    &
-                                    dt,        yday,     &
+      subroutine thickness_changes (dt,        yday,     &
                                     efinal,              &
                                     hin,       hilyr,    &
                                     hsn,       hslyr,    &
@@ -1014,10 +993,6 @@
                                     mlt_onset, frz_onset,&
                                     zSin,      sss,      &
                                     dsnow,     rsnw)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -1521,7 +1496,7 @@
     !-------------------------------------------------------------------
 
       if (ktherm /= 2) &
-         call freeboard (nslyr,    snoice,       &
+         call freeboard (snoice,                 &
                          hin,      hsn,          &
                          zqin,     zqsn,         &
                          dzi,      dzs,          &
@@ -1756,16 +1731,12 @@
 ! authors William H. Lipscomb, LANL
 !         Elizabeth C. Hunke, LANL
 
-      subroutine freeboard (nslyr, &
-                            snoice,             &
+      subroutine freeboard (snoice,             &
                             hin,      hsn,      &
                             zqin,     zqsn,     &
                             dzi,      dzs,      &
                             dsnow,              &
                             massice,  massliq)
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr     ! number of snow layers
 
 !     real (kind=dbl_kind), intent(in) :: &
 !        dt      ! time step
@@ -1999,17 +1970,12 @@
 !         C. M. Bitz, UW
 !         Elizabeth C. Hunke, LANL
 
-      subroutine update_state_vthermo(nilyr,    nslyr,    &
-                                      Tf,       Tsf,      &
+      subroutine update_state_vthermo(Tf,       Tsf,      &
                                       hin,      hsn,      &
                                       zqin,     zSin,     &
                                       zqsn,               &
                                       aicen,    vicen,    &
                                       vsnon)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          Tf              ! freezing temperature (C)
@@ -2070,7 +2036,7 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+      subroutine icepack_step_therm1(dt,                        &
                                     aicen_init  ,               &
                                     vicen_init  , vsnon_init  , &
                                     aice        , aicen       , &
@@ -2158,11 +2124,6 @@
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice, &
                                     zlvs)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat        , & ! number of thickness categories
-         nilyr       , & ! number of ice layers
-         nslyr           ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2512,7 +2473,7 @@
                                    hdraft      , hridge      , &
                                    distrdg     , hkeel       , &
                                    dkeel       , lfloe       , &
-                                   dfloe       , ncat)
+                                   dfloe)
          if (icepack_warnings_aborted(subname)) return
       endif
 
@@ -2522,8 +2483,7 @@
       ! Compute lateral and bottom heat fluxes.
       !-----------------------------------------------------------------
 
-      call frzmlt_bottom_lateral (dt,        ncat,      &
-                                  nilyr,     nslyr,     &
+      call frzmlt_bottom_lateral (dt,                   &
                                   aice,      frzmlt,    &
                                   vicen,     vsnon,     &
                                   zqin,      zqsn,      &
@@ -2642,8 +2602,7 @@
                smliq(:) = smliqn(:,n)
             endif
 
-            call thermo_vertical(nilyr=nilyr,         nslyr=nslyr,             &
-                                 dt=dt,               aicen=aicen         (n), &
+            call thermo_vertical(dt=dt,               aicen=aicen         (n), &
                                  vicen=vicen     (n), vsnon=vsnon         (n), &
                                  Tsf=Tsfc        (n), zSin=zSin         (:,n), &
                                  zqin=zqin     (:,n), zqsn=zqsn         (:,n), &
@@ -2697,7 +2656,6 @@
 
             if (tr_aero) then
                call update_aerosol (dt,                             &
-                                    nilyr, nslyr, n_aero,           &
                                     melttn     (n), meltsn     (n), &
                                     meltbn     (n), congeln    (n), &
                                     snoicen    (n), fsnow,          &
@@ -2712,7 +2670,6 @@
 
             if (tr_iso) then
                call update_isotope (dt = dt, &
-                                    nilyr = nilyr, nslyr = nslyr,          &
                                     meltt = melttn(n),melts = meltsn(n),   &
                                     meltb = meltbn(n),congel=congeln(n),   &
                                     snoice=snoicen(n),evap=evapn,          &
@@ -2737,8 +2694,7 @@
          endif   ! aicen_init
 
          if (snwgrain) then
-            call drain_snow (nslyr = nslyr, &
-                             vsnon = vsnon(n), &
+            call drain_snow (vsnon = vsnon(n), &
                              aicen = aicen(n), &
                              massice = massicen(:,n), &
                              massliq = massliqn(:,n), &
@@ -2908,12 +2864,12 @@
       !-----------------------------------------------------------------
       !call ice_timer_start(timer_ponds)
       if (tr_pond_topo) then
-         call compute_ponds_topo(dt,       ncat,      nilyr,     &
+         call compute_ponds_topo(dt,                             &
                                  ktherm,                         &
                                  aice,     aicen,                &
                                  vice,     vicen,                &
                                  vsno,     vsnon,                &
-                                 meltt,                &
+                                 meltt,                          &
                                  fsurf,    fpond,                &
                                  Tsfc,     Tf,                   &
                                  zqin,     zSin,                 &

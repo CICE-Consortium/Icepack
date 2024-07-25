@@ -81,14 +81,14 @@
       call init_calendar        ! initialize some calendar stuff
       call init_coupler_flux    ! initialize fluxes exchanged with coupler
       call init_thermo_vertical ! initialize vertical thermodynamics
-      call icepack_init_itd(ncat=ncat, hin_max=hin_max)
+      call icepack_init_itd(hin_max=hin_max)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
-      call icepack_init_itd_hist(ncat=ncat, c_hi_range=c_hi_range, hin_max=hin_max) ! output
+      call icepack_init_itd_hist(c_hi_range=c_hi_range, hin_max=hin_max) ! output
 
       call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
@@ -98,7 +98,6 @@
 
       if (tr_fsd) then
          call icepack_init_fsd_bounds(   &
-            nfsd=nfsd,                   &  ! floe size distribution
             floe_rad_l=floe_rad_l,       &  ! fsd size lower bound in m (radius)
             floe_rad_c=floe_rad_c,       &  ! fsd size bin centre in m (radius)
             floe_binwidth=floe_binwidth, &  ! fsd size bin width in m (radius)
@@ -234,8 +233,7 @@
       !-----------------------------------------------------------------
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate(ncat=ncat,          &
-                                aicen=aicen(i,:),   &
+         call icepack_aggregate(aicen=aicen(i,:),   &
                                 vicen=vicen(i,:),   &
                                 vsnon=vsnon(i,:),   &
                                 trcrn=trcrn(i,:,:), &
@@ -244,7 +242,6 @@
                                 vsno=vsno (i),      &
                                 trcr=trcr (i,:),    &
                                 aice0=aice0(i),     &
-                                ntrcr=max_ntrcr,    &
                                 trcr_depend=trcr_depend, &
                                 trcr_base=trcr_base,     &
                                 n_trcr_strata=n_trcr_strata, &

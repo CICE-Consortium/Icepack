@@ -45,7 +45,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, c4, p01, p1, p5, puny
       use icepack_parameters, only: pi, floeshape, wave_spec, bignum, gravit, rhoi
-      use icepack_tracers, only: nt_fsd, tr_fsd
+      use icepack_tracers, only: nt_fsd, tr_fsd, nfsd, ncat
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -84,15 +84,12 @@
 !
 !  authors: Lettie Roach, NIWA/VUW and C. M. Bitz, UW
 
-      subroutine icepack_init_fsd_bounds(nfsd, &
+      subroutine icepack_init_fsd_bounds( &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth, &  ! fsd size bin width in m (radius)
          c_fsd_range,   &  ! string for history output
          write_diags    )  ! flag for writing diagnostics
-
-      integer (kind=int_kind), intent(in) :: &
-         nfsd              ! number of floe size categories
 
       real(kind=dbl_kind), dimension(:), intent(inout) ::  &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
@@ -259,13 +256,10 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 
-      subroutine icepack_init_fsd(nfsd, ice_ic, &
+      subroutine icepack_init_fsd(ice_ic, &
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth, &  ! fsd size bin width in m (radius)
          afsd)             ! floe size distribution tracer
-
-      integer(kind=int_kind), intent(in) :: &
-         nfsd
 
       character(len=char_len_long), intent(in) :: &
          ice_ic            ! method of ice cover initialization
@@ -316,11 +310,7 @@
 !
 !  authors:  Elizabeth Hunke, LANL
 !
-      subroutine icepack_cleanup_fsd (ncat, nfsd, afsdn)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat           , & ! number of thickness categories
-         nfsd               ! number of floe size categories
+      subroutine icepack_cleanup_fsd (afsdn)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          afsdn              ! floe size distribution tracer
@@ -337,7 +327,7 @@
       if (tr_fsd) then
 
          do n = 1, ncat
-            call icepack_cleanup_fsdn(nfsd, afsdn(:,n))
+            call icepack_cleanup_fsdn(afsdn(:,n))
             if (icepack_warnings_aborted(subname)) return
          enddo
 
@@ -352,10 +342,7 @@
 !  authors:  Elizabeth Hunke, LANL
 !
 
-      subroutine icepack_cleanup_fsdn (nfsd, afsd)
-
-      integer (kind=int_kind), intent(in) :: &
-         nfsd               ! number of floe size categories
+      subroutine icepack_cleanup_fsdn (afsd)
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          afsd               ! floe size distribution tracer
@@ -391,15 +378,10 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 
-      subroutine partition_area (ncat,       nfsd,      &
-                                 floe_rad_c, aice,      &
+      subroutine partition_area (floe_rad_c, aice,      &
                                  aicen,      vicen,     &
                                  afsdn,      lead_area, &
                                  latsurf_area)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat           , & ! number of thickness categories
-         nfsd               ! number of floe size categories
 
       real (kind=dbl_kind), dimension(:), intent(in) ::  &
          floe_rad_c         ! fsd size bin centre in m (radius)
@@ -491,8 +473,7 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 !
-      subroutine fsd_lateral_growth (ncat,      nfsd,         &
-                                     dt,        aice,         &
+      subroutine fsd_lateral_growth (dt,        aice,         &
                                      aicen,     vicen,        &
                                      vi0new,                  &
                                      frazil,    floe_rad_c,   &
@@ -500,10 +481,6 @@
                                      lead_area, latsurf_area, &
                                      G_radial,  d_an_latg,    &
                                      tot_latg)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat           , & ! number of thickness categories
-         nfsd               ! number of floe size categories
 
       real (kind=dbl_kind), intent(in) :: &
          dt             , & ! time step (s)
@@ -552,8 +529,7 @@
       d_an_latg    = c0
 
       ! partition volume into lateral growth and frazil
-      call partition_area (ncat,       nfsd,      &
-                           floe_rad_c, aice,      &
+      call partition_area (floe_rad_c, aice,      &
                            aicen,      vicen,     &
                            afsdn,      lead_area, &
                            latsurf_area)
@@ -610,7 +586,7 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 !
-      subroutine fsd_add_new_ice (ncat, n,    nfsd,          &
+      subroutine fsd_add_new_ice (n, &
                                   dt,         ai0new,        &
                                   d_an_latg,  d_an_newi,     &
                                   floe_rad_c, floe_binwidth, &
@@ -625,9 +601,7 @@
                                   aicen,      trcrn)
 
       integer (kind=int_kind), intent(in) :: &
-         n          , & ! thickness category number
-         ncat       , & ! number of thickness categories
-         nfsd           ! number of floe size categories
+         n              ! thickness category number
 
       real (kind=dbl_kind), intent(in) :: &
          dt         , & ! time step (s)
@@ -722,7 +696,7 @@
              end do
 
             ! timestep required for this
-            subdt = get_subdt_fsd(nfsd, afsdn_latg(:,n), dafsd_tmp(:))
+            subdt = get_subdt_fsd(afsdn_latg(:,n), dafsd_tmp(:))
             subdt = MIN(subdt, dt)
 
             ! update fsd and elapsed time
@@ -731,7 +705,7 @@
 
          END DO
 
-         call icepack_cleanup_fsdn (nfsd, afsdn_latg(:,n))
+         call icepack_cleanup_fsdn (afsdn_latg(:,n))
          if (icepack_warnings_aborted(subname)) return
          trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
 
@@ -748,7 +722,7 @@
 
                if (wave_spec) then
                   if (wave_sig_ht > puny) then
-                     call wave_dep_growth (nfsd, wave_spectrum, &
+                     call wave_dep_growth (wave_spectrum, &
                                            wavefreq, dwavefreq, &
                                            new_size)
                      if (icepack_warnings_aborted(subname)) return
@@ -776,7 +750,7 @@
 
                if (wave_spec) then
                   if (wave_sig_ht > puny) then
-                     call wave_dep_growth (nfsd, wave_spectrum, &
+                     call wave_dep_growth (wave_spectrum, &
                                            wavefreq, dwavefreq, &
                                            new_size)
                      if (icepack_warnings_aborted(subname)) return
@@ -790,7 +764,7 @@
             endif ! entirely new ice or not
 
             trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_ni(:)
-            call icepack_cleanup_fsdn (nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,n))
+            call icepack_cleanup_fsdn (trcrn(nt_fsd:nt_fsd+nfsd-1,n))
             if (icepack_warnings_aborted(subname)) return
          endif ! d_an_newi > puny
       endif    ! n = 1
@@ -818,12 +792,9 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 !
-      subroutine wave_dep_growth (nfsd, local_wave_spec, &
+      subroutine wave_dep_growth (local_wave_spec, &
                                   wavefreq, dwavefreq, &
                                   new_size)
-
-      integer (kind=int_kind), intent(in) :: &
-         nfsd            ! number of floe size categories
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          local_wave_spec ! ocean surface wave spectrum as a function of frequency
@@ -879,14 +850,9 @@
 !  authors: Lettie Roach, NIWA/VUW
 !
 
-      subroutine fsd_weld_thermo (ncat,  nfsd,   &
-                                  dt,    frzmlt, &
+      subroutine fsd_weld_thermo (dt,    frzmlt, &
                                   aicen, trcrn,  &
                                   d_afsd_weld)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat       , & ! number of thickness categories
-         nfsd           ! number of floe size categories
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! time step (s)
@@ -948,7 +914,7 @@
          d_afsd_weld (:)   = c0
          d_afsdn_weld(:,n) = c0
          afsdn(:,n) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
-         call icepack_cleanup_fsdn (nfsd, afsdn(:,n))
+         call icepack_cleanup_fsdn (afsdn(:,n))
          if (icepack_warnings_aborted(subname)) return
 
          ! If there is some ice in the lower (nfsd-1) categories
@@ -1010,7 +976,7 @@
             END DO ! time
 
             afsdn(:,n) = afsd_tmp(:)
-            call icepack_cleanup_fsdn (nfsd, afsdn(:,n))
+            call icepack_cleanup_fsdn (afsdn(:,n))
             if (icepack_warnings_aborted(subname)) return
 
             do k = 1, nfsd
@@ -1039,11 +1005,8 @@
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
 !
-      function get_subdt_fsd(nfsd, afsd_init, d_afsd) &
+      function get_subdt_fsd(afsd_init, d_afsd) &
                               result(subdt)
-
-      integer (kind=int_kind), intent(in) :: &
-         nfsd       ! number of floe size categories
 
       real (kind=dbl_kind), dimension (nfsd), intent(in) :: &
          afsd_init, d_afsd ! floe size distribution tracer

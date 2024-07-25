@@ -64,7 +64,7 @@
       use icepack_tracers,    only: nmodal1, nmodal2, max_aero
       use icepack_shortwave_data, only: nspint_3bd, nspint_5bd, rsnw_datatype
       use icepack_zbgc_shared,only: R_chl2N, F_abs_chl
-      use icepack_zbgc_shared,only: remap_zbgc
+      use icepack_zbgc_shared,only: remap_zbgc, igrid, swgrid
       use icepack_orbital,    only: compute_coszen
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -3492,9 +3492,10 @@
       do k = 1,nilyr+1
          icegrid(k) = sw_grid(k)
       enddo
-      if (sw_grid(1)*hin*c2 > hi_ssl) then
+      if (sw_grid(1)*hin*c2 > hi_ssl .and. hin > puny) then
          icegrid(1) = hi_ssl/c2/hin
       endif
+      icegrid(2) = c2*sw_grid(1) + (sw_grid(2) - sw_grid(1))
 
       if (z_tracers) then
       if (tr_bgc_N)  then
@@ -3704,7 +3705,6 @@
 !          Elizabeth C. Hunke, LANL
 
       subroutine icepack_step_radiation (dt,                 &
-                                        swgrid,   igrid,     &
                                         fbri,                &
                                         aicen,    vicen,     &
                                         vsnon,    Tsfcn,     &
@@ -3765,12 +3765,6 @@
 
       real (kind=dbl_kind), intent(inout) :: &
          coszen        ! cosine solar zenith angle, < 0 for sun below horizon
-
-      real (kind=dbl_kind), dimension (:), intent(in) :: &
-         igrid         ! biology vertical interface points
-
-      real (kind=dbl_kind), dimension (:), intent(in) :: &
-         swgrid        ! grid for ice tracers used in dEdd scheme
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen     , & ! ice area fraction in each category

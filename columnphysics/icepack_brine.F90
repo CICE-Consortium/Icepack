@@ -7,19 +7,19 @@
       module icepack_brine
 
       use icepack_kinds
-      use icepack_parameters, only: p01, p001, p5, c0, c1, c2, c1p5, puny
+      use icepack_parameters, only: p01, p001, p5, c0, c1, c2, c1p5, puny, p25
       use icepack_parameters, only: gravit, rhoi, rhow, rhos, depressT
       use icepack_parameters, only: salt_loss, min_salin, rhosi
       use icepack_parameters, only: dts_b, l_sk
-      use icepack_tracers, only: ntrcr, nt_qice, nt_sice
+      use icepack_tracers, only: nilyr, nblyr, ntrcr, nt_qice, nt_sice
       use icepack_tracers, only: nt_Tsfc
       use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
+      use icepack_zbgc_shared, only: bgrid, cgrid, igrid, swgrid, icgrid
       use icepack_zbgc_shared, only: remap_zbgc
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
-      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       implicit none
 
@@ -62,7 +62,7 @@
                                       meltb,    meltt,    congel,     &
                                       snoice,   hice_old, dhice,      &
                                       fbri,     dhbr_top, dhbr_bot,   &
-                                      hbr_old,  hin,hsn,  firstice    )
+                                      hbr_old,  hin,      hsn)
 
       real (kind=dbl_kind), intent(in) :: &
          aicen        , & ! concentration of ice
@@ -86,9 +86,6 @@
          dhbr_top     , & ! brine change in top for diagnostics (m)
          dhbr_bot     , & ! brine change in bottom for diagnostics (m)
          hice_old         ! old ice thickness (m)
-
-      logical (kind=log_kind), intent(in) :: &
-         firstice         ! if true, initialized values should be used
 
       ! local variables
 
@@ -117,14 +114,6 @@
       dhbr_top = meltt - snoice - dhice
       dhbr_bot = congel - meltb
 
-      if ((hice_old < puny) .OR. (hin_old < puny) .OR. firstice) then
-         hice_old   = hin
-         dhbr_top   = c0
-         dhbr_bot   = c0
-         dhice       = c0
-         fbri       = c1
-      endif
-
       hbr_old = fbri * hice_old
 
       end subroutine preflushing_changes
@@ -135,28 +124,13 @@
 ! NOTE: This subroutine uses thermosaline_vertical output to compute
 ! average ice permeability and the surface ice porosity
 
-      subroutine compute_microS_mushy (nilyr,      nblyr,      &
-                                       bgrid,    cgrid,      igrid,      &
-                                       trcrn,    hice_old,   hbr_old,    &
+      subroutine compute_microS_mushy (trcrn,    hice_old,   hbr_old,    &
                                        sss,      sst,        bTin,       &
                                        iTin,     bphin,                  &
-                                       kperm,    bphi_min,   &
+                                       kperm,    bphi_min,               &
                                        bSin,     brine_sal,  brine_rho,  &
                                        iphin,    ibrine_rho, ibrine_sal, &
-                                       sice_rho, iDin                    )
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr       , & ! number of ice layers
-         nblyr           ! number of bio layers
-
-      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         bgrid           ! biology nondimensional vertical grid points
-
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid           ! biology vertical interface points
-
-      real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid           ! CICE vertical coordinate
+                                       iDin,     iSin)
 
       real (kind=dbl_kind), intent(in) :: &
          hice_old    , & ! previous timestep ice height (m)
@@ -170,7 +144,7 @@
          kperm       , & ! average ice permeability (m^2)
          bphi_min        ! surface porosity
 
-      real (kind=dbl_kind), intent(inout) :: &
+      real (kind=dbl_kind), intent(in) :: &
          hbr_old         ! previous timestep brine height (m)
 
       real (kind=dbl_kind), dimension (nblyr+1), intent(inout)  :: &
@@ -180,7 +154,8 @@
          iphin       , & ! porosity on the igrid
          ibrine_rho  , & ! brine rho on interface
          ibrine_sal  , & ! brine sal on interface
-         iTin            ! Temperature on the igrid (oC)
+         iTin        , & ! Temperature on the igrid (oC)
+         iSin            ! Salinity on the igrid (ppt)
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(inout)  :: &
          bSin        , & ! bulk salinity (ppt) on bgrid
@@ -191,10 +166,15 @@
          bTin        , & ! Temperature on bgrid
          bphin           ! porosity on bgrid
 
-      real (kind=dbl_kind), intent(inout) :: &
-         sice_rho        ! average ice density
+      ! local variables
+
+      real (kind=dbl_kind), dimension (nilyr) :: &
+         cSin        , & ! bulk salinity (ppt)
+         cqin            ! enthalpy ()
 
       real (kind=dbl_kind), dimension (nblyr+2) :: &
+         zTin        , & ! Temperature of ice layers on bgrid (C)
+         zSin        , & ! Salinity of ice layers on bgrid (C)
          bqin            ! enthalpy on the bgrid ()
 
       real (kind=dbl_kind), dimension (nblyr+1) :: &
@@ -205,7 +185,8 @@
 
       real (kind=dbl_kind) :: &
          surface_S   , & ! salinity of ice above hin > hbr
-         hinc_old        ! mean ice thickness before current melt/growth (m)
+         hinc_old    , & ! mean ice thickness before current melt/growth (m)
+         hbrc_old        ! mean brine thickness before current melt/growth (m)
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: & ! nblyr+2)
          trtmp_s     , & ! temporary, remapped tracers
@@ -227,9 +208,13 @@
       trtmp_q(:) = c0
       iDin(:) = c0
 
+      do k = 1, nilyr
+         cSin(k) = trcrn(nt_sice+k-1)
+         cqin(k) = trcrn(nt_qice+k-1)
+      enddo
+
       ! map Sin and qin (cice) profiles to bgc grid
       surface_S = min_salin
-      hbr_old   = min(hbr_old, maxhbr*hice_old)
       hinc_old  = hice_old
 
       call remap_zbgc(nilyr,          &
@@ -269,18 +254,15 @@
       ! Define ice multiphase structure
       !-----------------------------------------------------------------
 
-      call prepare_hbrine (nblyr, &
-                           bSin,          bTin,          iTin,       &
+      call prepare_hbrine (bSin,          bTin,          iTin,       &
                            brine_sal,     brine_rho,                 &
                            ibrine_sal,    ibrine_rho,                &
-                           sice_rho,                                 &
                            bphin,         iphin,                     &
-                           kperm,         bphi_min, &
-                           igrid,         sss)
+                           kperm,         bphi_min,                  &
+                           sss,           iSin)
       if (icepack_warnings_aborted(subname)) return
 
-      call calculate_drho(nblyr, igrid, bgrid,             &
-                          brine_rho,    ibrine_rho, drho)
+      call calculate_drho(brine_rho,    ibrine_rho, drho)
       if (icepack_warnings_aborted(subname)) return
 
       do k= 2, nblyr+1
@@ -295,21 +277,16 @@
 
 !=======================================================================
 
-      subroutine prepare_hbrine (nblyr, &
-                                 bSin,       bTin,      iTin, &
+      subroutine prepare_hbrine (bSin,       bTin,      iTin, &
                                  brine_sal,  brine_rho,       &
                                  ibrine_sal, ibrine_rho,      &
-                                 sice_rho,   bphin,     iphin,&
+                                 bphin,      iphin,           &
                                  kperm,      bphi_min,        &
-                                 i_grid,     sss)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr          ! number of bio layers
+                                 sss,        iSin)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          bSin       , & ! salinity of ice layers on bio grid (ppt)
-         bTin       , & ! temperature of ice layers on bio grid for history (C)
-         i_grid         ! biology grid interface points
+         bTin           ! temperature of ice layers on bio grid for history (C)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          brine_sal  , & ! equilibrium brine salinity (ppt)
@@ -318,7 +295,8 @@
          ibrine_sal , & ! brine salinity on interface (ppt)
          iphin      , & ! porosity on interface
          iTin       , & ! Temperature on interface
-         bphin          ! porosity of layers
+         bphin      , & ! porosity of layers
+         iSin           ! Bulk salinity on interface
 
       real (kind=dbl_kind), intent(in) :: &
          sss            ! sea surface salinity (ppt)
@@ -326,9 +304,6 @@
       real (kind=dbl_kind), intent(out) :: &
          kperm      , & ! harmonic average permeability (m^2)
          bphi_min       ! minimum porosity
-
-      real (kind=dbl_kind), intent(inout) :: &
-         sice_rho       ! avg sea ice density
 
       ! local variables
 
@@ -348,14 +323,12 @@
       !  calculate equilibrium brine density and gradients
       !-----------------------------------------------------------------
 
-      sice_rho = c0
-
       do k = 1, nblyr+1
 
          if (k == 1) then
             igrm = 0
          else
-            igrm = i_grid(k) - i_grid(k-1)
+            igrm = igrid(k) - igrid(k-1)
          endif
 
          brine_sal(k) = a1*bTin(k)    &
@@ -366,8 +339,6 @@
                       / (brine_sal(k)*brine_rho(k)))
          bphin    (k) = min(c1, bphin(k))
          kin      (k) = k_o*bphin(k)**exp_h
-         sice_rho     = sice_rho + (rhoi*(c1-bphin(k)) &
-                      + brine_rho(k)*bphin(k))*igrm
       enddo    ! k
 
       brine_sal (nblyr+2) = sss
@@ -379,6 +350,8 @@
       ibrine_rho(nblyr+1) = brine_rho (nblyr+2)
       iTin      (1)       = bTin(2)
       iTin      (nblyr+1) = bTin(nblyr+1)
+      iSin      (1)       = bSin(2)
+      iSin      (nblyr+1) = bSin(nblyr+1)
       iphin     (1)       = bphin     (2)
       iphin     (nblyr+1) = bphin     (nblyr+1)
       k_min               = MINVAL(kin(2:nblyr+1))
@@ -394,13 +367,14 @@
             kperm = k_min
          endif
 
-         igrp = i_grid(k+1) - i_grid(k  )
-         igrm = i_grid(k  ) - i_grid(k-1)
-         rigr = c1 / (i_grid(k+1)-i_grid(k-1))
+         igrp = igrid(k+1) - igrid(k  )
+         igrm = igrid(k  ) - igrid(k-1)
+         rigr = c1 / (igrid(k+1)-igrid(k-1))
 
          ibrine_sal(k) = (brine_sal(k+1)*igrp + brine_sal(k)*igrm) * rigr
          ibrine_rho(k) = (brine_rho(k+1)*igrp + brine_rho(k)*igrm) * rigr
          iTin      (k) = (bTin     (k+1)*igrp + bTin     (k)*igrm) * rigr
+         iSin      (k) = (bSin     (k+1)*igrp + bSin     (k)*igrm) * rigr
          iphin     (k) = max(puny, &
                          (bphin    (k+1)*igrp + bphin    (k)*igrm) * rigr)
          iphin     (k) = min(c1, iphin (k))
@@ -426,12 +400,12 @@
 ! ice.  This volume fraction may be > 1 in which case there is brine
 ! above the ice surface (ponds).
 
-      subroutine update_hbrine (meltt,       &
+      subroutine update_hbrine (meltt,                   &
                                 melts,      dt,          &
                                 hin,        hsn,         &
                                 hin_old,    hbr,         &
-                                hbr_old,    &
-                                fbri,       &
+                                hbr_old,                 &
+                                fbri,                    &
                                 dhS_top,    dhS_bottom,  &
                                 dh_top_chl, dh_bot_chl,  &
                                 kperm,      bphi_min,    &
@@ -561,17 +535,7 @@
 ! Find density difference about interface grid points
 ! for gravity drainage parameterization
 
-      subroutine calculate_drho (nblyr,     i_grid,     b_grid, &
-                                 brine_rho, ibrine_rho, drho)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr        ! number of bio layers
-
-      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         b_grid       ! biology nondimensional grid layer points
-
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         i_grid       ! biology grid interface points
+      subroutine calculate_drho (brine_rho, ibrine_rho, drho)
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
          brine_rho    ! Internal brine density (kg/m^3)
@@ -606,29 +570,29 @@
        rho_2b(:) = c0
        drho  (:) = c0 ! surface is snow or atmosphere
 
-       do k = 1, nblyr+1   ! i_grid values
+       do k = 1, nblyr+1   ! igrid values
 
          !----------------------------------------------
-         ! h_avg(k) = i_grid(k)
-         ! Calculate rho_a(k), ie  average rho above i_grid(k)
+         ! h_avg(k) = igrid(k)
+         ! Calculate rho_a(k), ie  average rho above igrid(k)
          ! first part is good
          !----------------------------------------------
 
          if (k == 2) then
-            rho_a(2) = (brine_rho(2)*b_grid(2) &
+            rho_a(2) = (brine_rho(2)*bgrid(2) &
                      + (ibrine_rho(2) + brine_rho(2)) &
-                     * p5*(i_grid(2)-b_grid(2)) )/i_grid(2)
+                     * p5*(igrid(2)-bgrid(2)) )/igrid(2)
             rho_b(2) = brine_rho(2)
 
          elseif (k > 2 .AND. k < nblyr+1) then
-            rho_a(k) = (rho_a(k-1)*i_grid(k-1)   + (ibrine_rho(k-1) + brine_rho(k)) &
-                     * p5*(b_grid(k)-i_grid(k-1)) + (ibrine_rho(k  ) + brine_rho(k)) &
-                     * p5*(i_grid(k)-b_grid(k)))/i_grid(k)
+            rho_a(k) = (rho_a(k-1)*igrid(k-1)   + (ibrine_rho(k-1) + brine_rho(k)) &
+                     * p5*(bgrid(k)-igrid(k-1)) + (ibrine_rho(k  ) + brine_rho(k)) &
+                     * p5*(igrid(k)-bgrid(k)))/igrid(k)
             rho_b(k) = brine_rho(k)
          else
-            rho_a(nblyr+1) = (rho_a(nblyr)*i_grid(nblyr) + (ibrine_rho(nblyr) + &
-                        brine_rho(nblyr+1))*p5*(b_grid(nblyr+1)-i_grid(nblyr)) + &
-                        brine_rho(nblyr+1)*(i_grid(nblyr+1)-b_grid(nblyr+1)))/i_grid(nblyr+1)
+            rho_a(nblyr+1) = (rho_a(nblyr)*igrid(nblyr) + (ibrine_rho(nblyr) + &
+                        brine_rho(nblyr+1))*p5*(bgrid(nblyr+1)-igrid(nblyr)) + &
+                        brine_rho(nblyr+1)*(igrid(nblyr+1)-bgrid(nblyr+1)))/igrid(nblyr+1)
             rho_a(1) = brine_rho(2)   !for k == 1 use grid point value
             rho_b(nblyr+1) = brine_rho(nblyr+1)
             rho_b(1) =  brine_rho(2)
@@ -640,10 +604,10 @@
      ! Calculate average above and below k rho_2a
      !----------------------------------------------
 
-     do k = 1, nblyr+1   !i_grid values
+     do k = 1, nblyr+1   !igrid values
         if (k == 1) then
-           rho_2a(1) = (rho_a(1)*b_grid(2) + p5*(brine_rho(2) + ibrine_rho(2)) &
-                     * (i_grid(2)-b_grid(2)))/i_grid(2)
+           rho_2a(1) = (rho_a(1)*bgrid(2) + p5*(brine_rho(2) + ibrine_rho(2)) &
+                     * (igrid(2)-bgrid(2)))/igrid(2)
            rho_2b(1) = brine_rho(2)
         else
            mstop = 2*(k-1) + 1
@@ -657,7 +621,7 @@
            endif
 
            do mm = mstart,mstop
-              rho_2a(k) =(rho_a(nblyr+1) + rhow*(c2*i_grid(k)-c1))*p5/i_grid(k)
+              rho_2a(k) =(rho_a(nblyr+1) + rhow*(c2*igrid(k)-c1))*p5/igrid(k)
            enddo
            rho_2b(k) = brine_rho(k+1)
         endif
@@ -671,26 +635,22 @@
 !autodocument_start icepack_init_hbrine
 !  Initialize brine height tracer
 
-      subroutine icepack_init_hbrine(bgrid, igrid, cgrid, &
-          icgrid, swgrid, nblyr, nilyr, phi_snow)
+      subroutine icepack_init_hbrine(bgrid_out, igrid_out, cgrid_out, &
+          icgrid_out, swgrid_out, phi_snow)
 
-      integer (kind=int_kind), intent(in) :: &
-         nilyr, & ! number of ice layers
-         nblyr    ! number of bio layers
-
-      real (kind=dbl_kind), intent(inout) :: &
+      real (kind=dbl_kind), optional, intent(inout) :: &
          phi_snow           ! porosity at the ice-snow interface
 
-      real (kind=dbl_kind), dimension (nblyr+2), intent(out) :: &
-         bgrid              ! biology nondimensional vertical grid points
+      real (kind=dbl_kind), optional, dimension (:), intent(out) :: &
+         bgrid_out          ! biology nondimensional vertical grid points
 
-      real (kind=dbl_kind), dimension (nblyr+1), intent(out) :: &
-         igrid              ! biology vertical interface points
+      real (kind=dbl_kind), optional, dimension (:), intent(out) :: &
+         igrid_out          ! biology vertical interface points
 
-      real (kind=dbl_kind), dimension (nilyr+1), intent(out) :: &
-         cgrid         , &  ! CICE vertical coordinate
-         icgrid        , &  ! interface grid for CICE (shortwave variable)
-         swgrid             ! grid for ice tracers used in dEdd scheme
+      real (kind=dbl_kind), optional, dimension (:), intent(out) :: &
+         cgrid_out     , &  ! CICE vertical coordinate
+         icgrid_out    , &  ! interface grid for CICE (shortwave variable)
+         swgrid_out         ! grid for ice tracers used in dEdd scheme
 
 !autodocument_end
 
@@ -704,8 +664,17 @@
 
       character(len=*),parameter :: subname='(icepack_init_hbrine)'
 
+      !-----------------------------------------------------------------
 
-      if (phi_snow .le. c0) phi_snow = c1-rhos/rhoi
+      if (present(phi_snow)) then
+        if (phi_snow .le. c0) phi_snow = c1-rhos/rhoi
+      endif
+
+      allocate(bgrid (nblyr+2))
+      allocate(igrid (nblyr+1))
+      allocate(cgrid (nilyr+1))
+      allocate(icgrid(nilyr+1))
+      allocate(swgrid(nilyr+1))
 
       !-----------------------------------------------------------------
       ! Calculate bio gridn: 0 to 1 corresponds to ice top to bottom
@@ -755,11 +724,17 @@
       ! swgrid represents the layer index of the delta-eddington ice layer index
       !------------------------------------------------------------------------
       zspace = c1/(real(nilyr,kind=dbl_kind)) ! CICE grid spacing
-      swgrid(1) = min(c1/60.0_dbl_kind, zspace/c2)
+      swgrid(1) = min(c1/60.0_dbl_kind, zspace*p25) !p5 to p25. NJ: allows thinner surface layers
       swgrid(2) = zspace/c2                   !+ swgrid(1)
       do k = 3, nilyr+1
          swgrid(k) = zspace * (real(k,kind=dbl_kind)-c1p5)
       enddo
+
+      if (present( bgrid_out))  bgrid_out=bgrid
+      if (present( cgrid_out))  cgrid_out=cgrid
+      if (present( igrid_out))  igrid_out=igrid
+      if (present(icgrid_out)) icgrid_out=icgrid
+      if (present(swgrid_out)) swgrid_out=swgrid
 
       end subroutine icepack_init_hbrine
 
@@ -768,14 +743,8 @@
 !  **DEPRECATED**, all code removed
 !  Interface provided for backwards compatibility
 
-      subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
-               Rayleigh_real, trcrn_bgc, nt_bgc_S, ncat, sss)
-
-      integer (kind=int_kind), intent(in) :: &
-       nblyr  , & ! number of biolayers
-       ntrcr_o, & ! number of non bio tracers
-       ncat   , & ! number of categories
-       nt_bgc_S   ! zsalinity index
+      subroutine icepack_init_zsalinity(Rayleigh_criteria, &
+               Rayleigh_real, trcrn_bgc, sss)
 
       logical (kind=log_kind), intent(inout) :: &
        Rayleigh_criteria

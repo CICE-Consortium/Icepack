@@ -28,6 +28,8 @@ restart        col     1x1        diag1
 restart        col     1x1        pondlvl
 restart        col     1x1        pondtopo
 restart        col     1x1        bgcispol
+restart        col     1x1        bgcnice
+restart        col     1x1        bgcsklnice
 restart        col     1x1        thermo1
 restart        col     1x1        swccsm3
 restart        col     1x1        isotope

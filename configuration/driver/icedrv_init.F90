@@ -1250,8 +1250,7 @@
          enddo
 
          if (tmask(i)) &
-         call icepack_aggregate(ncat=ncat,                    &
-                                trcrn=trcrn(i,1:ntrcr,:),     &
+         call icepack_aggregate(trcrn=trcrn(i,1:ntrcr,:),     &
                                 aicen=aicen(i,:),             &
                                 vicen=vicen(i,:),             &
                                 vsnon=vsnon(i,:),             &
@@ -1260,7 +1259,6 @@
                                 vice=vice (i),                &
                                 vsno=vsno (i),                &
                                 aice0=aice0(i),               &
-                                ntrcr=ntrcr,                  &
                                 trcr_depend=trcr_depend(1:ntrcr),     &
                                 trcr_base=trcr_base    (1:ntrcr,:),   &
                                 n_trcr_strata=n_trcr_strata(1:ntrcr), &
@@ -1433,11 +1431,10 @@
                                 Sprofile = salinz(i,:), &
                                 Tprofile = Tmltz(i,:),  &
                                 Tsfc     = Tsfc,        &
-                                nilyr=nilyr, nslyr=nslyr, &
                                 qin=qin(:), qsn=qsn(:))
 
          ! floe size distribution
-         if (tr_fsd) call icepack_init_fsd(nfsd=nfsd, ice_ic=ice_ic, &
+         if (tr_fsd) call icepack_init_fsd(ice_ic=ice_ic, &
                                   floe_rad_c=floe_rad_c,             &
                                   floe_binwidth=floe_binwidth,       &
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
@@ -1505,10 +1502,9 @@
                                 Sprofile = salinz(i,:), &
                                 Tprofile = Tmltz(i,:),  &
                                 Tsfc     = Tsfc,        &
-                                nilyr=nilyr, nslyr=nslyr, &
                                 qin=qin(:), qsn=qsn(:))
          ! floe size distribution
-         if (tr_fsd) call icepack_init_fsd(nfsd=nfsd, ice_ic=ice_ic, &
+         if (tr_fsd) call icepack_init_fsd(ice_ic=ice_ic, &
                                   floe_rad_c=floe_rad_c,             &
                                   floe_binwidth=floe_binwidth,       &
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
