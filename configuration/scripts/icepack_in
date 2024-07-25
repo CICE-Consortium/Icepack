@@ -29,6 +29,7 @@
     tr_lvl       = .true.
     tr_pond_topo = .false.
     tr_pond_lvl  = .true.
+    tr_pond_sealvl = .false.
     tr_snow      = .false.
     tr_aero      = .false.
     tr_fsd       = .false.

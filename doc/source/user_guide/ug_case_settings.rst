@@ -190,6 +190,7 @@ tracer_nml
    "``tr_lvl``", "logical", "level ice area and volume", "``.false.``"
    "``tr_pond_lvl``", "logical", "level-ice melt ponds", "``.false.``"
    "``tr_pond_topo``", "logical", "topo melt ponds", "``.false.``"
+   "``tr_pond_sealvl``", "logical", "sealvl melt ponds", "``.false.``"
    "``tr_snow``", "logical", "advanced snow physics", "``.false.``"
    "", "", "", ""
 
