@@ -336,14 +336,19 @@
 
       ! level-ice ponds
       character (len=char_len), public :: &
-         frzpnd    = 'cesm'           ! pond refreezing parameterization
+         frzpnd    = 'cesm'     , &   ! pond refreezing parameterization
+         pndhyps   = 'sealevel' , &   ! pond hypsometry option
+         pndfrbd   = 'floor'    , &   ! over what domain to calculate freeboard constraint
+         pndhead   = 'perched'  , &   ! geometry for computing pond pressure head
+         pndmacr   = 'lambda'         ! driving force for macro-flaw pond drainage
 
       real (kind=dbl_kind), public :: &
          dpscale   = 0.001_dbl_kind,& ! alter e-folding time scale for flushing (ktherm=1)
          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
-         pndaspect = 0.8_dbl_kind, &  ! ratio of pond depth to area fraction
-         hs1       = 0.03_dbl_kind    ! snow depth for transition to bare pond ice (m)
+         pndaspect = 0.8_dbl_kind,  & ! ratio of pond depth to area fraction
+         hs1       = 0.03_dbl_kind, & ! snow depth for transition to bare pond ice (m)
+         apnd_sl   = 0.27_dbl_kind    ! equilibrium pond fraction for sea level parameterization
 
       ! topo ponds
       real (kind=dbl_kind), public :: &

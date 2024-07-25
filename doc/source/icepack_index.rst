@@ -483,6 +483,7 @@ section :ref:`tabnamelist`.
    "tr_lvl", ":math:`\bullet` if true, use level ice area and volume tracers", ""
    "tr_pond_lvl", ":math:`\bullet` if true, use level-ice melt pond scheme", ""
    "tr_pond_topo", ":math:`\bullet` if true, use topo melt pond scheme", ""
+   "tr_pond_sealvl", ":math:`\bullet` if true, use sealvl melt pond scheme", ""
    "trcr", "ice tracers", ""
    "trcr_depend", "tracer dependency on basic state variables", ""
    "Tref", "2m atmospheric reference temperature", "K"

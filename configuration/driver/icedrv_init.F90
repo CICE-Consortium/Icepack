@@ -117,13 +117,13 @@
       integer (kind=int_kind) :: ntrcr
       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_snow
       logical (kind=log_kind) :: tr_iso, tr_aero, tr_fsd
-      logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, wave_spec
+      logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl, wave_spec
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, &
                                  nt_smice, nt_smliq, nt_rhos, nt_rsnw, &
                                  nt_aero, nt_fsd, nt_isosno, nt_isoice
 
-      real (kind=real_kind) :: rplvl, rptopo
+      real (kind=real_kind) :: rplvl, rptopo, rpsealvl
       real (kind=dbl_kind) :: Cf, puny
 
       character(len=*), parameter :: subname='(input_data)'
@@ -191,6 +191,7 @@
         tr_lvl,       &
         tr_pond_lvl,  &
         tr_pond_topo, &
+        tr_pond_sealvl, &
         tr_snow,      &
         tr_aero,      &
         tr_fsd,       &
@@ -297,6 +298,7 @@
       tr_lvl       = .false. ! level ice
       tr_pond_lvl  = .false. ! level-ice melt ponds
       tr_pond_topo = .false. ! topographic melt ponds
+      tr_pond_sealvl = .false. ! sealvl melt ponds
       tr_snow      = .false. ! snow tracers (wind redistribution, metamorphosis)
       tr_aero      = .false. ! aerosols
       tr_fsd       = .false. ! floe size distribution
@@ -481,13 +483,15 @@
 
       rplvl  = c0
       rptopo = c0
+      rpsealvl = c0
       if (tr_pond_lvl ) rplvl  = c1
       if (tr_pond_topo) rptopo = c1
+      if (tr_pond_sealvl) rpsealvl = c1
 
       tr_pond = .false. ! explicit melt ponds
-      if (rplvl + rptopo > puny) tr_pond = .true.
+      if (rplvl + rptopo + rpsealvl > puny) tr_pond = .true.
 
-      if (rplvl + rptopo > c1 + puny) then
+      if (rplvl + rptopo + rpsealvl > c1 + puny) then
          write (nu_diag,*) 'WARNING: Must use only one melt pond scheme'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
@@ -720,7 +724,7 @@
 
          write(nu_diag,1000) ' rfracmin                  = ', rfracmin
          write(nu_diag,1000) ' rfracmax                  = ', rfracmax
-         if (tr_pond_lvl) then
+         if (tr_pond_lvl .or. tr_pond_sealvl) then
          write(nu_diag,1000) ' hs1                       = ', hs1
          write(nu_diag,1000) ' dpscale                   = ', dpscale
          write(nu_diag,1030) ' frzpnd                    = ', trim(frzpnd)
@@ -809,6 +813,7 @@
          write(nu_diag,1010) ' tr_lvl                    = ', tr_lvl
          write(nu_diag,1010) ' tr_pond_lvl               = ', tr_pond_lvl
          write(nu_diag,1010) ' tr_pond_topo              = ', tr_pond_topo
+         write(nu_diag,1010) ' tr_pond_sealvl            = ', tr_pond_sealvl
          write(nu_diag,1010) ' tr_snow                   = ', tr_snow
          write(nu_diag,1010) ' tr_aero                   = ', tr_aero
          write(nu_diag,1010) ' tr_fsd                    = ', tr_fsd
@@ -854,13 +859,9 @@
              nt_apnd = ntrcr
              ntrcr = ntrcr + 1
              nt_hpnd = ntrcr
-             if (tr_pond_lvl) then
+             if (tr_pond_lvl .or. tr_pond_topo .or. tr_pond_sealvl) then
                  ntrcr = ntrcr + 1    ! refrozen pond ice lid thickness
-                 nt_ipnd = ntrcr      ! on level-ice ponds (if frzpnd='hlid')
-             endif
-             if (tr_pond_topo) then
-                 ntrcr = ntrcr + 1    !
-                 nt_ipnd = ntrcr      ! refrozen pond ice lid thickness
+                 nt_ipnd = ntrcr      ! on ponds (if frzpnd='hlid')
              endif
          endif
 
@@ -1002,7 +1003,8 @@
            tr_iso_in=tr_iso, tr_snow_in=tr_snow, &
            tr_pond_in=tr_pond, &
            tr_pond_lvl_in=tr_pond_lvl, &
-           tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
+           tr_pond_topo_in=tr_pond_topo, &
+           tr_pond_sealvl_in=tr_pond_sealvl, tr_fsd_in=tr_fsd)
       call icepack_init_tracer_indices(nt_Tsfc_in=nt_Tsfc, &
            nt_sice_in=nt_sice, nt_qice_in=nt_qice, &
            nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &
@@ -1091,7 +1093,7 @@
 
       integer (kind=int_kind) :: ntrcr
       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_fsd, tr_iso
-      logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_snow
+      logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl, tr_snow
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, &
                                  nt_smice, nt_smliq, nt_rhos, nt_rsnw, &
@@ -1108,7 +1110,8 @@
               tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
               tr_iso_out=tr_iso, tr_snow_out=tr_snow, &
               tr_pond_lvl_out=tr_pond_lvl, &
-              tr_pond_topo_out=tr_pond_topo, tr_fsd_out=tr_fsd)
+              tr_pond_topo_out=tr_pond_topo, &
+              tr_pond_sealvl_out=tr_pond_sealvl, tr_fsd_out=tr_fsd)
          call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, &
               nt_sice_out=nt_sice, nt_qice_out=nt_qice, &
               nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
@@ -1159,7 +1162,7 @@
                    trcr_depend(nt_hpnd)  = 2+nt_apnd   ! melt pond depth
                    trcr_depend(nt_ipnd)  = 2+nt_apnd   ! refrozen pond lid
       endif
-      if (tr_pond_topo) then
+      if (tr_pond_topo .or. tr_pond_sealvl) then
                    trcr_depend(nt_apnd)  = 0           ! melt pond area
                    trcr_depend(nt_hpnd)  = 2+nt_apnd   ! melt pond depth
                    trcr_depend(nt_ipnd)  = 2+nt_apnd   ! refrozen pond lid
@@ -1223,7 +1226,7 @@
          nt_strata    (nt_ipnd,2) = nt_apnd ! on melt pond area
          nt_strata    (nt_ipnd,1) = nt_alvl ! on level ice area
       endif
-      if (tr_pond_topo) then
+      if (tr_pond_topo .or. tr_pond_sealvl) then
          n_trcr_strata(nt_hpnd)   = 1       ! melt pond depth
          nt_strata    (nt_hpnd,1) = nt_apnd ! on melt pond area
          n_trcr_strata(nt_ipnd)   = 1       ! refrozen pond lid

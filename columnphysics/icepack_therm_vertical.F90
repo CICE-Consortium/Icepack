@@ -32,7 +32,7 @@
 
       use icepack_tracers, only: ncat, nilyr, nslyr
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
-      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
       use icepack_tracers, only: n_aero, n_iso
 
       use icepack_therm_shared, only: ferrmax, l_brine
@@ -57,6 +57,7 @@
       use icepack_flux, only: set_sfcflux, merge_fluxes
       use icepack_meltpond_lvl, only: compute_ponds_lvl
       use icepack_meltpond_topo, only: compute_ponds_topo
+      use icepack_meltpond_sealvl, only: compute_ponds_sealvl
       use icepack_snow, only: drain_snow
 
       implicit none
@@ -2780,6 +2781,30 @@
                                        meltsliqn=l_meltsliqn(n), &
                                        frpndn=frpndn(n), &
                                        rfpndn=rfpndn(n), &
+                                       ilpndn=ilpndn(n), &
+                                       flpndn=flpndn(n))
+               if (icepack_warnings_aborted(subname)) return
+
+            elseif (tr_pond_sealvl) then
+               call compute_ponds_sealvl(dt=dt,           &
+                                       meltt=melttn (n), &
+                                       melts=meltsn (n), &
+                                       frain=frain,      &
+                                       Tair=Tair,        &
+                                       fsurfn=fsurfn(n), &
+                                       dhs=dhsn     (n), &
+                                       ffrac=ffracn (n), &
+                                       aicen=aicen  (n), &
+                                       vicen=vicen  (n), &
+                                       vsnon=vsnon  (n), &
+                                       qicen=zqin (:,n), &
+                                       sicen=zSin (:,n), &
+                                       Tsfcn=Tsfc   (n), &
+                                       apnd=apnd    (n), &
+                                       hpnd=hpnd    (n), &
+                                       ipnd=ipnd    (n), &
+                                       meltsliqn=l_meltsliqn(n), &
+                                       frpndn=frpndn(n), &
                                        ilpndn=ilpndn(n), &
                                        flpndn=flpndn(n))
                if (icepack_warnings_aborted(subname)) return

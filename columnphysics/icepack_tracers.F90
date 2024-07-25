@@ -105,6 +105,7 @@
          tr_pond      = .false., & ! if .true., use melt pond tracer
          tr_pond_lvl  = .false., & ! if .true., use level-ice pond tracer
          tr_pond_topo = .false., & ! if .true., use explicit topography-based ponds
+         tr_pond_sealvl = .false., & ! if .true., use sealvl pond parameterization
          tr_snow      = .false., & ! if .true., use snow redistribution or metamorphosis tracers
          tr_iso       = .false., & ! if .true., use isotope tracers
          tr_aero      = .false., & ! if .true., use aerosol tracers
@@ -206,7 +207,7 @@
 
       subroutine icepack_init_tracer_flags(&
            tr_iage_in, tr_FY_in, tr_lvl_in, tr_snow_in, &
-           tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, &
+           tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, tr_pond_sealvl_in, &
            tr_fsd_in, tr_aero_in, tr_iso_in, tr_brine_in, tr_zaero_in, &
            tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
            tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
@@ -219,6 +220,7 @@
              tr_pond_in      , & ! if .true., use melt pond tracer
              tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
              tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
+             tr_pond_sealvl_in , & ! if .true., use sealvl pond parameteriztion
              tr_snow_in      , & ! if .true., use snow redistribution or metamorphosis tracers
              tr_fsd_in       , & ! if .true., use floe size distribution tracers
              tr_iso_in       , & ! if .true., use isotope tracers
@@ -247,6 +249,7 @@
         if (present(tr_pond_in)) tr_pond = tr_pond_in
         if (present(tr_pond_lvl_in) ) tr_pond_lvl  = tr_pond_lvl_in
         if (present(tr_pond_topo_in)) tr_pond_topo = tr_pond_topo_in
+        if (present(tr_pond_sealvl_in)) tr_pond_sealvl = tr_pond_sealvl_in
         if (present(tr_snow_in)   ) tr_snow    = tr_snow_in
         if (present(tr_fsd_in)    ) tr_fsd     = tr_fsd_in
         if (present(tr_iso_in)    ) tr_iso     = tr_iso_in
@@ -273,7 +276,7 @@
 
       subroutine icepack_query_tracer_flags(&
            tr_iage_out, tr_FY_out, tr_lvl_out, tr_snow_out, &
-           tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, &
+           tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, tr_pond_sealvl_out, &
            tr_fsd_out, tr_aero_out, tr_iso_out, tr_brine_out, tr_zaero_out, &
            tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
            tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
@@ -286,6 +289,7 @@
              tr_pond_out      , & ! if .true., use melt pond tracer
              tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
              tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
+             tr_pond_sealvl_out, & ! if .true., use sealvl pond parameterization
              tr_snow_out      , & ! if .true., use snow redistribution or metamorphosis tracers
              tr_fsd_out       , & ! if .true., use floe size distribution
              tr_iso_out       , & ! if .true., use isotope tracers
@@ -314,6 +318,7 @@
         if (present(tr_pond_out)) tr_pond_out = tr_pond
         if (present(tr_pond_lvl_out) ) tr_pond_lvl_out  = tr_pond_lvl
         if (present(tr_pond_topo_out)) tr_pond_topo_out = tr_pond_topo
+        if (present(tr_pond_sealvl_out)) tr_pond_sealvl_out = tr_pond_sealvl
         if (present(tr_snow_out)   ) tr_snow_out    = tr_snow
         if (present(tr_fsd_out)    ) tr_fsd_out     = tr_fsd
         if (present(tr_iso_out)    ) tr_iso_out     = tr_iso
@@ -353,6 +358,7 @@
         write(iounit,*) "  tr_pond = ",tr_pond
         write(iounit,*) "  tr_pond_lvl  = ",tr_pond_lvl
         write(iounit,*) "  tr_pond_topo = ",tr_pond_topo
+        write(iounit,*) "  tr_pond_sealvl = ",tr_pond_sealvl
         write(iounit,*) "  tr_snow    = ",tr_snow
         write(iounit,*) "  tr_fsd     = ",tr_fsd
         write(iounit,*) "  tr_iso     = ",tr_iso

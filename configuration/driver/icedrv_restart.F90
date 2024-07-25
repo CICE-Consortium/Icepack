@@ -89,7 +89,7 @@
 
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
-         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
+         tr_pond_topo, tr_pond_lvl, tr_pond_sealvl, tr_snow, tr_fsd
 !         skl_bgc, z_tracers
 
       integer (kind=int_kind) :: dims(2)
@@ -117,7 +117,9 @@
           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
           tr_brine_out=tr_brine, &
           tr_pond_topo_out=tr_pond_topo, &
-          tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+          tr_pond_lvl_out=tr_pond_lvl, &
+          tr_pond_sealvl_out=tr_pond_sealvl, &
+          tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
 !      call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -219,6 +221,7 @@
       if (tr_lvl)       call write_restart_lvl(dims)       ! level ice tracer
       if (tr_pond_lvl)  call write_restart_pond_lvl(dims)  ! level-ice melt ponds
       if (tr_pond_topo) call write_restart_pond_topo(dims) ! topographic melt ponds
+      if (tr_pond_sealvl) call write_restart_pond_lvl(dims) ! same restart fields as lvl
       if (tr_snow)      call write_restart_snow(dims)      ! snow metamorphosis tracers
       if (tr_iso)       call write_restart_iso(dims)       ! ice isotopes
       if (tr_aero)      call write_restart_aero(dims)      ! ice aerosols
@@ -275,7 +278,7 @@
 
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
-         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
+         tr_pond_topo, tr_pond_lvl, tr_pond_sealvl, tr_snow, tr_fsd
 
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(restartfile)'
@@ -292,7 +295,9 @@
            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
            tr_brine_out=tr_brine, &
            tr_pond_topo_out=tr_pond_topo, &
-           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+           tr_pond_lvl_out=tr_pond_lvl, &
+           tr_pond_sealvl_out=tr_pond_sealvl, &
+           tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -393,6 +398,7 @@
       if (tr_FY)        call read_restart_FY()        ! first-year area tracer
       if (tr_lvl)       call read_restart_lvl()       ! level ice tracer
       if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
+      if (tr_pond_sealvl) call read_restart_pond_lvl() ! sealvl ponds same as lvl
       if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
       if (tr_snow)      call read_restart_snow()      ! snow metamorphosis tracers
       if (tr_iso)       call read_restart_iso()       ! ice isotopes
