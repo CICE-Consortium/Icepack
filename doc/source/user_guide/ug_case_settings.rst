@@ -288,6 +288,7 @@ ponds_nml
    "``hs0``", "real", "snow depth of transition to bare sea ice in m", ""
    "``hs1``", "real", "snow depth of transition to pond ice in m", "0.03"
    "``pndaspect``", "real", "aspect ratio of pond changes (depth:area)", "0.8"
+   "``apnd_sl``", "real", "equilibrium pond fraction for sealvl ponds", "0.27"
    "``rfracmax``", ":math:`0 \le r_{max} \le 1`", "maximum melt water added to ponds", "0.85"
    "``rfracmin``", ":math:`0 \le r_{min} \le 1`", "minimum melt water added to ponds", "0.15"
    "", "", "", ""

@@ -90,6 +90,7 @@
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
          ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, hi_min, Tliquidus_max, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
+         apnd_sl, tscale_pnd_drain, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity, floediam, hfrazilmin, &
          rsnw_fall, rsnw_tmax, rhosnew, rhosmin, rhosmax, &
@@ -147,7 +148,8 @@
         kitd,           ktherm,          ksno,     conduct,             &
         a_rapid_mode,   Rac_rapid_mode,  aspect_rapid_mode,             &
         dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy,                   &
-        floediam,       hfrazilmin,      Tliquidus_max,    hi_min
+        floediam,       hfrazilmin,      Tliquidus_max,    hi_min,      &
+        tscale_pnd_drain
 
       namelist /dynamics_nml/ &
         kstrength,      krdg_partic,    krdg_redist,    mu_rdg,         &
@@ -163,7 +165,7 @@
       namelist /ponds_nml/ &
         hs0,            dpscale,         frzpnd,                        &
         rfracmin,       rfracmax,        pndaspect,     hs1,            &
-        hp1
+        hp1,            apnd_sl
       namelist /snow_nml/ &
         snwredist,      snwgrain,       rsnw_fall,     rsnw_tmax,      &
         rhosnew,        rhosmin,        rhosmax,       snwlvlfac,      &
@@ -217,6 +219,7 @@
            dpscale_out=dpscale, frzpnd_out=frzpnd, &
            rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
            pndaspect_out=pndaspect, hs1_out=hs1, hp1_out=hp1, &
+           apnd_sl_out=apnd_sl, tscale_pnd_drain_out=tscale_pnd_drain, &
            ktherm_out=ktherm, calc_Tsfc_out=calc_Tsfc, &
            floediam_out=floediam, hfrazilmin_out=hfrazilmin, &
            update_ocn_f_out = update_ocn_f, cpl_frazil_out = cpl_frazil, &
@@ -730,6 +733,8 @@
          endif
          if (tr_pond .and. .not. tr_pond_lvl) &
          write(nu_diag,1000) ' pndaspect                 = ', pndaspect
+         if (tr_pond_sealvl) &
+         write(nu_diag,1000) ' apnd_sl                   = ', apnd_sl
 
          if (tr_snow) then
          write(nu_diag,1030) ' snwredist                 = ', trim(snwredist)
@@ -758,6 +763,7 @@
          write(nu_diag,1005) ' phi_c_slow_mode           = ', phi_c_slow_mode
          write(nu_diag,1005) ' phi_i_mushy               = ', phi_i_mushy
          write(nu_diag,1005) ' Tliquidus_max             = ', Tliquidus_max
+         write(nu_diag,1005) ' tscale_pnd_drain          = ', tscale_pnd_drain
          endif
 
          write(nu_diag,1030) ' atmbndy                   = ', trim(atmbndy)
@@ -971,6 +977,7 @@
            dpscale_in=dpscale, frzpnd_in=frzpnd, &
            rfracmin_in=rfracmin, rfracmax_in=rfracmax, &
            pndaspect_in=pndaspect, hs1_in=hs1, hp1_in=hp1, &
+           apnd_sl_in=apnd_sl, tscale_pnd_drain_in=tscale_pnd_drain, &
            floediam_in=floediam, hfrazilmin_in=hfrazilmin, &
            ktherm_in=ktherm, calc_Tsfc_in=calc_Tsfc, &
            conduct_in=conduct, a_rapid_mode_in=a_rapid_mode, &

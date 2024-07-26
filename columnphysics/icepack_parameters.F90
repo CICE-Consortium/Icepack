@@ -476,7 +476,7 @@
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
          atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
-         saltflux_option_in, &
+         apnd_sl_in, saltflux_option_in, &
          floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
          dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
          bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
@@ -793,16 +793,20 @@
       real (kind=dbl_kind), intent(in), optional :: &
          hs0_in             ! snow depth for transition to bare sea ice (m)
 
-      ! level-ice ponds
+      ! level-ice and sealvl ponds
       character (len=*), intent(in), optional :: &
          frzpnd_in          ! pond refreezing parameterization
-
+      
       real (kind=dbl_kind), intent(in), optional :: &
          dpscale_in, &      ! alter e-folding time scale for flushing
          rfracmin_in, &     ! minimum retained fraction of meltwater
          rfracmax_in, &     ! maximum retained fraction of meltwater
          pndaspect_in, &    ! ratio of pond depth to pond fraction
          hs1_in             ! tapering parameter for snow on pond ice
+
+      ! sealvl ponds
+      real (kind=dbl_kind), intent(in), optional :: &
+         apnd_sl_in         ! equilibrium pond fraction for sea level parameterization
 
       ! topo ponds
       real (kind=dbl_kind), intent(in), optional :: &
@@ -974,6 +978,7 @@
       if (present(rfracmin_in)          ) rfracmin         = rfracmin_in
       if (present(rfracmax_in)          ) rfracmax         = rfracmax_in
       if (present(pndaspect_in)         ) pndaspect        = pndaspect_in
+      if (present(apnd_sl_in)           ) apnd_sl          = apnd_sl_in
       if (present(hs1_in)               ) hs1              = hs1_in
       if (present(hp1_in)               ) hp1              = hp1_in
       if (present(snwredist_in)         ) snwredist        = snwredist_in
@@ -1203,7 +1208,7 @@
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
          atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
-         saltflux_option_out, &
+         apnd_sl_out, saltflux_option_out, &
          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
@@ -1531,7 +1536,7 @@
       real (kind=dbl_kind), intent(out), optional :: &
          hs0_out             ! snow depth for transition to bare sea ice (m)
 
-      ! level-ice ponds
+      ! level-ice and sealvl ponds
       character (len=*), intent(out), optional :: &
          frzpnd_out          ! pond refreezing parameterization
 
@@ -1541,6 +1546,10 @@
          rfracmax_out, &     ! maximum retained fraction of meltwater
          pndaspect_out, &    ! ratio of pond depth to pond fraction
          hs1_out             ! tapering parameter for snow on pond ice
+
+      ! sealvl ponds
+      real (kind=dbl_kind), intent(out), optional :: &
+         apnd_sl_out         ! equilibrium pond fraction for sea level parameterization
 
       ! topo ponds
       real (kind=dbl_kind), intent(out), optional :: &
@@ -1744,6 +1753,7 @@
       if (present(rfracmin_out)          ) rfracmin_out     = rfracmin
       if (present(rfracmax_out)          ) rfracmax_out     = rfracmax
       if (present(pndaspect_out)         ) pndaspect_out    = pndaspect
+      if (present(apnd_sl_out)           ) apnd_sl_out      = apnd_sl
       if (present(hs1_out)               ) hs1_out          = hs1
       if (present(hp1_out)               ) hp1_out          = hp1
       if (present(snwredist_out)         ) snwredist_out    = snwredist
@@ -1951,6 +1961,7 @@
         write(iounit,*) "  rfracmin   = ", rfracmin
         write(iounit,*) "  rfracmax   = ", rfracmax
         write(iounit,*) "  pndaspect  = ", pndaspect
+        write(iounit,*) "  apnd_sl    = ", apnd_sl
         write(iounit,*) "  hs1        = ", hs1
         write(iounit,*) "  hp1        = ", hp1
         write(iounit,*) "  snwredist  = ", trim(snwredist)

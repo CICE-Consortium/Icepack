@@ -46,6 +46,7 @@ section :ref:`tabnamelist`.
    "amm", "ammonia/um concentration", "mmol/m\ :math:`^3`"
    "aparticn", "participation function", ""
    "apeff_ai", "grid-cell-mean effective pond fraction", ""
+   "apnd_sl", "equilibrium pond fraction in sealvl ponds", "0.27"
    "apondn", "area concentration of melt ponds", ""
    "araftn", "area fraction of rafted ice", ""
    "ardgn", "fractional area of ridged ice", ""
