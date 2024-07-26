@@ -38,6 +38,7 @@
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_init_fsd_bounds
       use icepack_intfc, only: icepack_init_snow
+      use icepack_intfc, only: icepack_init_sealvlpnd
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat, nfsd
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
@@ -57,6 +58,7 @@
          tr_aero, &    ! from icepack
          tr_iso, &     ! from icepack
          tr_zaero, &   ! from icepack
+         tr_pond_sealvl, & ! from icepack
          tr_fsd, wave_spec
 
       character(len=*), parameter :: subname='(icedrv_initialize)'
@@ -136,6 +138,7 @@
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
       call icepack_query_tracer_flags(tr_iso_out=tr_iso)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
+      call icepack_query_tracer_flags(tr_pond_sealvl_out=tr_pond_sealvl)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -159,6 +162,8 @@
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
       if (tr_aero .or. tr_zaero)  call faero_default    ! default values
       if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
+
+      if (tr_pond_sealvl) call icepack_init_sealvlpnd   ! sealvl ponds
 
       if (.not. restart) &
          call init_shortwave    ! initialize radiative transfer using current swdn

@@ -31,11 +31,31 @@
       implicit none
 
       private 
-      public :: compute_ponds_sealvl, pond_hypsometry, pond_height
+      public ::   icepack_init_sealvlpnd,   &
+                  compute_ponds_sealvl,   &
+                  pond_hypsometry,        &
+                  pond_height
 
 !=======================================================================
 
       contains
+
+!=======================================================================
+
+      subroutine icepack_init_sealvlpnd
+
+      use icepack_parameters, only: hpmin, hp0, pndmacr
+
+      ! Set parameters for sealvl pond parameterization
+      pndhyps = 'sealevel'
+      pndfrbd = 'category'
+      pndhead = 'hyps'
+      pndmacr = 'head'
+
+      ! Disable hp0 shortwave parameterization
+      hp0 = hpmin
+
+      end subroutine icepack_init_sealvlpnd
 
 !=======================================================================
 

@@ -53,10 +53,11 @@
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_parameters, only: snw_ssp_table, modal_aero
       use icepack_parameters, only: dEdd_algae
+      use icepack_parameters, only: hpmin, hp0
 
       use icepack_tracers,    only: ncat, nilyr, nslyr, nblyr
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
-      use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo
+      use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
@@ -113,10 +114,6 @@
       public :: icepack_prep_radiation, &
                 icepack_init_radiation, &
                 icepack_step_radiation
-
-      real (kind=dbl_kind), parameter :: &
-         hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
-         hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
 
       real (kind=dbl_kind), parameter :: &
          exp_argmax = c10    ! maximum argument of exponential
@@ -1047,7 +1044,7 @@
             if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
-            if (tr_pond_lvl) then
+            if (tr_pond_lvl .or. tr_pond_sealvl) then
                hsnlvl = hsn ! initialize
                if (trim(snwredist) == 'bulk') then
                   hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
