@@ -229,6 +229,12 @@
       character (len=char_len), public :: &
          snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test'
 
+      ! Parameters for the impact of pond depth on shortwave
+      real (kind=dbl_kind), public :: &
+         hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
+         hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
+
+
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
 !-----------------------------------------------------------------------
@@ -327,7 +333,7 @@
       real (kind=dbl_kind), public :: &
          hs0       = 0.03_dbl_kind    ! snow depth for transition to bare sea ice (m)
 
-      ! level-ice ponds
+      ! level-ice and sealvl ponds
       character (len=char_len), public :: &
          frzpnd    = 'cesm'     , &   ! pond refreezing parameterization
          pndhyps   = 'sealevel' , &   ! pond hypsometry option
