@@ -51,6 +51,7 @@
     Tliquidus_max     = -0.1d0
     floediam          = 300.0d0
     hfrazilmin        = 0.05d0
+    tscale_pnd_drain  = 10.0d0
 /
 
 &shortwave_nml
@@ -82,6 +83,7 @@
     rfracmin        = 0.15
     rfracmax        = 1.
     pndaspect       = 0.8
+    apnd_sl         = 0.27d0
 /
 
 &snow_nml
