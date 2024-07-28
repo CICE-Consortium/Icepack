@@ -58,6 +58,7 @@
       use icepack_tracers,    only: ncat, nilyr, nslyr, nblyr
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
       use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
+      use icepack_tracers,    only: tr_lvl
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
@@ -838,6 +839,7 @@
 ! author:  Bruce P. Briegleb, NCAR
 ! 2011 ECH modified for melt pond tracers
 ! 2013 ECH merged with NCAR version
+! 2024 DCS refactored for sealvl ponds
 
       subroutine run_dEdd(dt,                  &
                           aicen,    vicen,     &
@@ -905,14 +907,14 @@
          alvln, & ! level-ice area fraction
          apndn, & ! pond area fraction
          hpndn, & ! pond depth (m)
-         ipndn    ! pond refrozen lid thickness (m)
+         ipndn, & ! pond refrozen lid thickness (m)
+         ffracn   ! fraction of fsurfn used to melt ipond
 
       real(kind=dbl_kind), dimension(:,:), intent(in) :: &
          aeron,    & ! aerosols (kg/m^3)
          trcrn_bgcsw ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
-         ffracn,   & ! fraction of fsurfn used to melt ipond
          dhsn        ! depth difference for snow on sea ice and pond ice
 
       real(kind=dbl_kind), intent(inout) :: &
@@ -956,10 +958,7 @@
       ! snow variables for Delta-Eddington shortwave
       real (kind=dbl_kind) :: &
          fsn         , & ! snow horizontal fraction
-         hsn         , & ! snow depth (m)
-         hsnlvl      , & ! snow depth over level ice (m)
-         vsn         , & ! snow volume
-         alvl            ! area fraction of level ice
+         hsn             ! snow depth (m)
 
       real (kind=dbl_kind), dimension (nslyr) :: &
          rhosnwn     , & ! snow density (kg/m3)
@@ -967,23 +966,13 @@
 
       ! pond variables for Delta-Eddington shortwave
       real (kind=dbl_kind) :: &
+         apondn      , & ! pond fraction of category (incl. deformed)
          fpn         , & ! pond fraction of ice cover
          hpn             ! actual pond depth (m)
 
       integer (kind=int_kind) :: &
          n           , & ! thickness category index
          k               ! snow layer index
-
-      real (kind=dbl_kind) :: &
-         ipn         , & ! refrozen pond ice thickness (m), mean over ice fraction
-         hp          , & ! pond depth
-         hs          , & ! snow depth
-         asnow       , & ! fractional area of snow cover
-         rp          , & ! volume fraction of retained melt water to total liquid content
-         hmx         , & ! maximum available snow infiltration equivalent depth
-         dhs         , & ! local difference in snow depth on sea ice and pond ice
-         spn         , & ! snow depth on refrozen pond (m)
-         tmp             ! 0 or 1
 
       ! needed for optional fswthrun arrays when passed as scalars
       real (kind=dbl_kind) :: &
@@ -1044,86 +1033,32 @@
             if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
-            if (tr_pond_lvl .or. tr_pond_sealvl) then
-               hsnlvl = hsn ! initialize
-               if (trim(snwredist) == 'bulk') then
-                  hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
-                  ! snow volume over level ice
-                  alvl = aicen(n) * alvln(n)
-                  if (alvl > puny) then
-                     vsn = hsnlvl * alvl
-                  else
-                     vsn = vsnon(n)
-                     alvl = aicen(n)
-                  endif
-                  ! set snow properties over level ice
-                  call shortwave_dEdd_set_snow(R_snw,    &
-                                               dT_mlt,     rsnw_mlt, &
-                                               alvl,       vsn,      &
-                                               Tsfcn(n),   fsn,      &
-                                               hs0,        hsnlvl,   &
-                                               rhosnwn(:), rsnwn(:), &
-                                               l_rsnows(:))
-                  if (icepack_warnings_aborted(subname)) return
-               endif ! snwredist
-
-               fpn = c0  ! fraction of ice covered in pond
-               hpn = c0  ! pond depth over fpn
-               ! refrozen pond lid thickness avg over ice
-               ! allow snow to cover pond ice
-               ipn = alvln(n) * apndn(n) * ipndn(n)
-               dhs = dhsn(n) ! snow depth difference, sea ice - pond
-               if (.not. l_initonly .and. ipn > puny .and. &
-                    dhs < puny .and. fsnow*dt > hs_min) &
-                    dhs = hsnlvl - fsnow*dt ! initialize dhs>0
-               spn = hsnlvl - dhs   ! snow depth on pond ice
-               if (.not. l_initonly .and. ipn*spn < puny) dhs = c0
-               dhsn(n) = dhs ! save: constant until reset to 0
-
-               ! not using ipn assumes that lid ice is perfectly clear
-               ! if (ipn <= 0.3_dbl_kind) then
-
-               ! fraction of ice area
-               fpn = apndn(n) * alvln(n)
-               ! pond depth over fraction fpn
-               hpn = hpndn(n)
-
-               ! reduce effective pond area absorbing surface heat flux
-               ! due to flux already having been used to melt pond ice
-               fpn = (c1 - ffracn(n)) * fpn
-
-               ! taper pond area with snow on pond ice
-               if (dhs > puny .and. spn >= puny .and. hs1 > puny) then
-                  asnow = min(spn/hs1, c1)
-                  fpn = (c1 - asnow) * fpn
-               endif
-
-               ! infiltrate snow
-               hp = hpn
-               if (hp > puny) then
-                  hs = hsnlvl
-                  rp = rhofresh*hp/(rhofresh*hp + rhos*hs)
-                  if (rp < p15) then
-                     fpn = c0
-                     hpn = c0
-                  else
-                     hmx = hs*(rhofresh - rhos)/rhofresh
-                     tmp = max(c0, sign(c1, hp-hmx)) ! 1 if hp>=hmx, else 0
-                     hp = (rhofresh*hp + rhos*hs*tmp) &
-                          / (rhofresh    - rhos*(c1-tmp))
-                     hsn = hsn - hp*fpn*(c1-tmp)
-                     hpn = hp * tmp
-                     fpn = fpn * tmp
-                  endif
-               endif ! hp > puny
-
-               ! Zero out fraction of thin ponds for radiation only
-               if (hpn < hpmin) fpn = c0
-               fsn = min(fsn, c1-fpn)
-
-               ! endif    ! masking by lid ice
-               apeffn(n) = fpn ! for history
-
+            if (tr_pond_lvl) then
+               apondn = alvln(n)*apndn(n)
+               call shortwave_dEdd_set_eff(aicen(n),  vsnon(n),   &
+                                           alvln(n),  apondn,     &
+                                           hpndn(n),  ipndn(n),   &
+                                           ffracn(n), fsnow,      &
+                                           dt,        Tsfcn(n),   &
+                                           fsn,       hsn,        &
+                                           dhsn(n),   fpn,        &
+                                           hpn,       apeffn(n),  &
+                                           l_rsnows(:), rhosnwn(:), &
+                                           rsnwn(:),  l_initonly)
+               if (icepack_warnings_aborted(subname)) return
+            elseif (tr_pond_sealvl) then
+               apondn = apndn(n)
+               call shortwave_dEdd_set_eff(aicen(n),  vsnon(n),   &
+                                           alvln(n),  apondn,     &
+                                           hpndn(n),  ipndn(n),   &
+                                           ffracn(n), fsnow,      &
+                                           dt,        Tsfcn(n),   &
+                                           fsn,       hsn,        &
+                                           dhsn(n),   fpn,        &
+                                           hpn,       apeffn(n),  &
+                                           l_rsnows(:), rhosnwn(:), &
+                                           rsnwn(:),  l_initonly)
+               if (icepack_warnings_aborted(subname)) return
             elseif (tr_pond_topo) then
                ! Lid effective if thicker than hp1
                if (apndn(n)*aicen(n) > puny .and. ipndn(n) < hp1) then
@@ -3389,6 +3324,157 @@
       endif ! snwgrain
 
       end subroutine shortwave_dEdd_set_snow
+!=======================================================================
+!
+!   Set the 'effective' snow and pond fractions and depths for dEdd
+!
+! author:  Bruce P. Briegleb, NCAR
+!   2013:  E Hunke merged with NCAR version
+!   2024:  DCS refactored for sealvl ponds
+
+      subroutine shortwave_dEdd_set_eff(aicen,     vsnon,   alvln,   &
+                                        apondn,    hpndn,   ipndn,   &
+                                        ffracn,    fsnow,   dt,      &
+                                        Tsfcn,     fsn,     hsn,     &
+                                        dhsn,      fpn,     hpn,     &
+                                        apeffn,    l_rsnows,rhosnwn, &
+                                        rsnwn,     l_initonly)
+
+      real (kind=dbl_kind), intent(in) :: &
+         aicen   , & ! concentration of ice
+         vsnon   , & ! volume per unit area of snow (m)
+         alvln   , & ! level-ice area fraction
+         apondn  , & ! pond area fraction of category (incl. deformed)
+         hpndn   , & ! pond depth (m)
+         ipndn   , & ! pond refrozen lid thickness (m)
+         ffracn  , & ! fraction of fsurfn used to melt ipond
+         fsnow   , & ! snowfall rate (kg/m^2 s)
+         dt      , & ! time step (s)
+         Tsfcn       ! surface temperature (deg C)
+
+      real (kind=dbl_kind), intent(inout) :: &
+         fsn     , & ! snow horizontal fraction
+         hsn     , & ! snow depth (m)
+         dhsn    , & ! depth difference for snow on sea ice and pond ice
+         fpn     , & ! pond fraction of ice cover
+         hpn         ! actual pond depth (m)
+
+      real (kind=dbl_kind), intent(out) :: &
+         apeffn      ! effective pond area used for radiation
+
+      real(kind=dbl_kind), dimension(nslyr), intent(in) :: &
+         l_rsnows    ! snow grain radius tracer (10^-6 m)
+
+      real (kind=dbl_kind), dimension (nslyr), intent(out) :: &
+         rhosnwn, &  ! snow density (kg/m3)
+         rsnwn       ! snow grain radius (micrometers)
+
+      logical (kind=log_kind), intent(in) :: &
+         l_initonly  ! local initonly value
+      
+      ! local variables
+      real (kind=dbl_kind) :: &
+         hsnlvl  , & ! snow depth over level ice (m)
+         vsn     , & ! snow volume
+         alvl    , & ! area fraction of level ice
+         ipn     , & ! pond lid thickness (m), mean over category
+         hp      , & ! pond depth
+         hs      , & ! snow depth
+         asnow   , & ! fractional area of snow cover
+         rp      , & ! ratio retained melt water to total liquid content
+         hmx     , & ! maximum available snow infiltration equiv. depth
+         dhs     , & ! local diff. in snow depth on sea ice and pond ice
+         spn     , & ! snow depth on refrozen pond (m)
+         tmp         ! 0 or 1
+
+      character(len=*),parameter :: subname='(shortwave_dEdd_set_eff)'
+
+!-----------------------------------------------------------------------
+      hsnlvl = hsn ! initialize
+      if (trim(snwredist) == 'bulk') then
+         if (.not. tr_lvl) then
+            call icepack_warnings_add(subname//' ERROR: need lvl trcr')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln))
+         ! snow volume over level ice
+         alvl = aicen * alvln
+         if (alvl > puny) then
+            vsn = hsnlvl * alvl
+         else
+            vsn = vsnon
+            alvl = aicen
+         endif
+         ! set snow properties over level ice
+         call shortwave_dEdd_set_snow(R_snw,    &
+                                       dT_mlt,     rsnw_mlt, &
+                                       alvl,       vsn,      &
+                                       Tsfcn,      fsn,      &
+                                       hs0,        hsnlvl,   &
+                                       rhosnwn(:), rsnwn(:), &
+                                       l_rsnows(:))
+         if (icepack_warnings_aborted(subname)) return
+      endif ! snwredist
+
+      fpn = c0  ! fraction of ice covered in pond
+      hpn = c0  ! pond depth over fpn
+      ! refrozen pond lid thickness avg over ice
+      ! allow snow to cover pond ice
+      ipn = apondn * ipndn
+      dhs = dhsn ! snow depth difference, sea ice - pond
+      if (.not. l_initonly .and. ipn > puny .and. &
+            dhs < puny .and. fsnow*dt > hs_min) &
+            dhs = hsnlvl - fsnow*dt ! initialize dhs>0
+      spn = hsnlvl - dhs   ! snow depth on pond ice
+      if (.not. l_initonly .and. ipn*spn < puny) dhs = c0
+      dhsn = dhs ! save: constant until reset to 0
+
+      ! not using ipn assumes that lid ice is perfectly clear
+      ! if (ipn <= 0.3_dbl_kind) then
+
+      ! fraction of ice area
+      fpn = apondn
+      ! pond depth over fraction fpn
+      hpn = hpndn
+
+      ! reduce effective pond area absorbing surface heat flux
+      ! due to flux already having been used to melt pond ice
+      fpn = (c1 - ffracn) * fpn
+
+      ! taper pond area with snow on pond ice
+      if (dhs > puny .and. spn >= puny .and. hs1 > puny) then
+         asnow = min(spn/hs1, c1)
+         fpn = (c1 - asnow) * fpn
+      endif
+
+      ! infiltrate snow
+      hp = hpn
+      if (hp > puny) then
+         hs = hsnlvl
+         rp = rhofresh*hp/(rhofresh*hp + rhos*hs)
+         if (rp < p15) then
+            fpn = c0
+            hpn = c0
+         else
+            hmx = hs*(rhofresh - rhos)/rhofresh
+            tmp = max(c0, sign(c1, hp-hmx)) ! 1 if hp>=hmx, else 0
+            hp = (rhofresh*hp + rhos*hs*tmp) &
+                  / (rhofresh    - rhos*(c1-tmp))
+            hsn = hsn - hp*fpn*(c1-tmp)
+            hpn = hp * tmp
+            fpn = fpn * tmp
+         endif
+      endif ! hp > puny
+
+      ! Zero out fraction of thin ponds for radiation only
+      if (hpn < hpmin) fpn = c0
+      fsn = min(fsn, c1-fpn)
+
+      ! endif    ! masking by lid ice
+      apeffn = fpn ! for history
+
+      end subroutine shortwave_dEdd_set_eff
 
 !=======================================================================
 !
