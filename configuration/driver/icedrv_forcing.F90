@@ -1137,25 +1137,28 @@
 
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
                                    dwavefreq, wavefreq
-      use icedrv_domain_size, only: nfreq
+      use icedrv_domain_size, only: nfreq, nx
 
       ! local variables
       integer (kind=int_kind) :: &
-         k
+         i,k
 
-      real(kind=dbl_kind), dimension(nfreq) :: &
+      real(kind=dbl_kind), dimension(nx,nfreq) :: &
          wave_spectrum_profile  ! wave spectrum
 
        wave_spectrum(:,:) = c0
 
       ! wave spectrum and frequencies
       ! get hardwired frequency bin info and a dummy wave spectrum profile
+      do i=1,nx
+
       call icepack_init_wave(nfreq=nfreq,                 &
-                             wave_spectrum_profile=wave_spectrum_profile, &
-                             wavefreq=wavefreq, dwavefreq=dwavefreq)
+                             wave_spectrum_profile=wave_spectrum_profile(i,:), &
+                             wavefreq=wavefreq(i,:), dwavefreq=dwavefreq(i,:))
+      enddo
 
       do k = 1, nfreq
-          wave_spectrum(:,k) = wave_spectrum_profile(k)
+          wave_spectrum(:,k) = wave_spectrum_profile(:,k)
       enddo
 
       end subroutine get_wave_spec
