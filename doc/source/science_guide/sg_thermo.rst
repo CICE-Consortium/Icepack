@@ -1737,9 +1737,21 @@ conductive heat flux at the bottom surface:
 
 If ice is melting at the bottom surface, :math:`q`
 in Equation :eq:`bottom-melting` is the enthalpy of the bottom ice layer. If
-ice is growing, :math:`q` is the enthalpy of new ice with temperature
-:math:`T_f` and salinity :math:`S_{max}` (``ktherm`` = 1) or ocean surface
-salinity (``ktherm`` = 2). This ice is added to the bottom layer.
+ice is growing, :math:`q` is the enthalpy of new ice added to the bottom layer with
+temperature :math:`T_f` and salinity :math:`S_{max}` (``ktherm`` = 1) for the Bitz99
+:cite:`Bitz99` formulation.  The original mushy thermodynamics
+(``ktherm`` = 2, ``congel_freeze`` = 'two-step') formed new ice in two steps, first
+moving the lower ice boundary into the ocean to form a mushy layer with an initial
+liquid fraction :math:`phi_{init}`, then freezing the new ice in the next step.  In
+this case, the freezing temperature is calculated using the ocean surface salinity
+:math:`SSS`.  A second mushy thermo method
+(``ktherm`` = 2, ``congel_freeze`` = 'one-step') freezes the ice immediately using
+the brine salinity :math:`phi_{init} * SSS` :cite:`Plante24`.
+In the two-step method, enthalpy not
+yet used to freeze the ice is returned to the ocean, causing frazil ice to form
+instead.  Together, the congelation and frazil ice add up to a similar total amount
+of new ice, but the differing freezing mechanism complicates comparisons with observational
+data and there is an unnecessary lag in ice-ocean coupling.
 
 In general, frazil ice formed in the ocean is added to the thinnest ice
 category. The new ice is grown in the open water area of the grid cell
