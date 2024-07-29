@@ -1535,10 +1535,18 @@
 
             ! volume added to each category from lateral growth
             do n = 1, ncat
-               if (aicen(n) > c0) then
+               if (aicen(n) > puny) then
                    vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
                endif
             end do
+
+            ! check lateral growth doesn't exceed total growth
+            ! if it does, adjust it
+            if (SUM(vin0new)>vi0new) then
+                write(warnstr,*) subname,'lateral growth warning ',vi0new,SUM(vin0new)
+                call icepack_warnings_add(warnstr)
+                vin0new(:) = vin0new(:)*vi0new/SUM(vin0new)
+            end if
 
             vi0new = vi0new - SUM(vin0new)
             frazil = frazil - SUM(vin0new)

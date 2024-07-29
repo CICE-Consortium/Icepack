@@ -150,7 +150,7 @@
               do nc = 1, ncat
               do k = 1, nfsd
                   fsdavg  = fsdavg &
-                          + trcrn(n,nt_fsd+k-1,nc) * floe_rad_c(k) &
+                          + trcrn(n,nt_fsd+k-1,nc) * floe_rad_c(n,k) &
                           * aicen(n,nc) / paice
               end do
               end do

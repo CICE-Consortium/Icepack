@@ -220,7 +220,7 @@
          snow_bio_net   ! depth integrated snow tracer (mmol/m^2)
 
       ! floe size distribution
-      real(kind=dbl_kind), dimension(nfsd), public ::  &
+      real(kind=dbl_kind), dimension(nx,nfsd), public ::  &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth     ! fsd size bin width in m (radius)
@@ -228,7 +228,7 @@
       real (kind=dbl_kind), dimension (nx), public :: &
          wave_sig_ht       ! significant height of waves (m)
 
-      real (kind=dbl_kind), dimension (nfreq), public :: &
+      real (kind=dbl_kind), dimension (nx,nfreq), public :: &
          wavefreq,      &  ! wave frequencies
          dwavefreq         ! wave frequency bin widths
 
@@ -239,7 +239,7 @@
          ! change in floe size distribution due to processes
          d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
 
-      character (len=35), public, dimension(nfsd) :: &
+      character (len=35), public, dimension(nx,nfsd) :: &
          c_fsd_range ! fsd floe_rad bounds (m)
 
 
