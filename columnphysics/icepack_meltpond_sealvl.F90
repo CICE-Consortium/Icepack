@@ -11,6 +11,11 @@
 ! default parameter values). Currently, the only physical impacts
 ! of pond water are in the delta-Eddington radiation scheme.
 !
+! The sealvl meltpond parameterization was inspired by the level pond
+! parameterization of Elizabeth Hunke, David Hebert, and Olivier
+! Lecomte. Wherever possible, the code matches the level pond scheme
+! (e.g., the pond lid refreezing calculations).
+!
 ! authors David Clemens-Sewall (NCAR/NOAA)
 
       module icepack_meltpond_sealvl
