@@ -638,9 +638,6 @@
                call icepack_warnings_add(warnstr)
             endif
 
-            ! CMB there was a lot of wasted calcs here, particularly the multiplcataion and then division by aicen(n)
-            ! that has been removed. The results aren't quite bfb without the extra calc but results are
-            ! negligeably different
             bin1_arealoss = -afsdn(1,n)  / floe_binwidth(1) ! when scaled by *G_radialn(n)*dt*aicen(n)
 
             delta_an(n) = c0
@@ -693,11 +690,6 @@
       !-----------------------------------------------------------------
       ! Limit bottom and lateral heat fluxes if necessary.
       ! Limit rside so we don't melt laterally more ice than frzmlt permits
-      ! FYI: fside is not yet correct for fsd, furthermore rside is
-      ! what matters in lateral melt. fside is simply used here to limit rside
-      ! and fsd code disregards rside anyway. So new idea is to make fside an upper limit
-      ! on what the lateral heat flux could be given fzmlt and fbot, which gave bfb same
-      ! answers until additional mods were made in icepack_therm_itd to utlize it.
       !-----------------------------------------------------------------
 
          xtmp = frzmlt/(fbot + fside - puny)
@@ -2293,7 +2285,7 @@
          strocnxT    , & ! ice-ocean stress, x-direction
          strocnyT    , & ! ice-ocean stress, y-direction
          fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
-         frzmlt      , & ! freezing/melting potential         (W/m^2)       !CMB notes this is not changing so should be in only I think
+         frzmlt      , & ! freezing/melting potential         (W/m^2)
          sst         , & ! sea surface temperature                (C)
          Tf          , & ! freezing temperature                   (C)
          Tbot        , & ! ice bottom surface temperature     (deg C)
@@ -2575,12 +2567,9 @@
       endif
 
       !-----------------------------------------------------------------
-      ! Adjust frzmlt to account for ice-ocean heat fluxes since last
+      ! Use frzmlt to account for ice-ocean heat fluxes since last
       !  call to coupler.
       ! Compute lateral and bottom heat fluxes.
-      ! CMB notes this routine does not adust frzmlt! instead fhocn is variable
-      ! CMB sent back to ocn with "actual" heat flux used. It is computed as energy residual
-      ! CMB of Etot change minus top surface fluxes so does not even depend on fbot of fside
       !-----------------------------------------------------------------
 
       call frzmlt_bottom_lateral (dt,                   &

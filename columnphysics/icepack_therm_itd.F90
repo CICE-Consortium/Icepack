@@ -1577,11 +1577,6 @@
             vi0new = c0
          endif               ! aice0 > puny
 
-         ! volume added to each category from lateral growth
-!        do n = 1, ncat
-!           if (aicen(n) > c0) vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
-!        end do
-
          ! combine areal change from new ice growth and lateral growth
          d_an_newi(1)     = ai0new
          d_an_tot(2:ncat) = d_an_latg(2:ncat)

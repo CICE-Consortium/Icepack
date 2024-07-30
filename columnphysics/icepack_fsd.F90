@@ -540,9 +540,6 @@
          vi0new_lat = vi0new * lead_area / (c1 + aice/latsurf_area)
       end if
 
-      ! for history/diagnostics
-!     frazil = vi0new - vi0new_lat
-
       ! lateral growth increment
       if (vi0new_lat > puny) then
          G_radial = vi0new_lat/dt
@@ -564,7 +561,6 @@
 
       ! Use remaining ice volume as in standard model,
       ! but ice cannot grow into the area that has grown laterally
-!     vi0new = vi0new - vi0new_lat
       tot_latg = SUM(d_an_latg(:))
 
       end subroutine fsd_lateral_growth
