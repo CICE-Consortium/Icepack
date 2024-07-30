@@ -527,8 +527,8 @@
                          d_afsd_newi=d_afsd_newi(i,:),                &
                          d_afsd_latm=d_afsd_latm(i,:),                &
                          d_afsd_weld=d_afsd_weld(i,:),                &
-                         floe_rad_c=floe_rad_c(i,:),                    &
-                         floe_binwidth=floe_binwidth(i,:))
+                         floe_rad_c=floe_rad_c(:),                    &
+                         floe_binwidth=floe_binwidth(:))
 
          endif ! tmask
 
@@ -687,8 +687,8 @@
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &
                         aicen         = aicen        (i,:),    &
-                        floe_rad_l    = floe_rad_l   (i,:),    &
-                        floe_rad_c    = floe_rad_c   (i,:),    &
+                        floe_rad_l    = floe_rad_l   (:),      &
+                        floe_rad_c    = floe_rad_c   (:),      &
                         wave_spectrum = wave_spectrum(i,:),    &
                         wavefreq      = wavefreq     (i,:),    &
                         dwavefreq     = dwavefreq    (i,:),    &
