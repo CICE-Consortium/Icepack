@@ -220,7 +220,7 @@
          snow_bio_net   ! depth integrated snow tracer (mmol/m^2)
 
       ! floe size distribution
-      real(kind=dbl_kind), dimension(nx,nfsd), public ::  &
+      real(kind=dbl_kind), dimension(nfsd), public ::  &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth     ! fsd size bin width in m (radius)

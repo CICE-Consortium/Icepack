@@ -39,7 +39,7 @@
       use icepack_intfc, only: icepack_init_fsd_bounds
       use icepack_intfc, only: icepack_init_snow
       use icepack_intfc, only: icepack_warnings_flush
-      use icedrv_domain_size, only: ncat, nfsd, nx
+      use icedrv_domain_size, only: ncat, nfsd
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
@@ -99,7 +99,6 @@
       endif
 
       if (tr_fsd) then
-         do i=1,nx
 
          call icepack_init_fsd_bounds(   &
             floe_rad_l=floe_rad_l,       &  ! fsd size lower bound in m (radius)
@@ -107,8 +106,6 @@
             floe_binwidth=floe_binwidth, &  ! fsd size bin width in m (radius)
             c_fsd_range=c_fsd_range    , &  ! string for history output
             write_diags=.true.)
-
-         enddo
 
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted(subname)) then

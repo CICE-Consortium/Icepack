@@ -372,8 +372,8 @@
             dsnow    = dsnow(i),      dsnown    = dsnown(i,:),    &
             meltsliqn= meltsliqn(i,:), &
             afsdn         = trcrn       (i,nt_fsd:nt_fsd+nfsd-1,:), &
-            floe_rad_c    = floe_rad_c   (i,:),                     &
-            floe_binwidth = floe_binwidth(i,:),                     &
+            floe_rad_c    = floe_rad_c   (:),                     &
+            floe_binwidth = floe_binwidth(:),                     &
             lmask_n  = lmask_n(i),    lmask_s   = lmask_s(i),     &
             mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
             yday = yday,  prescribed_ice = prescribed_ice)
@@ -527,8 +527,8 @@
                          d_afsd_newi=d_afsd_newi(i,:),                &
                          d_afsd_latm=d_afsd_latm(i,:),                &
                          d_afsd_weld=d_afsd_weld(i,:),                &
-                         floe_rad_c=floe_rad_c(i,:),                    &
-                         floe_binwidth=floe_binwidth(i,:))
+                         floe_rad_c=floe_rad_c(:),                    &
+                         floe_binwidth=floe_binwidth(:))
 
          endif ! tmask
 
@@ -687,8 +687,8 @@
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &
                         aicen         = aicen        (i,:),    &
-                        floe_rad_l    = floe_rad_l   (i,:),    &
-                        floe_rad_c    = floe_rad_c   (i,:),    &
+                        floe_rad_l    = floe_rad_l   (:),      &
+                        floe_rad_c    = floe_rad_c   (:),      &
                         wave_spectrum = wave_spectrum(i,:),    &
                         wavefreq      = wavefreq     (i,:),    &
                         dwavefreq     = dwavefreq    (i,:),    &
