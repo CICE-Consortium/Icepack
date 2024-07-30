@@ -2570,9 +2570,6 @@
       ! Use frzmlt to account for ice-ocean heat fluxes since last
       !  call to coupler.
       ! Compute lateral and bottom heat fluxes.
-      ! CMB notes this routine does not adust frzmlt! instead fhocn is variable
-      ! CMB sent back to ocn with "actual" heat flux used. It is computed as energy residual
-      ! CMB of Etot change minus top surface fluxes so does not even depend on fbot of fside
       !-----------------------------------------------------------------
 
       call frzmlt_bottom_lateral (dt,                   &
