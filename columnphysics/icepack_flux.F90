@@ -93,7 +93,6 @@
           meltbn  , & ! bottom ice melt                 (m)
           meltsn  , & ! snow melt                       (m)
           meltsliqn,& ! mass of snow melt               (kg/m^2)
-          dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
           snoicen     ! snow-ice growth                 (m)
 
@@ -102,7 +101,8 @@
           fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
           fswthrun_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
-          Urefn       ! air speed reference level       (m/s)
+          dsnown      , & ! change in snow depth            (m)
+          Urefn           ! air speed reference level       (m/s)
 
       ! cumulative fluxes
       real (kind=dbl_kind), intent(inout) :: &
@@ -220,9 +220,8 @@
       if (snwgrain) then
          meltsliq  = meltsliq  + meltsliqn * aicen
       endif
-      if (present(dsnow)) then
+      if (present(dsnow)) &
          dsnow     = dsnow     + dsnown    * aicen
-      endif
       congel    = congel    + congeln   * aicen
       snoice    = snoice    + snoicen   * aicen
 

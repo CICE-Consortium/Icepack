@@ -2320,17 +2320,17 @@
          melttn      , & ! top ice melt                           (m)
          meltbn      , & ! bottom ice melt                        (m)
          congeln     , & ! congelation ice growth                 (m)
-         snoicen     , & ! snow-ice growth                        (m)
-         dsnown          ! change in snow thickness (m/step-->cm/day)
+         snoicen         ! snow-ice growth                        (m)
 
-      real (kind=dbl_kind), dimension(:), intent(in) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
          fswthrun        ! SW through ice to ocean            (W/m^2)
 
-      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fswthrun_vdr , & ! vis dir SW through ice to ocean   (W/m^2)
          fswthrun_vdf , & ! vis dif SW through ice to ocean   (W/m^2)
          fswthrun_idr , & ! nir dir SW through ice to ocean   (W/m^2)
-         fswthrun_idf     ! nir dif SW through ice to ocean   (W/m^2)
+         fswthrun_idf , & ! nir dif SW through ice to ocean   (W/m^2)
+         dsnown           ! change in snow thickness (m/step-->cm/day)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy                (J m-3)
