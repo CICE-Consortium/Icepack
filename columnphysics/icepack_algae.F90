@@ -1519,7 +1519,7 @@
       real (kind=dbl_kind), dimension(n_doc) :: &
          DOCin              ! dissolved organic carbon concentration on volume (mmolC/m^3)
 
-     real (kind=dbl_kind), dimension(n_dic) :: &
+      real (kind=dbl_kind), dimension(n_dic) :: &
          DICin              ! dissolved inorganic carbon concentration on volume (mmolC/m^3)
 
       real (kind=dbl_kind), dimension(n_don) :: &  !proteins

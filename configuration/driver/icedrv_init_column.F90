@@ -1306,7 +1306,8 @@
       nlt_bgc_N(:) = 0
       nlt_bgc_C(:) = 0
       nlt_bgc_chl(:) = 0
-      nt_bgc_N(:) = 0
+      ! need some valid array indices if unset
+      nt_bgc_N(:) = max_ntrcr - n_algae*(nblyr+3)
       nt_bgc_C(:) = 0
       nt_bgc_chl(:) = 0
 
@@ -1331,7 +1332,8 @@
       ! vectors of size icepack_max_aero
       nlt_zaero(:) = 0
       nlt_zaero_sw(:) = 0
-      nt_zaero(:) = 0
+      ! need some valid array indices if unset
+      nt_zaero(:) = max_ntrcr - n_zaero*(nblyr+3)
       nt_zaero_sw(:) = 0
 
       nlt_bgc_Nit    = 0
@@ -1355,6 +1357,28 @@
       nt_bgc_PON    = 0
       nt_bgc_hum    = 0
       nt_zbgc_frac  = 0
+
+      dictype(:) = -c1
+
+      algaltype(1) = algaltype_diatoms
+      algaltype(2) = algaltype_sp
+      algaltype(3) = algaltype_phaeo
+
+      doctype(1) = doctype_s
+      doctype(2) = doctype_l
+
+      dontype(1) = dontype_protein
+
+      fedtype(1) = fedtype_1
+
+      feptype(1) = feptype_1
+
+      zaerotype(1) = zaerotype_bc1
+      zaerotype(2) = zaerotype_bc2
+      zaerotype(3) = zaerotype_dust1
+      zaerotype(4) = zaerotype_dust2
+      zaerotype(5) = zaerotype_dust3
+      zaerotype(6) = zaerotype_dust4
 
       if (skl_bgc) then
 

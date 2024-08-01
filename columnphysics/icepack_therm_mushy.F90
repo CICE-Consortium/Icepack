@@ -1323,8 +1323,7 @@
     ! if not converged
     if (.not. lconverged) then
 
-       call picard_nonconvergence(nilyr,    nslyr,    &
-                                  Tsf0,     Tsf,      &
+       call picard_nonconvergence(Tsf0,     Tsf,      &
                                   zTsn0,    zTsn,     &
                                   zTin0,    zTin,     &
                                   zSin0,    zSin,     &

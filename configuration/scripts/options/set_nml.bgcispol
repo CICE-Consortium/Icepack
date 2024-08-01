@@ -23,5 +23,16 @@
  tr_bgc_PON      = .true.
  tr_bgc_hum      = .true.
  tr_bgc_DON      = .true.
- tr_bgc_Fe       = .false.
+ tr_bgc_Fe       = .true.
  tfrz_option     = 'mushy'
+ tr_FY           = .true.
+ highfreq        = .true.
+ natmiter        = 10
+ oceanmixed_ice  = .false.
+ kcatbound       = 0
+ tr_snow         = .true.
+ use_smliq_pnd   = .true.
+ snwgrain        = .true.
+ snwredist       = 'ITDrdg'
+ rsnw_fall       = 54.526
+ rsnw_tmax       = 2800.0

@@ -1,6 +1,6 @@
 ### Layers
 setenv NICELYR   7         # number of vertical layers in the ice
-setenv NSNWLYR   1         # number of vertical layers in the snow
+setenv NSNWLYR   5         # number of vertical layers in the snow
 setenv NICECAT   5         # number of ice thickness categories
 
 ### Tracers                # match icepack_in tracer_nml to conserve memory
@@ -8,7 +8,7 @@ setenv TRAGE     1         # set to 1 for ice age tracer
 setenv TRFY      1         # set to 1 for first-year ice area tracer
 setenv TRLVL     1         # set to 1 for level and deformed ice tracers
 setenv TRPND     1         # set to 1 for melt pond tracers
-setenv NTRAERO   0         # number of aerosol tracers 
+setenv NTRAERO   1         # number of aerosol tracers 
                            # (up to max_aero in ice_domain_size.F90) 
                            # CESM uses 3 aerosol tracers
 setenv TRBRI     1         # set to 1 for brine height tracer
@@ -17,13 +17,13 @@ setenv TRBGCS    0         # set to 1 for skeletal layer tracers
 setenv TRBGCZ    1         # set to 1 for zbgc tracers
                            # (needs TRBGCS = 0 and TRBRI = 1)         
 setenv NBGCLYR   7         # number of zbgc layers 
-setenv TRZAERO   0         # number of z aerosol tracers 
+setenv TRZAERO   3         # number of z aerosol tracers 
                            # (up to max_aero = 6)
 setenv TRALG     3         # number of algal tracers
                            # (up to max_algae = 3)
 setenv TRDOC     2         # number of dissolve organic carbon 
                            # (up to max_doc = 3)
-setenv TRDIC     0         # number of dissolve inorganic carbon 
+setenv TRDIC     1         # number of dissolve inorganic carbon 
                            # (up to max_dic = 1)
 setenv TRDON     1         # number of dissolve organic nitrogen
                            # (up to max_don = 1)
