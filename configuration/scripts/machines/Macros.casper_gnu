@@ -1,0 +1,47 @@
+#==============================================================================
+# Makefile macros for NCAR derecho, gnu compiler
+#==============================================================================
+
+CPP        := ftn -E
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
+CFLAGS     := -c
+
+FIXEDFLAGS := -ffixed-line-length-132
+FREEFLAGS  := -ffree-form
+FFLAGS     := -fconvert=big-endian -fbacktrace -ffree-line-length-none -fallow-argument-mismatch
+FFLAGS_NOOPT:= -O0
+
+ifeq ($(ICE_BLDDEBUG), true)
+  FFLAGS   += -O0 -g -fcheck=bounds -finit-real=nan -fimplicit-none -ffpe-trap=invalid,zero,overflow --std f2008
+#  FFLAGS   += -O0 -g -fcheck=all -finit-real=snan -fimplicit-none -ffpe-trap=invalid,zero,overflow
+  CFLAGS   += -O0
+endif
+
+SCC   := gcc
+SFC   := gfortran
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
+
+NETCDF_PATH := $(NETCDF)
+
+#PIO_CONFIG_OPTS:= --enable-filesystem-hints=gpfs
+
+#PNETCDF_PATH := $(PNETCDF)
+#PNETCDF_PATH := /glade/u/apps/ch/opt/pio/2.2/mpt/2.15f/intel/17.0.1/lib
+
+INCLDIR := $(INCLDIR)
+
+LIB_NETCDF := $(NETCDF)/lib
+#LIB_PNETCDF := $(PNETCDF_PATH)/lib
+#LIB_MPI := $(IMPILIBDIR)
+
+#SLIBS   := -L$(LIB_NETCDF) -lnetcdf -lnetcdff -L$(LIB_PNETCDF) -lpnetcdf -lgptl
+SLIBS   := -L$(LIB_NETCDF) -lnetcdf -lnetcdff
+
+ifeq ($(ICE_THREADED), true)
+   LDFLAGS += -qopenmp
+   CFLAGS += -qopenmp
+   FFLAGS += -qopenmp
+endif
+
