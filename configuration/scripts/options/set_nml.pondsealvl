@@ -1,0 +1,4 @@
+tr_pond_topo = .false.
+tr_pond_lvl  = .false.
+tr_pond_sealvl = .true.
+tscale_pnd_drain  = 0.5d0
