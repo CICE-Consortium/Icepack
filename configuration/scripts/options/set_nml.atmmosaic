@@ -1,5 +1,5 @@
 atm_data_type   = 'MOSAiC'
-atm_data_file   = 'MOSAiC_kazr_snow_MDF_20191005-20201001.nc'
+atm_data_file   = 'MOSAiC_kazr_snow_MDF_20191005_20201001.nc'
 atm_data_format = 'nc'
 use_leap_years  = .true.
 fyear_init      = 2019
