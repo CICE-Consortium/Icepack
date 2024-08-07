@@ -23,6 +23,7 @@ smoke          col     1x1        debug,run1year,fluxopenw
 smoke          col     1x1        debug,run1year,dyn,fluxopenw
 smoke          col     1x1        debug,run1year,debug,snicartest
 smoke          col     1x1        debug,run1year,debug,snicar
+smoke          col     1x1        debug,run1year,debug,congel
 restart        col     1x1        debug
 restart        col     1x1        diag1
 restart        col     1x1        pondlvl
@@ -43,4 +44,5 @@ restart        col     1x1        modal
 restart        col     1x1        fluxopenw
 restart        col     1x1        snicartest
 restart        col     1x1        snicar
+restart        col     1x1        congel
 
