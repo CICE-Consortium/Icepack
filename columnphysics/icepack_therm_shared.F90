@@ -47,6 +47,16 @@
       logical (kind=log_kind), public :: &
          l_brine         ! if true, treat brine pocket effects
 
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind), public :: &
+         dfsurfdts_cpl,      & !
+         dflatdts_cpl,       & !
+         fsurf_cpl0,         & !
+         flat_cpl0,          & !
+         fsurf_cpl,          & !
+         flat_cpl              !
+#endif
+
 !=======================================================================
 
       contains

@@ -2184,8 +2184,9 @@
       !-----------------------------------------------------------------
       ! Let rain drain through to the ocean.
       !-----------------------------------------------------------------
-
+#ifndef GEOSCOUPLED
       fresh  = fresh + frain * aice
+#endif
 
       !-----------------------------------------------------------------
       ! Given thermodynamic growth rates, transport ice between
