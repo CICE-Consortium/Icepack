@@ -203,13 +203,14 @@
       fsalt     = fsalt     + fsaltn    * aicen
       fhocn     = fhocn     + fhocnn    * aicen
       fswthru   = fswthru   + fswthrun  * aicen
-      if (present(fswthru_vdr)) &
+
+      if (present(fswthru_vdr) .and. present(fswthrun_vdr)) &
          fswthru_vdr   = fswthru_vdr   + fswthrun_vdr  * aicen
-      if (present(fswthru_vdf)) &
+      if (present(fswthru_vdf) .and. present(fswthrun_vdf)) &
          fswthru_vdf   = fswthru_vdf   + fswthrun_vdf  * aicen
-      if (present(fswthru_idr)) &
+      if (present(fswthru_idr) .and. present(fswthrun_idr)) &
          fswthru_idr   = fswthru_idr   + fswthrun_idr  * aicen
-      if (present(fswthru_idf)) &
+      if (present(fswthru_idf) .and. present(fswthrun_idf)) &
          fswthru_idf   = fswthru_idf   + fswthrun_idf  * aicen
 
       ! ice/snow thickness
@@ -217,11 +218,14 @@
       meltt     = meltt     + melttn    * aicen
       meltb     = meltb     + meltbn    * aicen
       melts     = melts     + meltsn    * aicen
+
       if (snwgrain) then
          meltsliq  = meltsliq  + meltsliqn * aicen
       endif
-      if (present(dsnow)) &
+
+      if (present(dsnow) .and. present(dsnown)) &
          dsnow     = dsnow     + dsnown    * aicen
+
       congel    = congel    + congeln   * aicen
       snoice    = snoice    + snoicen   * aicen
 
