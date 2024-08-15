@@ -1241,15 +1241,17 @@
             qbotp = qbotm - qbotw
             dhi = ebot_gro / qbotp     ! dhi > 0
             hstot = dzi(nilyr)*zSin(nilyr) + dhi*sss*phi_i_mushy
+            hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
+            emlt_ocn = emlt_ocn - qbotw * dhi
          else ! two-step
             qbotm = icepack_enthalpy_mush(Tbot, sss)
             qbotp = -Lfresh * rhoi * (c1 - phi_i_mushy)
             qbotw = qbotm - qbotp
             dhi = ebot_gro / qbotp     ! dhi > 0
             hstot = dzi(nilyr)*zSin(nilyr) + dhi*sss
+            hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
+            emlt_ocn = emlt_ocn - qbotw * dhi
          endif
-         hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
-         emlt_ocn = emlt_ocn - qbotw * dhi
 
       else
 

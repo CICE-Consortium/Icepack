@@ -26,9 +26,6 @@
  tr_bgc_Fe       = .true.
  tfrz_option     = 'mushy'
  tr_FY           = .true.
- highfreq        = .true.
- natmiter        = 10
- oceanmixed_ice  = .false.
  kcatbound       = 0
  tr_snow         = .true.
  use_smliq_pnd   = .true.
