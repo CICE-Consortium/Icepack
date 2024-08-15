@@ -27,7 +27,7 @@
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
-      use icepack_parameters, only: saltflux_option
+      use icepack_parameters, only: saltflux_option, congel_freeze
       use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_tracers, only: ncat, nilyr, nslyr
@@ -47,6 +47,7 @@
       use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
       use icepack_mushy_physics, only: icepack_enthalpy_mush, enthalpy_of_melting
+      use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction, enthalpy_brine
 
       use icepack_aerosol, only: update_aerosol
       use icepack_isotope, only: update_isotope
@@ -85,7 +86,7 @@
                                   fsnow,       fpond,     &
                                   fbot,        Tbot,      &
                                   Tsnice,      sss,       &
-                                  rsnw,                   &
+                                  sst,         rsnw,      &
                                   lhcoef,      shcoef,    &
                                   fswsfc,      fswint,    &
                                   Sswabs,      Iswabs,    &
@@ -160,6 +161,7 @@
       real (kind=dbl_kind), intent(in) :: &
          fbot    , & ! ice-ocean heat flux at bottom surface (W/m^2)
          Tbot    , & ! ice bottom surface temperature (deg C)
+         sst     , & ! sea surface temperature (C)
          sss         ! ocean salinity
 
       ! coupler fluxes to atmosphere
@@ -395,6 +397,7 @@
                              congel,      snoice,    &
                              mlt_onset,   frz_onset, &
                              zSin,        sss,       &
+                             sst,                    &
                              dsnow,       rsnw)
       if (icepack_warnings_aborted(subname)) return
 
@@ -992,6 +995,7 @@
                                     congel,    snoice,   &
                                     mlt_onset, frz_onset,&
                                     zSin,      sss,      &
+                                    sst,                 &
                                     dsnow,     rsnw)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1057,6 +1061,7 @@
          zSin            ! ice layer salinity (ppt)
 
       real (kind=dbl_kind), intent(in) :: &
+         sst         , & ! sea surface temperature (C)
          sss             ! ocean salinity (PSU)
 
       ! local variables
@@ -1106,9 +1111,9 @@
          qmlt            ! enthalpy of melted ice (J m-3) = zero in BL99 formulation
 
       real (kind=dbl_kind) :: &
-         qbotm       , &
-         qbotp       , &
-         qbot0       , &
+         qbotm       , & ! enthalpy of newly formed congelation ice
+         qbotp       , & ! enthalpy needed to grow new congelation ice (includes ocean enthalpy)
+         qbotw       , & ! enthalpy transferred to ocean during congelation freezing
          mass        , & ! total  mass from snow density tracers (kg/m^2)
          massi       , & ! ice mass change factor
          tmp1            ! temporary scalar
@@ -1229,15 +1234,24 @@
 
       if (ktherm == 2) then
 
-         qbotm = icepack_enthalpy_mush(Tbot, sss)
-         qbotp = -Lfresh * rhoi * (c1 - phi_i_mushy)
-         qbot0 = qbotm - qbotp
-
-         dhi = ebot_gro / qbotp     ! dhi > 0
-
-         hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
-         hstot = dzi(nilyr)*zSin(nilyr) + dhi*sss
-         emlt_ocn = emlt_ocn - qbot0 * dhi
+         if (congel_freeze == 'one-step') then
+            ! Plante et al., The Cryosphere, 18, 1685-1708, 2024
+            qbotm = enthalpy_mush_liquid_fraction(Tbot, phi_i_mushy)
+            qbotw = enthalpy_brine(sst)
+            qbotp = qbotm - qbotw
+            dhi = ebot_gro / qbotp     ! dhi > 0
+            hstot = dzi(nilyr)*zSin(nilyr) + dhi*sss*phi_i_mushy
+            hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
+            emlt_ocn = emlt_ocn - qbotw * dhi
+         else ! two-step
+            qbotm = icepack_enthalpy_mush(Tbot, sss)
+            qbotp = -Lfresh * rhoi * (c1 - phi_i_mushy)
+            qbotw = qbotm - qbotp
+            dhi = ebot_gro / qbotp     ! dhi > 0
+            hstot = dzi(nilyr)*zSin(nilyr) + dhi*sss
+            hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
+            emlt_ocn = emlt_ocn - qbotw * dhi
+         endif
 
       else
 
@@ -2612,7 +2626,7 @@
                                  fsnow=fsnow,         fpond=fpond,             &
                                  fbot=fbot,           Tbot=Tbot,               &
                                  Tsnice=Tsnice,       sss=sss,                 &
-                                 rsnw=rsnw,                                    &
+                                 sst=sst,             rsnw=rsnw,               &
                                  lhcoef=lhcoef,       shcoef=shcoef,           &
                                  fswsfc=fswsfcn  (n), fswint=fswintn      (n), &
                                  Sswabs=Sswabsn(:,n), Iswabs=Iswabsn    (:,n), &
