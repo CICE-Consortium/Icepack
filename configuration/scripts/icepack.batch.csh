@@ -64,6 +64,21 @@ cat >> ${jobfile} << EOFB
 ###PBS -m be
 EOFB
 
+else if (${ICE_MACHINE} =~ casper*) then
+cat >> ${jobfile} << EOFB
+#PBS -q ${ICE_MACHINE_QUEUE}
+#PBS -l job_priority=regular
+#PBS -N ${ICE_CASENAME}
+#PBS -A ${acct}
+#PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
+#PBS -l walltime=${ICE_RUNLENGTH}
+#PBS -j oe
+#PBS -W umask=022
+#PBS -o ${ICE_CASEDIR}
+###PBS -M username@domain.com
+###PBS -m be
+EOFB
+
 else if (${ICE_MACHINE} =~ hobart*) then
 cat >> ${jobfile} << EOFB
 #PBS -j oe 

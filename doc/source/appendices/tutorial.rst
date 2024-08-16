@@ -10,7 +10,7 @@ Icepack Tutorial
 Learning Goals
 ----------------
 
-In this activity you will clone the Icepack model code from the Consortium GitHub repository to run standalone Icepack simulations. You will also make namelist changes and code modifications for experiments and make some basic plots. If you run into issues, contact dbailey@ucar.edu.
+In this activity you will clone the Icepack model code from the Consortium GitHub repository, create a branch, add a new tracer to Icepack, and run standalone Icepack simulations. You will also make namelist changes and code modifications for experiments and make some basic plots.
 
 Notes:
 
@@ -23,199 +23,133 @@ Notes:
   * CICE and Icepack Resources, https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index
 
 
-Github One-time Configuration
-----------------------------------
+Create An Icepack Branch, Port, and Run Initial Case
+------------------------------------------------------
 
-You need to have your own GitHub account before you can start the following activities, and you should have already forked the Icepack repository.
-For information about how to set up a GitHub account for the Icepack repository, see the Consortium documentation here, https://github.com/CICE-Consortium/About-Us/wiki/Git-Workflow-Guide.  The Consortium recommends that you keep your fork’s main branch in sync with the Consortium version and that you always work on branches.  This is all documented in the Git-Workflow-Guide linked above. 
+You should fork the Icepack repository and create a new branch in your fork for development.  This is documented in https://github.com/CICE-Consortium/About-Us/wiki/Git-Workflow-Guide.  But basically,
 
-Note: 
+* Create a github account for yourself
+* Fork the Consortium Icepack repository using the "Fork" feature at https://github.com/CICE-Consortium/Icepack
+* Clone your repository onto your machine
+* Create a branch
+* Checkout the branch
+* Port the model and verify you can build and run the model
 
-* The workflow guide is oriented toward setting up CICE rather than Icepack, but the same workflow applies to Icepack standalone.  Icepack can be set up and run as an independent model following the same workflow.
+Many of these steps are done once per user or machine.  You may be able to leverage the conda port to build and run the model, you may be working on a supported machine, or you may have to port the model to your machine.  Porting, setting up cases, building, running, and running test suites are all documented in the Icepack User Guide, https://cice-consortium-icepack.readthedocs.io/en/latest/index.html.  There are many ways to setup and run the model.
 
+**Note:** The workflow guide is oriented toward setting up CICE rather than Icepack, but the same workflow applies to Icepack standalone.
 
-Clone Icepack
--------------------
+To summarize the steps in greater detail **assuming use of conda in a Mac or Linux environment**.
 
-Clone your Icepack repository fork (use the URL from your fork) to a local sandbox::
+* Create a github account for yourself if you don't have one already (done once per user)
 
-  mkdir ~/icepack-dirs
-  cd ~/icepack-dirs
-  git clone https://github.com/<github-user>/Icepack
+* Fork the Consortium Icepack repository, go to https://github.com/CICE-Consortium/Icepack and click on the fork button (done once per user)
 
-If you have completed this correctly there should be an “Icepack” directory in the icepack-dirs directory. This is the “sandbox” we will be working in locally on your machine.
+* Clone Icepack, sync the main branch, and create a new branch from the main branch.  This will create a branch based on the lastest version of main::
 
-Move to the Icepack directory and check which branch you are using. This should be main::
+    mkdir ~/icepack-dirs
+    cd ~/icepack-dirs
+    git clone https://github.com/<github-user>/Icepack
+    cd Icepack
+    git status        (Branch should be main)
+    git remote --v    (Check the origin and NO upstream)
+    git remote add upstream https://github.com/CICE-Consortium/Icepack
+    git remote --v    (Check upstream has been added)
+    git pull upstream main
+    git push origin main
+    git branch <branchname>
+    git checkout <branchname>
+    git status        (Branch should be <branchname>)
 
-  cd Icepack
-  git status
+* Setup local env and download input datasets (done once per machine)::
 
-Take a minute to orient yourself to the big picture structure of the directories and files in Icepack. The documentation has information about the Icepack :ref:`dirstructure`.
+    mkdir -p ~/icepack-dirs/runs ~/icepack-dirs/input ~/icepack-dirs/baseline
+    cd ~/icepack-dirs/input
+    curl -O https://zenodo.org/records/3728287/files/Icepack_data-20200326.tar.gz
+    tar -xzf Icepack_data-20200326.tar.gz
 
-Make sure your main is up to date and create a branch. You can also update your fork directly in github by clicking the Sync fork button. If your code is already up to date, you can skip this step::
+* Setup the conda environment (done once per machine), see :ref:`laptops`::
 
-  git remote --v  (Check the origin and NO upstream)
-  git remote add upstream https://github.com/CICE-Consortium/Icepack
-  git remote --v  (Check upstream has been added)
-  git pull upstream main
-  git push origin main
-  git branch <branchname>
-  git checkout <branchname>
+    curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o ~/Downloads/miniconda.sh
+    bash ~/Downloads/miniconda.sh
+    source $HOME/miniconda3/bin/activate
+    conda init bash
+    conda config --set auto_activate_base false
+    source $HOME/miniconda3/bin/activate
+    cd ~/icepack-dirs/Icepack
+    conda env create -f configuration/scripts/machines/environment.yml
+    conda activate icepack 
 
+**NOTE:**  If you have a Windows machine, we recommend using the Ubuntu Linux application, https://ubuntu.com/desktop/wsl.
 
-Conda and Laptop One-time Configuration
-------------------------------------------
+Again, there are many options for setting up the model on hardware, see the Icepack User Guide for more details.
 
-To build and run Icepack on your laptop, you need to install software via conda.  Instructions on how to do that can be found in the Icepack user guide, :ref:`laptops`.  If you have a Windows machine, we recommend using the Ubuntu Linux application, https://ubuntu.com/desktop/wsl.  Make sure to follow the instructions for installing miniconda. If your laptop has a conda environment already installed, you will still need to activate the icepack environment, and you may need to do so using the recommended miniconda distribution. Return here after completing section :ref:`laptops` in the documentation.  After installing miniconda, the main steps are::
+* Set Up an Icepack Simulation.  See :ref:`quickstart` and :ref:`running_icepack`::
 
-  cd ~/icepack-dirs/Icepack
-  conda env create -f configuration/scripts/machines/environment.yml
-  conda activate icepack 
+    cd ~/Icepack
+    ./icepack.setup --case icepack_test0 --mach conda --env macos
+    cd ~/icepack-dirs/cases/icepack_test0
+    ./icepack.build
+    ./icepack.submit
 
-Before you can run Icepack, you have to set up a directory structure and download the input and forcing datasets::
+Several env variables are defined in **icepack.settings** and the Icepack namelist file is **icepack_in**.  Output files are copied from the run directory to a logs directory under the case.  If the run is successful, you will see the message “ICEPACK COMPLETED SUCCESSFULLY” in the icepack run log file. Note that this job runs quickly - you are running a column model with four grid cells!
 
-  mkdir -p ~/icepack-dirs/runs ~/icepack-dirs/input ~/icepack-dirs/baseline
-  cd ~/icepack-dirs/input
-  curl -O https://zenodo.org/records/3728287/files/Icepack_data-20200326.tar.gz
-  tar -xzf Icepack_data-20200326.tar.gz
+Look at the output.  Go to the ICE_RUNDIR (defined in **icepack.settings**). A successful model integration will create ice_diag.* files and a file in the “restart” directory called “iced.yyyy-mm-dd-sssss” where yyyy-mm-dd-sssss is a model date/time stamp. The Icepack documentation has more information about :ref:`history`.
 
-You can also run Icepack on an external machine that is supported by the Consortium or to which you have ported the code. In this case, you do not need to port to your laptop.
+* Plot some output using the timeseries script provided, see :ref:`testplotting`. The conda icepack environment must be activated::
 
+    cd $ICE_RUNDIR
+    conda activate icepack
+    ${ICE_SANDBOX}/configurations/scripts/tests/timeseries.csh ice_diag.full_ITD
 
-Set Up an Icepack Simulation
------------------------------
+**Note:** that you can run the plotting script on any of the four ice_diag.* files.  The .png files are created in the ICE_RUNDIR directory. View the png files.
 
-Use the online Icepack documentation and in particular the :ref:`quickstart` and :ref:`running_icepack` sections as guidance and for details on the command line settings::
+* Questions to think about while looking at the output.
 
-  cd ~/icepack-dirs
-  mkdir cases
-  cd ~/Icepack
-  ./icepack.setup --case ~/icepack-dirs/cases/icepack_test0 --mach <machine> --env <myenv> 
+  * What time period does an out-of-the-box run cover? 
+  * What are the differences between the full_ITD plots and the icefree plots (or any other combination of the ice_diag.* output files)? Which fields are the same? Which are different? Why would this be?
+  * What happens to ice area and ice thickness around October 1, 2015? Why do you see this signal?
+  * How does your output compare to the sample output provided for this release?
 
-Notes:
 
-* If you are doing this in the conda environment, the machine is “conda”.
-* Similarly, the <myenv> variable is set to the compiler on your machine. For the conda environment, this is “macos” or “linux”.
+Modify the Configuration or Code
+------------------------------------
 
-The setup script creates a case consistent with the machine and other defined settings under ~/icepack-dirs/cases/ with the name you selected (icepack_test0). The case directory will contain build and run scripts, a namelist file, and other necessary files. Once the case is set up any of these files can be manually edited to refine the desired configuration.
+* Set up a longer Run.  Modify ``npt`` in icepack_in.  ``npt`` defines the number of timesteps to run.  Details about namelist options are in the documentation (:ref:`case_settings`).
 
-Move to the new case directory and examine the settings::
+* Modify a physics option.  Change the thermodynamics option from ktherm=2 to ktherm=1 in **icepack_in**, and set sw_redist=.true.  The intent here is to change the namelist option for the current experiment in the case directory.  What is different compared to your first run?  What happens if sw_redist = .false. with ktherm = 1?  Why?
 
-  cd ~/icepack-dirs/cases/icepack_test0
+* Undo your latest **icepack_in** changes
 
-Open the **icepack.settings** file and look at it briefly. Note the ICE_CASEDIR (it should match this directory) and the ICE_RUNDIR (where the model will be run and output created). Now look at the default namelist settings in **icepack_in**.
+* Change a Parameter in the Fortran Code.  Edit **icepack_mechred.F90** and set
 
-Build the code::
+    ``fsnowrdg = c1    , & ! snow fraction that survives in ridging``.  
 
-  ./icepack.build
+  Rebuild the code before running.  What is different about this run?  What do you think the fsnowrdg parameter is doing here?
 
-The build script basically runs gmake under the covers, but there are a number of other tasks that are handled by the script to make the build more robust.  If the build is successful you will see the message “COMPILE SUCCESSFUL” at the bottom of the screen. You can also check the README.case file to check the status.
+* Revert your latest code changes::
 
-Submit the job. The submit script just submits the run scripts. Look at both **icepack.run** and **icepack.submit** files to see more details. The out-of-the-box run has default settings for the physics and other options. You can have a look at **icepack_in** and **icepack.settings** to review those settings. Then::
+    cd ~/Icepack
+    git status
+    git checkout columnphysics/icepack_mechred.F90
+    git status
 
-  ./icepack.submit
+.. _tutorialfluff:
 
-If the run is successful, you will see the message “ICEPACK COMPLETED SUCCESSFULLY” in the icepack run log file. Note that this job runs quickly - you are running a column model with four grid cells!
+Add a New Tracer
+--------------------------------------
 
-Look at the output!  Go to the ICE_RUNDIR where output was created. A successful model integration will create ice_diag.* files and a file in the “restart” directory called “iced.2016-01-01-00000”. The Icepack documentation has more information about :ref:`history`.
+In this exercise, add a new tracer associated with fluffballs.
+Call the tracer fluff and make it depend on ice area.  Follow the step-by-step instructions in the :ref:`addtrcr` documentation.
+Once you have implemented the model changes, be sure to add fluffballs output to the standard output diagnostics and turn on the
+fluff tracer.  Then update the timeseries plotting script to plot the fluffballs values over time.
 
-Follow the documentation to create some plots of the output using the tools provided with Icepack (:ref:`testplotting`). The conda icepack environment must be activated, if it isn’t already::
- 
-  cd ~/icepack-dirs/Icepack/configuration/scripts/tests/
-  conda activate icepack
-  ./timeseries.csh ~/icepack-dirs/runs/icepack_test0/ice_diag.full_ITD
+* First, set the initial value, physics, sources, and sinks of fluff to zero and make sure fluff values remain zero throughout the run
 
-Note that you can run the plotting script on any of the four ice_diag.* files.  The .png files are created in the ICE_RUNDIR directory. Open the files::
+* Add some constant atmospheric forcing and review results
 
-  cd ~/icepack-dirs/runs/icepack_test0/
-  open <figurename>.png
+* Change the dependency to ice volume, how do the results change?
 
-Or use your file browser to navigate to the directory and double click on the images.
+* Modify the physics to create some physics processes, see isotopes or aerosols for some ideas
 
-Questions to think about while looking at the output.
-
-* What time period does an out-of-the-box run cover? 
-* What are the differences between the full_ITD plots and the icefree plots (or any other combination of the ice_diag.* output files)? Which fields are the same? Which are different? Why would this be?
-* What happens to ice area and ice thickness around October 1, 2015? Why do you see this signal?
-* How does your output compare to the sample output provided for this release? (hint: see the wiki!)
-
-Take a step back and think about all the directories and files you have created. The Icepack “sandbox” was cloned from GitHub and has the actual Icepack code.
-
-* There is a particular case directory for building and launching the code, and some output (e.g. job log) are copied.
-* There is a particular run directory for each case. This is where the model is run and big files are found.
-
-
-Set Up a Longer Run
----------------------
-
-Once you have had success with the previous step, you can run another, longer experiment to practice some basic changes for Icepack. Go back to your Icepack directory::
-
-  cd ~/icepack-dirs/Icepack/
-
-You need to set up a new out-of-the-box case (icepack_test1)::
-
-  ./icepack.setup --case ~/icepack-dirs/cases/icepack_test1 --mach <machine> --env <myenv>
-
-Go into the cases/icepack_test1 directory, and build the case.
-Change the following namelist settings in **icepack_in**,
-
-  npt = 8760
-
-How long is this setting the model to run?  Change this to run for 10 years (hint: The timestep is one hour, and there are 24 steps per day, and 365 days per year).
-
-Details about namelist options are in the documentation (:ref:`case_settings`).
-
-Submit the job. Check the output and think about the following:
-
-* Over what dates did the model run this time?
-* What date would the model restart from?
-
-
-Modify a physics option
----------------------------
-
-Set up another case::
-
-  ./icepack.setup --case ~/icepack-dirs/cases/icepack_test2 --mach <machine> --env <myenv>
-
-Build the code.
-
-Change the thermodynamics option from ktherm = 2 to ktherm = 1 in **icepack_in**, and set sw_redist = .true.  The intent here is to change the namelist option for the current experiment in the case directory.  Think about what would happen if you changed **icepack_in** in the source code before creating the case instead (hint: this experiment should work the same, but what about future experiments?).
-
-Submit the job. Have a look at the output.
-
-* What is different compared to your first run?
-* What happens if sw_redist = .false. with ktherm = 1?  Why?
-
-
-Change a Parameter in the Fortran Code
------------------------------------------
-
-Set up another case::
-
-  ./icepack.setup --case ~/icepack-dirs/cases/icepack_test3 --mach <machine> --env <myenv>
-
-Change to the source code directory::
-
-  cd columnphysics
-
-Edit icepack_mechred.F90 to change the line
-
-  fsnowrdg = p5    , & ! snow fraction that survives in ridging
-
-to
-
-  fsnowrdg = c1    , & ! snow fraction that survives in ridging
-
-Build the code and submit the job.
-
-* What is different about this run?
-* What do you think the fsnowrdg parameter is doing here?
-
-Revert your code changes::
-
-  cd ~/Icepack
-  git status
-  git checkout columnphysics/icepack_mechred.F90
-  git status
-
+**NOTE:** The file, **doc/source/tutorial/fluff.diff** in the Icepack repository, demonstrates code differences for this fluffball activity as implemented in a version of Icepack from July, 2024.  These code differences may not be directly applicable to other code versions, but they provide an example of the typical code modifications required to add the tracer, fluff.

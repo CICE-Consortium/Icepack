@@ -1,0 +1,975 @@
+diff --git a/columnphysics/icepack_fluff.F90 b/columnphysics/icepack_fluff.F90
+new file mode 100644
+index 0000000..f938ea8
+--- /dev/null
++++ b/columnphysics/icepack_fluff.F90
+@@ -0,0 +1,52 @@
++!=======================================================================
++
++      module icepack_fluff
++
++      use icepack_kinds
++      use icepack_parameters, only: puny
++      use icepack_warnings, only: warnstr, icepack_warnings_add
++      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
++
++      implicit none
++
++      private
++      public :: update_fluff
++
++!=======================================================================
++
++      contains
++
++!=======================================================================
++
++!  Increase ice fluffball tracer
++
++      subroutine update_fluff (dt, rfluff, fatm, focn, aicen)
++
++      real (kind=dbl_kind), intent(in) :: &
++         dt                    ! time step (s)
++
++      real (kind=dbl_kind), intent(in) :: &
++         aicen, &              ! ice area (m2)
++         fatm, &               ! atm forcing (kg/m2/s)
++         focn                  ! ocn forcing (kg/m2/s)
++
++      real (kind=dbl_kind), intent(inout) :: &
++         rfluff                ! fluff tracer (kg)
++
++      character(len=*),parameter :: subname='(update_fluff)'
++
++      if (aicen > puny) then
++         rfluff = rfluff + fatm*aicen*dt  ! atm forcing
++         rfluff = rfluff + focn*aicen*dt  ! ocn forcing
++      endif
++!      rfluff = rfluff + dt/86400._dbl_kind    ! by timestep
++! other physics ...
++!      rfluff = ...
++
++      end subroutine update_fluff
++
++!=======================================================================
++
++      end module icepack_fluff
++
++!=======================================================================
+diff --git a/columnphysics/icepack_therm_vertical.F90 b/columnphysics/icepack_therm_vertical.F90
+index 7cd9f25..e231e8f 100644
+--- a/columnphysics/icepack_therm_vertical.F90
++++ b/columnphysics/icepack_therm_vertical.F90
+@@ -31,7 +31,7 @@ module icepack_therm_vertical
+       use icepack_parameters, only: icepack_chkoptargflag
+ 
+       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
+-      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
++      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_fluff
+       use icepack_tracers, only: n_aero, n_iso
+ 
+       use icepack_therm_shared, only: ferrmax, l_brine
+@@ -51,6 +51,7 @@ module icepack_therm_vertical
+       use icepack_isotope, only: update_isotope
+       use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
+       use icepack_age, only: increment_age
++      use icepack_fluff, only: update_fluff
+       use icepack_firstyear, only: update_FYarea
+       use icepack_flux, only: set_sfcflux, merge_fluxes
+       use icepack_meltpond_lvl, only: compute_ponds_lvl
+@@ -2081,7 +2082,7 @@ subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+                                     zqin        , zSin        , &
+                                     alvl        , vlvl        , &
+                                     apnd        , hpnd        , &
+-                                    ipnd        ,               &
++                                    ipnd        , fluff       , &
+                                     iage        , FY          , &
+                                     aerosno     , aeroice     , &
+                                     isosno      , isoice      , &
+@@ -2142,6 +2143,7 @@ subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+                                     faero_atm   , faero_ocn   , &
+                                     fiso_atm    , fiso_ocn    , &
+                                     fiso_evap   , &
++                                    ffluff_atm  , ffluff_ocn  , &
+                                     HDO_ocn     , H2_16O_ocn  , &
+                                     H2_18O_ocn  ,  &
+                                     dhsn        , ffracn      , &
+@@ -2266,6 +2268,7 @@ subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+          meltsliq        ! mass of snow melt                 (kg/m^2)
+ 
+       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
++         fluff       , & ! fluffballs
+          Qa_iso      , & ! isotope specific humidity          (kg/kg)
+          Qref_iso    , & ! isotope 2m atm ref spec humidity   (kg/kg)
+          fiso_atm    , & ! isotope deposition rate         (kg/m^2 s)
+@@ -2281,6 +2284,8 @@ subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+          smliqn          ! tracer for mass of liq in snow    (kg/m^3)
+ 
+       real (kind=dbl_kind), intent(in), optional :: &
++         ffluff_atm  , & ! fluff atm forcing               (kg/m^2 s)
++         ffluff_ocn  , & ! fluff ocn forcing               (kg/m^2/s)
+          HDO_ocn     , & ! ocean concentration of HDO         (kg/kg)
+          H2_16O_ocn  , & ! ocean concentration of H2_16O      (kg/kg)
+          H2_18O_ocn  , & ! ocean concentration of H2_18O      (kg/kg)
+@@ -2451,6 +2456,14 @@ subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+                return
+             endif
+          endif
++         if (tr_fluff) then
++            if (.not.(present(fluff) .and. present(ffluff_atm) .and. &
++                      present(ffluff_ocn))) then
++               call icepack_warnings_add(subname//' error in fluff arguments, tr_fluff=T')
++               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
++               return
++            endif
++         endif
+       endif
+ 
+       !-----------------------------------------------------------------
+@@ -2615,6 +2628,17 @@ subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+                                              yday,    FY(n))
+             if (icepack_warnings_aborted(subname)) return
+ 
++      !-----------------------------------------------------------------
++      ! Update ice fluffballs
++      !-----------------------------------------------------------------
++
++            if (tr_fluff) call update_fluff (dt = dt, &
++                                             rfluff = fluff(n), &
++                                             fatm = ffluff_atm, &
++                                             focn = ffluff_ocn, &
++                                             aicen = aicen(n))
++            if (icepack_warnings_aborted(subname)) return
++
+       !-----------------------------------------------------------------
+       ! Vertical thermodynamics: Heat conduction, growth and melting.
+       !-----------------------------------------------------------------
+diff --git a/columnphysics/icepack_tracers.F90 b/columnphysics/icepack_tracers.F90
+index 8414e0c..84e4981 100644
+--- a/columnphysics/icepack_tracers.F90
++++ b/columnphysics/icepack_tracers.F90
+@@ -58,6 +58,7 @@ module icepack_tracers
+          nblyr        = 0, & ! number of bio/brine layers per category
+          nfsd         = 0, & ! number of fsd layers
+          n_iso        = 0, & ! number of isotopes in use
++         n_fluff      = 0, & ! number of fluffballs in use
+          n_aero       = 0, & ! number of aerosols in use
+          n_zaero      = 0, & ! number of z aerosols in use
+          n_algae      = 0, & ! number of algae in use
+@@ -87,6 +88,7 @@ module icepack_tracers
+          nt_rsnw      = 0, & ! snow grain radius
+          nt_isosno    = 0, & ! starting index for isotopes in snow
+          nt_isoice    = 0, & ! starting index for isotopes in ice
++         nt_fluff     = 0, & ! starting index for fluffballs
+          nt_aero      = 0, & ! starting index for aerosols in ice
+          nt_bgc_Nit   = 0, & ! nutrients
+          nt_bgc_Am    = 0, & !
+@@ -110,6 +112,7 @@ module icepack_tracers
+          tr_iso       = .false., & ! if .true., use isotope tracers
+          tr_aero      = .false., & ! if .true., use aerosol tracers
+          tr_brine     = .false., & ! if .true., brine height differs from ice thickness
++         tr_fluff     = .false., & ! if .true., use fluffballs
+          tr_fsd       = .false.    ! if .true., use floe size distribution
+ 
+       !-----------------------------------------------------------------
+@@ -207,7 +210,7 @@ module icepack_tracers
+ 
+       subroutine icepack_init_tracer_flags(&
+            tr_iage_in, tr_FY_in, tr_lvl_in, tr_snow_in, &
+-           tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, &
++           tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, tr_fluff_in, &
+            tr_fsd_in, tr_aero_in, tr_iso_in, tr_brine_in, tr_zaero_in, &
+            tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
+            tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
+@@ -223,6 +226,7 @@ subroutine icepack_init_tracer_flags(&
+              tr_snow_in      , & ! if .true., use snow redistribution or metamorphosis tracers
+              tr_fsd_in       , & ! if .true., use floe size distribution tracers
+              tr_iso_in       , & ! if .true., use isotope tracers
++             tr_fluff_in     , & ! if .true., use fluffball tracers
+              tr_aero_in      , & ! if .true., use aerosol tracers
+              tr_brine_in     , & ! if .true., brine height differs from ice thickness
+              tr_zaero_in     , & ! if .true., black carbon is tracers  (n_zaero)
+@@ -251,6 +255,7 @@ subroutine icepack_init_tracer_flags(&
+         if (present(tr_snow_in)   ) tr_snow    = tr_snow_in
+         if (present(tr_fsd_in)    ) tr_fsd     = tr_fsd_in
+         if (present(tr_iso_in)    ) tr_iso     = tr_iso_in
++        if (present(tr_fluff_in)  ) tr_fluff   = tr_fluff_in
+         if (present(tr_aero_in)   ) tr_aero    = tr_aero_in
+         if (present(tr_brine_in)  ) tr_brine   = tr_brine_in
+         if (present(tr_zaero_in)  ) tr_zaero   = tr_zaero_in
+@@ -274,7 +279,7 @@ end subroutine icepack_init_tracer_flags
+ 
+       subroutine icepack_query_tracer_flags(&
+            tr_iage_out, tr_FY_out, tr_lvl_out, tr_snow_out, &
+-           tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, &
++           tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, tr_fluff_out, &
+            tr_fsd_out, tr_aero_out, tr_iso_out, tr_brine_out, tr_zaero_out, &
+            tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
+            tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
+@@ -290,6 +295,7 @@ subroutine icepack_query_tracer_flags(&
+              tr_snow_out      , & ! if .true., use snow redistribution or metamorphosis tracers
+              tr_fsd_out       , & ! if .true., use floe size distribution
+              tr_iso_out       , & ! if .true., use isotope tracers
++             tr_fluff_out     , & ! if .true., use fluffball tracers
+              tr_aero_out      , & ! if .true., use aerosol tracers
+              tr_brine_out     , & ! if .true., brine height differs from ice thickness
+              tr_zaero_out     , & ! if .true., black carbon is tracers  (n_zaero)
+@@ -318,6 +324,7 @@ subroutine icepack_query_tracer_flags(&
+         if (present(tr_snow_out)   ) tr_snow_out    = tr_snow
+         if (present(tr_fsd_out)    ) tr_fsd_out     = tr_fsd
+         if (present(tr_iso_out)    ) tr_iso_out     = tr_iso
++        if (present(tr_fluff_out)  ) tr_fluff_out   = tr_fluff
+         if (present(tr_aero_out)   ) tr_aero_out    = tr_aero
+         if (present(tr_brine_out)  ) tr_brine_out   = tr_brine
+         if (present(tr_zaero_out)  ) tr_zaero_out   = tr_zaero
+@@ -357,6 +364,7 @@ subroutine icepack_write_tracer_flags(iounit)
+         write(iounit,*) "  tr_snow    = ",tr_snow
+         write(iounit,*) "  tr_fsd     = ",tr_fsd
+         write(iounit,*) "  tr_iso     = ",tr_iso
++        write(iounit,*) "  tr_fluff   = ",tr_fluff
+         write(iounit,*) "  tr_aero    = ",tr_aero
+         write(iounit,*) "  tr_brine   = ",tr_brine
+         write(iounit,*) "  tr_zaero   = ",tr_zaero
+@@ -383,7 +391,7 @@ subroutine icepack_init_tracer_indices(&
+            nt_fbri_in, nt_iage_in, nt_FY_in, &
+            nt_alvl_in, nt_vlvl_in, nt_apnd_in, nt_hpnd_in, nt_ipnd_in, &
+            nt_smice_in, nt_smliq_in, nt_rhos_in, nt_rsnw_in, &
+-           nt_fsd_in, nt_isosno_in, nt_isoice_in, &
++           nt_fsd_in, nt_isosno_in, nt_isoice_in, nt_fluff_in, &
+            nt_aero_in, nt_zaero_in, nt_bgc_C_in, &
+            nt_bgc_N_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
+            nt_bgc_DIC_in, nt_bgc_Fed_in, nt_bgc_Fep_in, nt_bgc_Nit_in, nt_bgc_Am_in, &
+@@ -416,6 +424,7 @@ subroutine icepack_init_tracer_indices(&
+              nt_fsd_in,  & ! floe size distribution
+              nt_isosno_in,  & ! starting index for isotopes in snow
+              nt_isoice_in,  & ! starting index for isotopes in ice
++             nt_fluff_in,   & ! starting index for fluffballs
+              nt_aero_in,    & ! starting index for aerosols in ice
+              nt_bgc_Nit_in, & ! nutrients
+              nt_bgc_Am_in,  & !
+@@ -497,6 +506,7 @@ subroutine icepack_init_tracer_indices(&
+         if (present(nt_rsnw_in)      ) nt_rsnw       = nt_rsnw_in
+         if (present(nt_isosno_in)    ) nt_isosno     = nt_isosno_in
+         if (present(nt_isoice_in)    ) nt_isoice     = nt_isoice_in
++        if (present(nt_fluff_in)     ) nt_fluff      = nt_fluff_in
+         if (present(nt_aero_in)      ) nt_aero       = nt_aero_in
+         if (present(nt_bgc_Nit_in)   ) nt_bgc_Nit    = nt_bgc_Nit_in
+         if (present(nt_bgc_Am_in)    ) nt_bgc_Am     = nt_bgc_Am_in
+@@ -745,7 +755,7 @@ subroutine icepack_query_tracer_indices(&
+            nt_fbri_out, nt_iage_out, nt_FY_out, &
+            nt_alvl_out, nt_vlvl_out, nt_apnd_out, nt_hpnd_out, nt_ipnd_out, &
+            nt_smice_out, nt_smliq_out, nt_rhos_out, nt_rsnw_out, &
+-           nt_fsd_out, nt_isosno_out, nt_isoice_out, &
++           nt_fsd_out, nt_isosno_out, nt_isoice_out, nt_fluff_out, &
+            nt_aero_out, nt_zaero_out, nt_bgc_C_out, &
+            nt_bgc_N_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
+            nt_bgc_DIC_out, nt_bgc_Fed_out, nt_bgc_Fep_out, nt_bgc_Nit_out, nt_bgc_Am_out, &
+@@ -778,6 +788,7 @@ subroutine icepack_query_tracer_indices(&
+              nt_fsd_out,  & ! floe size distribution
+              nt_isosno_out,  & ! starting index for isotopes in snow
+              nt_isoice_out,  & ! starting index for isotopes in ice
++             nt_fluff_out,   & ! starting index for fluffballs
+              nt_aero_out,    & ! starting index for aerosols in ice
+              nt_bgc_Nit_out, & ! nutrients
+              nt_bgc_Am_out,  & !
+@@ -857,6 +868,7 @@ subroutine icepack_query_tracer_indices(&
+         if (present(nt_rsnw_out)      ) nt_rsnw_out       = nt_rsnw
+         if (present(nt_isosno_out)    ) nt_isosno_out     = nt_isosno
+         if (present(nt_isoice_out)    ) nt_isoice_out     = nt_isoice
++        if (present(nt_fluff_out)     ) nt_fluff_out      = nt_fluff
+         if (present(nt_aero_out)      ) nt_aero_out       = nt_aero
+         if (present(nt_bgc_Nit_out)   ) nt_bgc_Nit_out    = nt_bgc_Nit
+         if (present(nt_bgc_Am_out)    ) nt_bgc_Am_out     = nt_bgc_Am
+@@ -936,6 +948,7 @@ subroutine icepack_write_tracer_indices(iounit)
+         write(iounit,*) "  nt_rsnw       = ",nt_rsnw
+         write(iounit,*) "  nt_isosno     = ",nt_isosno
+         write(iounit,*) "  nt_isoice     = ",nt_isoice
++        write(iounit,*) "  nt_fluff      = ",nt_fluff
+         write(iounit,*) "  nt_aero       = ",nt_aero
+         write(iounit,*) "  nt_bgc_Nit    = ",nt_bgc_Nit
+         write(iounit,*) "  nt_bgc_Am     = ",nt_bgc_Am
+@@ -1014,7 +1027,7 @@ end subroutine icepack_write_tracer_indices
+ 
+       subroutine icepack_init_tracer_sizes(&
+          ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in  , &
+-         n_algae_in, n_DOC_in, n_aero_in, n_iso_in, &
++         n_algae_in, n_DOC_in, n_aero_in, n_iso_in, n_fluff_in, &
+          n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
+          ntrcr_in, ntrcr_o_in, nbtrcr_in, nbtrcr_sw_in)
+ 
+@@ -1032,6 +1045,7 @@ subroutine icepack_init_tracer_sizes(&
+          n_fep_in  , & !
+          n_zaero_in, & !
+          n_iso_in  , & !
++         n_fluff_in, & !
+          n_aero_in , & !
+          ntrcr_in  , & ! number of tracers in use
+          ntrcr_o_in, & ! number of non-bio tracers in use
+@@ -1056,6 +1070,7 @@ subroutine icepack_init_tracer_sizes(&
+         if (present(n_fep_in)    ) n_fep     = n_fep_in
+         if (present(n_zaero_in)  ) n_zaero   = n_zaero_in
+         if (present(n_iso_in)    ) n_iso     = n_iso_in
++        if (present(n_fluff_in)  ) n_fluff   = n_fluff_in
+         if (present(n_aero_in)   ) n_aero    = n_aero_in
+ 
+         if (present(ntrcr_in)    ) ntrcr     = ntrcr_in
+@@ -1074,7 +1089,7 @@ subroutine icepack_query_tracer_sizes(&
+          max_don_out    , max_fe_out     , nmodal1_out      , &
+          nmodal2_out    , max_aero_out   , max_nbtrcr_out   , &
+          ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
+-         n_algae_out, n_DOC_out, n_aero_out, n_iso_out, &
++         n_algae_out, n_DOC_out, n_aero_out, n_iso_out, n_fluff_out, &
+          n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
+          ntrcr_out, ntrcr_o_out, nbtrcr_out, nbtrcr_sw_out)
+ 
+@@ -1103,6 +1118,7 @@ subroutine icepack_query_tracer_sizes(&
+          n_fep_out  , & !
+          n_zaero_out, & !
+          n_iso_out  , & !
++         n_fluff_out, & !
+          n_aero_out , & !
+          ntrcr_out  , & ! number of tracers in use
+          ntrcr_o_out, & ! number of non-bio tracers in use
+@@ -1138,6 +1154,7 @@ subroutine icepack_query_tracer_sizes(&
+         if (present(n_zaero_out)  ) n_zaero_out   = n_zaero
+         if (present(n_aero_out)   ) n_aero_out    = n_aero
+         if (present(n_iso_out)    ) n_iso_out     = n_iso
++        if (present(n_fluff_out)  ) n_fluff_out   = n_fluff
+ 
+         if (present(ntrcr_out)    ) ntrcr_out     = ntrcr
+         if (present(ntrcr_o_out)  ) ntrcr_o_out   = ntrcr_o
+@@ -1186,6 +1203,7 @@ subroutine icepack_write_tracer_sizes(iounit)
+         write(iounit,*) "  n_zaero   = ",n_zaero
+         write(iounit,*) "  n_aero    = ",n_aero
+         write(iounit,*) "  n_iso     = ",n_iso
++        write(iounit,*) "  n_fluff   = ",n_fluff
+         write(iounit,*) "  ntrcr     = ",ntrcr
+         write(iounit,*) "  ntrcr_o   = ",ntrcr_o
+         write(iounit,*) "  nbtrcr    = ",nbtrcr
+diff --git a/configuration/driver/icedrv_InitMod.F90 b/configuration/driver/icedrv_InitMod.F90
+index 107ffdc..8a34f61 100644
+--- a/configuration/driver/icedrv_InitMod.F90
++++ b/configuration/driver/icedrv_InitMod.F90
+@@ -44,7 +44,8 @@ subroutine icedrv_initialize
+       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
+           init_flux_atm_ocn
+       use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
+-      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc
++      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, fiso_default, &
++          init_forcing_bgc, ffluff_default
+       use icedrv_restart_shared, only: restart
+       use icedrv_init, only: input_data, init_state, init_grid2, init_fsd
+       use icedrv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
+@@ -56,6 +57,7 @@ subroutine icedrv_initialize
+          tr_snow, &    ! from icepack
+          tr_aero, &    ! from icepack
+          tr_iso, &     ! from icepack
++         tr_fluff, &   ! from icepack
+          tr_zaero, &   ! from icepack
+          tr_fsd, wave_spec
+ 
+@@ -135,7 +137,7 @@ subroutine icedrv_initialize
+       call icepack_query_parameters(wave_spec_out=wave_spec)
+       call icepack_query_tracer_flags(tr_snow_out=tr_snow)
+       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
+-      call icepack_query_tracer_flags(tr_iso_out=tr_iso)
++      call icepack_query_tracer_flags(tr_iso_out=tr_iso, tr_fluff_out=tr_fluff)
+       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
+       call icepack_warnings_flush(nu_diag)
+       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+@@ -155,6 +157,7 @@ subroutine icedrv_initialize
+       endif
+ 
+       if (tr_iso)     call fiso_default                 ! default values
++      if (tr_fluff)   call ffluff_default               ! fluffball forcing
+       ! aerosols
+       ! if (tr_aero)  call faero_data                   ! data file
+       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
+diff --git a/configuration/driver/icedrv_RunMod.F90 b/configuration/driver/icedrv_RunMod.F90
+index e20ebf8..81fd86a 100644
+--- a/configuration/driver/icedrv_RunMod.F90
++++ b/configuration/driver/icedrv_RunMod.F90
+@@ -33,12 +33,13 @@ subroutine icedrv_run
+ 
+       use icedrv_calendar, only: istep, istep1, time, dt, stop_now, calendar
+       use icedrv_forcing, only: get_forcing, get_wave_spec
+-      use icedrv_forcing_bgc, only: faero_default, fiso_default, get_forcing_bgc
++      use icedrv_forcing_bgc, only: faero_default, fiso_default, get_forcing_bgc, &
++          ffluff_default
+       use icedrv_flux, only: init_flux_atm_ocn
+       use icedrv_history, only: history_format, history_close
+ 
+       logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero, &
+-                                 wave_spec, tr_fsd, tr_iso
++                                 wave_spec, tr_fsd, tr_iso, tr_fluff
+ 
+       character(len=*), parameter :: subname='(icedrv_run)'
+ 
+@@ -47,7 +48,8 @@ subroutine icedrv_run
+    !--------------------------------------------------------------------
+ 
+       call icepack_query_tracer_flags(tr_aero_out=tr_aero, tr_zaero_out=tr_zaero, &
+-                                      tr_fsd_out=tr_fsd, tr_iso_out=tr_iso)
++                                      tr_fsd_out=tr_fsd, tr_iso_out=tr_iso, &
++                                      tr_fluff_out=tr_fluff)
+       call icepack_warnings_flush(nu_diag)
+       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+           file=__FILE__,line= __LINE__)
+@@ -78,6 +80,7 @@ subroutine icedrv_run
+ 
+          ! biogeochemistry forcing
+          if (tr_iso)                 call fiso_default     ! default values
++         if (tr_fluff)               call ffluff_default   ! fluffball forcing
+          if (tr_aero .or. tr_zaero)  call faero_default    ! default values
+          if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
+ 
+diff --git a/configuration/driver/icedrv_diagnostics.F90 b/configuration/driver/icedrv_diagnostics.F90
+index eaa44d5..cd59cde 100644
+--- a/configuration/driver/icedrv_diagnostics.F90
++++ b/configuration/driver/icedrv_diagnostics.F90
+@@ -87,7 +87,8 @@ subroutine runtime_diags (dt)
+          pTair, pfsnow, pfrain, &
+          paice, hiavg, hsavg, hbravg, psalt, pTsfc, &
+          pevap, pfhocn, fsdavg, &
+-         rsnwavg, rhosavg, smicetot, smliqtot, smtot
++         rsnwavg, rhosavg, smicetot, smliqtot, smtot, &
++         fluffavg
+ 
+       real (kind=dbl_kind), dimension (nx) :: &
+          work1, work2, work3
+@@ -95,9 +96,9 @@ subroutine runtime_diags (dt)
+       real (kind=dbl_kind) :: &
+          Tffresh, rhos, rhow, rhoi
+ 
+-      logical (kind=log_kind) :: tr_brine, tr_fsd, tr_iso, tr_snow
++      logical (kind=log_kind) :: tr_brine, tr_fsd, tr_iso, tr_snow, tr_fluff
+       integer (kind=int_kind) :: nt_fbri, nt_Tsfc, nt_fsd, nt_isosno, nt_isoice
+-      integer (kind=int_kind) :: nt_rsnw, nt_rhos, nt_smice, nt_smliq
++      integer (kind=int_kind) :: nt_rsnw, nt_rhos, nt_smice, nt_smliq, nt_fluff
+ 
+       character(len=*), parameter :: subname='(runtime_diags)'
+ 
+@@ -107,11 +108,11 @@ subroutine runtime_diags (dt)
+ 
+       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc, &
+            snwredist_out=snwredist, snwgrain_out=snwgrain)
+-      call icepack_query_tracer_flags(tr_brine_out=tr_brine, &
++      call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_fluff_out=tr_fluff, &
+            tr_fsd_out=tr_fsd,tr_iso_out=tr_iso,tr_snow_out=tr_snow)
+       call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc,&
+            nt_fsd_out=nt_fsd, nt_isosno_out=nt_isosno, nt_isoice_out=nt_isoice, &
+-           nt_rsnw_out=nt_rsnw, nt_rhos_out=nt_rhos, &
++           nt_rsnw_out=nt_rsnw, nt_rhos_out=nt_rhos, nt_fluff_out=nt_fluff, &
+            nt_smice_out=nt_smice, nt_smliq_out=nt_smliq)
+       call icepack_query_parameters(Tffresh_out=Tffresh, rhos_out=rhos, &
+            rhow_out=rhow, rhoi_out=rhoi)
+@@ -138,6 +139,7 @@ subroutine runtime_diags (dt)
+         hbravg = c0               ! avg brine thickness
+         rsnwavg = c0              ! avg snow grain radius
+         rhosavg = c0              ! avg snow density
++        fluffavg = c0             ! fluffball avg
+         smicetot = c0             ! total mass of ice in snow (kg/m2)
+         smliqtot = c0             ! total mass of liquid in snow (kg/m2)
+         smtot = c0                ! total mass of snow volume (kg/m2)
+@@ -172,6 +174,11 @@ subroutine runtime_diags (dt)
+               smicetot = smicetot / real(nslyr,kind=dbl_kind) ! mass of ice in snow
+               smliqtot = smliqtot / real(nslyr,kind=dbl_kind) ! mass of liquid in snow
+            end if
++           if (tr_fluff) then      ! fluffballs
++              do nc = 1, ncat
++                 fluffavg  = fluffavg + trcrn(n,nt_fluff,nc)*aicen(n,nc)/paice ! fluffballs
++              end do
++           end if
+ 
+         endif
+         if (vice(n) /= c0) psalt = work2(n)/vice(n)
+@@ -252,6 +259,10 @@ subroutine runtime_diags (dt)
+            endif
+         endif
+ 
++        if (tr_fluff) then
++           write(nu_diag_out+n-1,900) 'fluffballs (kg)        = ',fluffavg
++        endif
++
+         write(nu_diag_out+n-1,*) '----------ocn----------'
+         write(nu_diag_out+n-1,900) 'sst (C)                = ',sst(n)  ! sea surface temperature
+         write(nu_diag_out+n-1,900) 'sss (ppt)              = ',sss(n)  ! sea surface salinity
+@@ -267,6 +278,7 @@ subroutine runtime_diags (dt)
+              write(nu_diag_out+n-1,901) 'isotopic conc chg    = ',pdiso(n,k),k
+           enddo
+         endif
++
+       end do
+ 899   format (43x,a24)
+ 900   format (a25,2x,f24.17)
+diff --git a/configuration/driver/icedrv_domain_size.F90 b/configuration/driver/icedrv_domain_size.F90
+index 75bb4d2..57b9c08 100644
+--- a/configuration/driver/icedrv_domain_size.F90
++++ b/configuration/driver/icedrv_domain_size.F90
+@@ -28,6 +28,7 @@ module icedrv_domain_size
+         n_don     = TRDON     , & ! number of DON pools in use
+         n_fed     = TRFED     , & ! number of Fe  pools in use dissolved Fe
+         n_fep     = TRFEP     , & ! number of Fe  pools in use particulate Fe
++        n_fluff   = NFLUFF    , & ! number of fluffballs
+         nfreq     = 25        , & ! number of wave frequencies ! HARDWIRED FOR NOW
+         nblyr     = NBGCLYR   , & ! number of bio/brine layers per category
+                                   ! maximum number of biology tracers + aerosols
+@@ -43,6 +44,7 @@ module icedrv_domain_size
+                   + nslyr       & ! snow enthalpy
+                               !!!!! optional tracers:
+                   + nfsd        & ! number of floe size categories
++                  + n_fluff     & ! number of fluffball tracers
+                   + TRAGE       & ! age
+                   + TRFY        & ! first-year area
+                   + TRLVL*2     & ! level/deformed ice
+diff --git a/configuration/driver/icedrv_flux.F90 b/configuration/driver/icedrv_flux.F90
+index 39c0908..8e32ec0 100644
+--- a/configuration/driver/icedrv_flux.F90
++++ b/configuration/driver/icedrv_flux.F90
+@@ -299,6 +299,10 @@ module icedrv_flux
+          fiso_atm  , & ! isotope deposition rate (kg/m^2 s)
+          fiso_evap     ! isotope evaporation rate (kg/m^2 s)
+ 
++      real (kind=dbl_kind), dimension(nx), public :: &   ! coupling variable for tr_fluff
++         ffluff_atm, & ! fluffball source from atm (kg/m^2 s)
++         ffluff_ocn    ! fluffball source from ocn (kg/m^2 s)
++
+       real (kind=dbl_kind), &
+          dimension (nx,icepack_max_nbtrcr), public :: &
+          flux_bio_atm  ! all bio fluxes to ice from atmosphere
+@@ -476,6 +480,8 @@ subroutine init_coupler_flux
+ 
+       fiso_atm     (:,:) = c0        ! isotope deposition rate (kg/m2/s)
+       fiso_evap    (:,:) = c0        ! isotope evaporation rate (kg/m2/s)
++      ffluff_atm   (:)   = c0        ! fluffball forcing from atm (kg/m2/s)
++      ffluff_ocn   (:)   = c0        ! fluffball forcing from ocean (kg/m2/s)
+       faero_atm    (:,:) = c0        ! aerosol deposition rate (kg/m2/s)
+       flux_bio_atm (:,:) = c0        ! zaero and bio deposition rate (kg/m2/s)
+ 
+diff --git a/configuration/driver/icedrv_forcing_bgc.F90 b/configuration/driver/icedrv_forcing_bgc.F90
+index f471022..70eacbe 100644
+--- a/configuration/driver/icedrv_forcing_bgc.F90
++++ b/configuration/driver/icedrv_forcing_bgc.F90
+@@ -10,7 +10,7 @@ module icedrv_forcing_bgc
+       use icedrv_kinds
+       use icedrv_domain_size, only: nx
+       use icedrv_calendar, only: secday
+-      use icedrv_constants, only: nu_forcing, nu_diag
++      use icedrv_constants, only: nu_forcing, nu_diag, c0
+       use icepack_intfc, only: icepack_max_algae, icepack_max_doc
+       use icepack_intfc, only: icepack_max_dic
+       use icepack_intfc, only: icepack_query_tracer_flags
+@@ -19,7 +19,8 @@ module icedrv_forcing_bgc
+ 
+       implicit none
+       private
+-      public :: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc
++      public :: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc, &
++                ffluff_default
+ 
+       real (kind=dbl_kind), dimension(365) :: & ! hardwired for now
+          sil_data, nit_data
+@@ -182,6 +183,21 @@ subroutine fiso_default
+ 
+       end subroutine fiso_default
+ 
++!=======================================================================
++
++! constant values for atmospheric and ocean fluffballs
++
++      subroutine ffluff_default
++
++      use icedrv_flux, only: ffluff_atm, ffluff_ocn
++      character(len=*), parameter :: subname='(ffluff_default)'
++
++!      ffluff_atm(:) = c0             ! kg/m^2 s
++      ffluff_atm(:) = 1.e-8_dbl_kind ! kg/m^2 s
++      ffluff_ocn(:) = c0             ! kg/m^2 s
++
++      end subroutine ffluff_default
++
+ !=======================================================================
+ 
+       end module icedrv_forcing_bgc
+diff --git a/configuration/driver/icedrv_init.F90 b/configuration/driver/icedrv_init.F90
+index c1e738c..ed69c07 100644
+--- a/configuration/driver/icedrv_init.F90
++++ b/configuration/driver/icedrv_init.F90
+@@ -58,7 +58,7 @@ subroutine input_data
+ 
+       use icedrv_diagnostics, only: diag_file, nx_names
+       use icedrv_domain_size, only: nilyr, nslyr, nblyr, max_ntrcr, ncat
+-      use icedrv_domain_size, only: n_iso, n_aero, nfsd
++      use icedrv_domain_size, only: n_iso, n_aero, nfsd, n_fluff
+       use icedrv_calendar, only: year_init, istep0
+       use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
+       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
+@@ -116,12 +116,12 @@ subroutine input_data
+ 
+       integer (kind=int_kind) :: ntrcr
+       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_snow
+-      logical (kind=log_kind) :: tr_iso, tr_aero, tr_fsd
++      logical (kind=log_kind) :: tr_iso, tr_aero, tr_fsd, tr_fluff
+       logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, wave_spec
+       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY
+       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, &
+                                  nt_smice, nt_smliq, nt_rhos, nt_rsnw, &
+-                                 nt_aero, nt_fsd, nt_isosno, nt_isoice
++                                 nt_aero, nt_fsd, nt_isosno, nt_isoice, nt_fluff
+ 
+       real (kind=real_kind) :: rplvl, rptopo
+       real (kind=dbl_kind) :: Cf, puny
+@@ -194,6 +194,7 @@ subroutine input_data
+         tr_snow,      &
+         tr_aero,      &
+         tr_fsd,       &
++        tr_fluff,     &
+         tr_iso
+ 
+       !-----------------------------------------------------------------
+@@ -300,6 +301,7 @@ subroutine input_data
+       tr_aero      = .false. ! aerosols
+       tr_fsd       = .false. ! floe size distribution
+       tr_iso       = .false. ! isotopes
++      tr_fluff     = .false. ! fluffballs
+ 
+       !-----------------------------------------------------------------
+       ! read from input file
+@@ -549,6 +551,13 @@ subroutine input_data
+          call icedrv_system_abort(file=__FILE__,line=__LINE__)
+       endif
+ 
++      if (tr_fluff .and. n_fluff==0) then
++         write (nu_diag,*) 'WARNING: fluffballs activated but'
++         write (nu_diag,*) 'WARNING: not allocated in tracer array.'
++         write (nu_diag,*) 'WARNING: Activate in compilation script.'
++         call icedrv_system_abort(file=__FILE__,line=__LINE__)
++      endif
++
+       if (tr_aero .and. n_aero==0) then
+          write (nu_diag,*) 'WARNING: aerosols activated but'
+          write (nu_diag,*) 'WARNING: not allocated in tracer array.'
+@@ -892,6 +901,12 @@ subroutine input_data
+              ntrcr = ntrcr + n_iso    ! n_iso species in ice
+          end if
+ 
++         nt_fluff = max_ntrcr
++         if (tr_fluff) then           ! fluffballs
++             nt_fluff = ntrcr + 1
++             ntrcr = ntrcr + n_fluff
++         end if
++
+          nt_aero = max_ntrcr - 4*n_aero
+          if (tr_aero) then
+              nt_aero = ntrcr + 1
+@@ -918,6 +933,7 @@ subroutine input_data
+          write(nu_diag,1020) 'nblyr   = ', nblyr
+          write(nu_diag,1020) 'nfsd    = ', nfsd
+          write(nu_diag,1020) 'n_iso   = ', n_iso
++         write(nu_diag,1020) 'n_fluff = ', n_fluff
+          write(nu_diag,1020) 'n_aero  = ', n_aero
+          write(nu_diag,*)' '
+          write(nu_diag,1020) 'nx      = ', nx
+@@ -991,10 +1007,10 @@ subroutine input_data
+            windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac)
+       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
+            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
+-           nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero)
++           nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero, n_fluff_in=n_fluff)
+       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
+            tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
+-           tr_iso_in=tr_iso, tr_snow_in=tr_snow, &
++           tr_iso_in=tr_iso, tr_snow_in=tr_snow, tr_fluff_in=tr_fluff, &
+            tr_pond_in=tr_pond, &
+            tr_pond_lvl_in=tr_pond_lvl, &
+            tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
+@@ -1005,7 +1021,7 @@ subroutine input_data
+            nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, nt_ipnd_in=nt_ipnd, &
+            nt_smice_in=nt_smice, nt_smliq_in=nt_smliq, &
+            nt_rhos_in=nt_rhos, nt_rsnw_in=nt_rsnw, &
+-           nt_aero_in=nt_aero, nt_fsd_in=nt_fsd, &
++           nt_aero_in=nt_aero, nt_fsd_in=nt_fsd, nt_fluff_in=nt_fluff, &
+            nt_isosno_in=nt_isosno, nt_isoice_in=nt_isoice)
+ 
+       call icepack_warnings_flush(nu_diag)
+@@ -1073,7 +1089,7 @@ subroutine init_state
+ 
+       use icepack_intfc, only: icepack_aggregate
+       use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, max_ntrcr
+-      use icedrv_domain_size, only: n_iso, n_aero, nfsd
++      use icedrv_domain_size, only: n_iso, n_aero, nfsd, n_fluff
+       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
+       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
+       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
+@@ -1086,10 +1102,10 @@ subroutine init_state
+ 
+       integer (kind=int_kind) :: ntrcr
+       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_fsd, tr_iso
+-      logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_snow
++      logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_snow, tr_fluff
+       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
+       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, &
+-                                 nt_smice, nt_smliq, nt_rhos, nt_rsnw, &
++                                 nt_smice, nt_smliq, nt_rhos, nt_rsnw, nt_fluff, &
+                                  nt_aero, nt_fsd, nt_isosno, nt_isoice
+ 
+       character(len=*), parameter :: subname='(init_state)'
+@@ -1102,7 +1118,7 @@ subroutine init_state
+          call icepack_query_tracer_flags(tr_iage_out=tr_iage, &
+               tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
+               tr_iso_out=tr_iso, tr_snow_out=tr_snow, &
+-              tr_pond_lvl_out=tr_pond_lvl, &
++              tr_pond_lvl_out=tr_pond_lvl, tr_fluff_out=tr_fluff, &
+               tr_pond_topo_out=tr_pond_topo, tr_fsd_out=tr_fsd)
+          call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, &
+               nt_sice_out=nt_sice, nt_qice_out=nt_qice, &
+@@ -1111,7 +1127,7 @@ subroutine init_state
+               nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+               nt_ipnd_out=nt_ipnd, &
+               nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, &
+-              nt_rhos_out=nt_rhos, nt_rsnw_out=nt_rsnw, &
++              nt_rhos_out=nt_rhos, nt_rsnw_out=nt_rsnw, nt_fluff_out=nt_fluff, &
+               nt_isosno_out=nt_isosno, nt_isoice_out=nt_isoice, &
+               nt_aero_out=nt_aero, nt_fsd_out=nt_fsd)
+          call icepack_warnings_flush(nu_diag)
+@@ -1178,6 +1194,12 @@ subroutine init_state
+             trcr_depend(nt_isoice) = 1          ! ice
+          enddo
+       endif
++      if (tr_fluff) then  ! isotopes
++         do it = 1, n_fluff
++!            trcr_depend(nt_fluff + it -1) = 0   ! area
++            trcr_depend(nt_fluff + it -1) = 1   ! ice volume
++         enddo
++      endif
+       if (tr_aero) then ! volume-weighted aerosols
+          do it = 1, n_aero
+             trcr_depend(nt_aero+(it-1)*4  ) = 2 ! snow
+diff --git a/configuration/driver/icedrv_restart.F90 b/configuration/driver/icedrv_restart.F90
+index 762d1b3..5a687e8 100644
+--- a/configuration/driver/icedrv_restart.F90
++++ b/configuration/driver/icedrv_restart.F90
+@@ -29,6 +29,7 @@ module icedrv_restart
+           write_restart_snow,      read_restart_snow, &
+           write_restart_fsd,       read_restart_fsd, &
+           write_restart_iso,       read_restart_iso, &
++          write_restart_fluff,     read_restart_fluff, &
+           write_restart_aero,      read_restart_aero
+ 
+       character (len=3), private :: nchar !
+@@ -89,7 +90,7 @@ subroutine dumpfile
+ 
+       logical (kind=log_kind) :: &
+          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
+-         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
++         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd, tr_fluff
+ !         skl_bgc, z_tracers
+ 
+       integer (kind=int_kind) :: dims(2)
+@@ -115,7 +116,7 @@ subroutine dumpfile
+ 
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+-          tr_brine_out=tr_brine, &
++          tr_brine_out=tr_brine, tr_fluff_out=tr_fluff, &
+           tr_pond_topo_out=tr_pond_topo, &
+           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+ !      call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
+@@ -224,6 +225,7 @@ subroutine dumpfile
+       if (tr_aero)      call write_restart_aero(dims)      ! ice aerosols
+       if (tr_brine)     call write_restart_hbrine(dims)    ! brine height
+       if (tr_fsd)       call write_restart_fsd(dims)       ! floe size distribution
++      if (tr_fluff)     call write_restart_fluff(dims)     ! fluffballs
+    ! called in icedrv_RunMod.F90 to prevent circular dependencies
+    !      if (skl_bgc .or. z_tracers) &
+    !                        call write_restart_bgc         ! biogeochemistry
+@@ -275,7 +277,7 @@ subroutine restartfile (ice_ic)
+ 
+       logical (kind=log_kind) :: &
+          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
+-         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
++         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd, tr_fluff
+ 
+       character(len=char_len_long) :: filename
+       character(len=*), parameter :: subname='(restartfile)'
+@@ -290,7 +292,7 @@ subroutine restartfile (ice_ic)
+ 
+       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+-           tr_brine_out=tr_brine, &
++           tr_brine_out=tr_brine, tr_fluff_out=tr_fluff, &
+            tr_pond_topo_out=tr_pond_topo, &
+            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+       call icepack_warnings_flush(nu_diag)
+@@ -399,6 +401,7 @@ subroutine restartfile (ice_ic)
+       if (tr_aero)      call read_restart_aero()      ! ice aerosols
+       if (tr_brine)     call read_restart_hbrine      ! brine height
+       if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
++      if (tr_fluff)     call read_restart_fluff()     ! fluffballs
+ 
+       !-----------------------------------------------------------------
+       ! Ensure ice is binned in correct categories
+@@ -768,6 +771,52 @@ end subroutine read_restart_age
+ 
+ !=======================================================================
+ 
++! Dumps all values needed for restarting
++
++      subroutine write_restart_fluff(dims)
++
++      use icedrv_state, only: trcrn
++      use icedrv_domain_size, only: ncat
++
++      integer (kind=int_kind), intent(in), optional :: &
++         dims(:)           ! netcdf dimension IDs
++
++      integer (kind=int_kind) :: nt_fluff
++      character(len=*), parameter :: subname='(write_restart_fluff)'
++
++      call icepack_query_tracer_indices(nt_fluff_out=nt_fluff)
++      call icepack_warnings_flush(nu_diag)
++      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
++          file=__FILE__,line= __LINE__)
++
++      call write_restart_field(nu_dump,trcrn(:,nt_fluff,:),ncat,'fluff',dims)
++
++      end subroutine write_restart_fluff
++
++!=======================================================================
++
++! Reads all values needed for an ice fluff restart
++
++      subroutine read_restart_fluff()
++
++      use icedrv_state, only: trcrn
++      use icedrv_domain_size, only: ncat
++      integer (kind=int_kind) :: nt_fluff
++      character(len=*), parameter :: subname='(read_restart_fluff)'
++
++      write(nu_diag,*) 'min/max fluff (s)'
++
++      call icepack_query_tracer_indices(nt_fluff_out=nt_fluff)
++      call icepack_warnings_flush(nu_diag)
++      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
++          file=__FILE__,line= __LINE__)
++
++      call read_restart_field(nu_restart,trcrn(:,nt_fluff,:),ncat,'fluff')
++
++      end subroutine read_restart_fluff
++
++!=======================================================================
++
+ ! Dumps all values needed for restarting
+ ! author Elizabeth C. Hunke, LANL
+ 
+diff --git a/configuration/driver/icedrv_step.F90 b/configuration/driver/icedrv_step.F90
+index 0f25b56..1dc844d 100644
+--- a/configuration/driver/icedrv_step.F90
++++ b/configuration/driver/icedrv_step.F90
+@@ -127,7 +127,7 @@ subroutine step_therm1 (dt)
+       use icedrv_flux, only: fswthru, fswthru_vdr, fswthru_vdf, fswthru_idr, fswthru_idf
+       use icedrv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f
+       use icedrv_flux, only: dsnow, dsnown, faero_atm, faero_ocn
+-      use icedrv_flux, only: fiso_atm, fiso_ocn, fiso_evap
++      use icedrv_flux, only: fiso_atm, fiso_ocn, fiso_evap, ffluff_atm, ffluff_ocn
+       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
+       use icedrv_init, only: lmask_n, lmask_s
+       use icedrv_state, only: aice, aicen, aice_init, aicen_init, vicen_init
+@@ -151,7 +151,7 @@ subroutine step_therm1 (dt)
+ 
+       integer (kind=int_kind) :: &
+          ntrcr, nt_apnd, nt_hpnd, nt_ipnd, nt_alvl, nt_vlvl, nt_Tsfc, &
+-         nt_iage, nt_FY, nt_qice, nt_sice, nt_qsno, &
++         nt_iage, nt_FY, nt_qice, nt_sice, nt_qsno, nt_fluff, &
+          nt_aero, nt_isosno, nt_isoice, nt_rsnw, nt_smice, nt_smliq
+ 
+       logical (kind=log_kind) :: &
+@@ -198,7 +198,7 @@ subroutine step_therm1 (dt)
+       call icepack_query_tracer_indices( &
+          nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
+          nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_Tsfc_out=nt_Tsfc, &
+-         nt_iage_out=nt_iage, nt_FY_out=nt_FY, &
++         nt_iage_out=nt_iage, nt_FY_out=nt_FY, nt_fluff_out=nt_fluff, &
+          nt_qice_out=nt_qice, nt_sice_out=nt_sice, &
+          nt_aero_out=nt_aero, nt_qsno_out=nt_qsno, &
+          nt_rsnw_out=nt_rsnw, nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, &
+@@ -289,6 +289,7 @@ subroutine step_therm1 (dt)
+             hpnd = trcrn(i,nt_hpnd,:),                 &
+             ipnd = trcrn(i,nt_ipnd,:),                 &
+             iage = trcrn(i,nt_iage,:),                 &
++            fluff= trcrn(i,nt_fluff,:),                &
+             FY   = trcrn(i,nt_FY,:),                   &
+             rsnwn  = rsnwn (:,:),            &
+             smicen = smicen(:,:),            &
+@@ -356,6 +357,8 @@ subroutine step_therm1 (dt)
+             faero_ocn   = faero_ocn(i,1:n_aero),                  &
+             fiso_atm    = fiso_atm   (i,:),                       &
+             fiso_ocn    = fiso_ocn   (i,:),                       &
++            ffluff_atm  = ffluff_atm (i),                         &
++            ffluff_ocn  = ffluff_ocn (i),                         &
+             fiso_evap   = fiso_evap  (i,:),                       &
+             HDO_ocn     = HDO_ocn (i),                            &
+             H2_16O_ocn  = H2_16O_ocn (i),                         &
+diff --git a/configuration/scripts/icepack.build b/configuration/scripts/icepack.build
+index f897de4..10e9d23 100755
+--- a/configuration/scripts/icepack.build
++++ b/configuration/scripts/icepack.build
+@@ -63,7 +63,7 @@ endif
+ if !(-d ${ICE_OBJDIR}) mkdir -p ${ICE_OBJDIR}
+ cd ${ICE_OBJDIR}
+ 
+-setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DNXGLOB=${ICE_NXGLOB} -DNICELYR=${NICELYR} -DNSNWLYR=${NSNWLYR} -DNICECAT=${NICECAT} -DNFSDCAT=${NFSDCAT} -DTRAGE=${TRAGE} -DTRFY=${TRFY} -DTRLVL=${TRLVL} -DTRPND=${TRPND} -DTRSNOW=${TRSNOW} -DTRBRI=${TRBRI} -DNTRISO=${NTRISO} -DNTRAERO=${NTRAERO} -DNBGCLYR=${NBGCLYR} -DTRALG=${TRALG} -DTRBGCZ=${TRBGCZ} -DTRDOC=${TRDOC} -DTRDOC=${TRDOC} -DTRDIC=${TRDIC} -DTRDON=${TRDON} -DTRFED=${TRFED} -DTRFEP=${TRFEP} -DTRZAERO=${TRZAERO} -DTRBGCS=${TRBGCS} "
++setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DNXGLOB=${ICE_NXGLOB} -DNICELYR=${NICELYR} -DNSNWLYR=${NSNWLYR} -DNICECAT=${NICECAT} -DNFSDCAT=${NFSDCAT} -DTRAGE=${TRAGE} -DTRFY=${TRFY} -DTRLVL=${TRLVL} -DTRPND=${TRPND} -DTRSNOW=${TRSNOW} -DTRBRI=${TRBRI} -DNTRISO=${NTRISO} -DNTRAERO=${NTRAERO} -DNBGCLYR=${NBGCLYR} -DTRALG=${TRALG} -DTRBGCZ=${TRBGCZ} -DTRDOC=${TRDOC} -DTRDOC=${TRDOC} -DTRDIC=${TRDIC} -DTRDON=${TRDON} -DTRFED=${TRFED} -DTRFEP=${TRFEP} -DTRZAERO=${TRZAERO} -DTRBGCS=${TRBGCS} -DNFLUFF=${NFLUFF}"
+ 
+ if (${ICE_IOTYPE} == 'netcdf') then
+   setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DUSE_NETCDF"
+diff --git a/configuration/scripts/icepack.settings b/configuration/scripts/icepack.settings
+index 5c536f8..e5ec95f 100755
+--- a/configuration/scripts/icepack.settings
++++ b/configuration/scripts/icepack.settings
+@@ -74,6 +74,7 @@ setenv TRFEP     0         # number of particulate iron tracers
+                            # (up to max_fe  = 2) 
+ setenv TRFED     0         # number of dissolved iron tracers 
+                            # (up to max_fe  = 2)
++setenv NFLUFF    0         # number of fluffball tracers
+ 
+ ### Specialty code
+ setenv ICE_SNICARHC  false  # include hardcoded (HC) snicar tables
+diff --git a/configuration/scripts/icepack_in b/configuration/scripts/icepack_in
+index bbf7a59..88f76b0 100644
+--- a/configuration/scripts/icepack_in
++++ b/configuration/scripts/icepack_in
+@@ -33,6 +33,7 @@
+     tr_aero      = .false.
+     tr_fsd       = .false.
+     tr_iso       = .false.
++    tr_fluff     = .false.
+ /
+ 
+ &thermo_nml
+diff --git a/configuration/scripts/options/set_env.fluff b/configuration/scripts/options/set_env.fluff
+new file mode 100644
+index 0000000..49ac114
+--- /dev/null
++++ b/configuration/scripts/options/set_env.fluff
+@@ -0,0 +1 @@
++setenv NFLUFF    1         # number of fluff tracers
+diff --git a/configuration/scripts/options/set_nml.fluff b/configuration/scripts/options/set_nml.fluff
+new file mode 100644
+index 0000000..cb0a4ea
+--- /dev/null
++++ b/configuration/scripts/options/set_nml.fluff
+@@ -0,0 +1 @@
++tr_fluff = .true.
+diff --git a/configuration/scripts/tests/timeseries.csh b/configuration/scripts/tests/timeseries.csh
+index 459c905..7b2d5fe 100755
+--- a/configuration/scripts/tests/timeseries.csh
++++ b/configuration/scripts/tests/timeseries.csh
+@@ -29,6 +29,7 @@ set fieldlist=("area fraction  " \
+                "new ice (m)" \
+                "congelation (m)" \
+ #               "snow-ice (m)" \
++               "fluffballs (kg)" \
+                "intnl enrgy chng(W/m^2)")
+ 
+ # Get the filename for the latest log
