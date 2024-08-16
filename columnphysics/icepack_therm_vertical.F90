@@ -2267,11 +2267,11 @@
          wlat            ! lateral melt rate                    (m/s)
 
       real (kind=dbl_kind), intent(inout), optional :: &
+         dsnow       , & ! change in snow depth     (m/step-->cm/day)
          fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
          fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
-         dsnow       , & ! change in snow depth     (m/step-->cm/day)
          fsloss          ! rate of snow loss to leads      (kg/m^2/s)
 
       real (kind=dbl_kind), intent(out), optional :: &
@@ -2332,17 +2332,17 @@
          melttn      , & ! top ice melt                           (m)
          meltbn      , & ! bottom ice melt                        (m)
          congeln     , & ! congelation ice growth                 (m)
-         snoicen     , & ! snow-ice growth                        (m)
-         dsnown          ! change in snow thickness (m/step-->cm/day)
+         snoicen         ! snow-ice growth                        (m)
 
-      real (kind=dbl_kind), dimension(:), intent(in) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
          fswthrun        ! SW through ice to ocean            (W/m^2)
 
-      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fswthrun_vdr , & ! vis dir SW through ice to ocean   (W/m^2)
          fswthrun_vdf , & ! vis dif SW through ice to ocean   (W/m^2)
          fswthrun_idr , & ! nir dir SW through ice to ocean   (W/m^2)
-         fswthrun_idf     ! nir dif SW through ice to ocean   (W/m^2)
+         fswthrun_idf , & ! nir dif SW through ice to ocean   (W/m^2)
+         dsnown           ! change in snow thickness (m/step-->cm/day)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy                (J m-3)
@@ -2406,6 +2406,7 @@
          smliq           ! tracer for mass of liquid in snow (kg/m^3)
 
       real (kind=dbl_kind), dimension(ncat) :: &
+         l_dsnown,     & ! change in snow thickness (m/step-->cm/day) 
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2456,6 +2457,12 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
+         if ((present(dsnow) .and. .not.present(dsnown)) .or. &
+             (present(dsnown) .and. .not.present(dsnow))) then
+            call icepack_warnings_add(subname//' error in dsnow and dsnown arguments')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
          if (tr_fsd) then
             if (.not.(present(wlat))) then
                call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
@@ -2474,7 +2481,8 @@
       smliq(:) = c0
 
       l_meltsliq  = c0
-      l_meltsliqn = c0
+      l_meltsliqn(:) = c0
+      l_dsnown(:)    = c0
 
       ! solid and liquid components of snow mass
       massicen(:,:) = c0
@@ -2555,7 +2563,6 @@
          meltbn (n) = c0
          congeln(n) = c0
          snoicen(n) = c0
-         dsnown (n) = c0
 
          Trefn  = c0
          Qrefn  = c0
@@ -2682,7 +2689,7 @@
                                  smliq=smliq,         massliq=massliqn  (:,n), &
                                  congel=congeln  (n), snoice=snoicen      (n), &
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,     &
-                                 yday=yday,           dsnow=dsnown        (n), &
+                                 yday=yday,           dsnow=l_dsnown      (n), &
                                  prescribed_ice=prescribed_ice)
 
             if (icepack_warnings_aborted(subname)) then
@@ -2873,7 +2880,7 @@
                                meltbn=meltbn (n), congeln=congeln(n),&
                                meltt=meltt,       melts=melts,      &
                                meltb=meltb,       snoicen=snoicen(n),&
-                               dsnow=dsnow,       dsnown=dsnown(n), &
+                               dsnow=dsnow,       dsnown=l_dsnown(n),&
                                congel=congel,     snoice=snoice,    &
                                meltsliq=l_meltsliq,                 &
                                meltsliqn=l_meltsliqn(n),            &
@@ -2914,6 +2921,7 @@
 
       if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
       if (present(meltsliq    )) meltsliq     = l_meltsliq
+      if (present(dsnown      )) dsnown       = l_dsnown
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme

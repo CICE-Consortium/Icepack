@@ -93,7 +93,6 @@
           meltbn  , & ! bottom ice melt                 (m)
           meltsn  , & ! snow melt                       (m)
           meltsliqn,& ! mass of snow melt               (kg/m^2)
-          dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
           snoicen     ! snow-ice growth                 (m)
 
@@ -102,7 +101,8 @@
           fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
           fswthrun_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
-          Urefn       ! air speed reference level       (m/s)
+          dsnown      , & ! change in snow depth            (m)
+          Urefn           ! air speed reference level       (m/s)
 
       ! cumulative fluxes
       real (kind=dbl_kind), intent(inout) :: &
@@ -203,13 +203,14 @@
       fsalt     = fsalt     + fsaltn    * aicen
       fhocn     = fhocn     + fhocnn    * aicen
       fswthru   = fswthru   + fswthrun  * aicen
-      if (present(fswthru_vdr)) &
+
+      if (present(fswthru_vdr) .and. present(fswthrun_vdr)) &
          fswthru_vdr   = fswthru_vdr   + fswthrun_vdr  * aicen
-      if (present(fswthru_vdf)) &
+      if (present(fswthru_vdf) .and. present(fswthrun_vdf)) &
          fswthru_vdf   = fswthru_vdf   + fswthrun_vdf  * aicen
-      if (present(fswthru_idr)) &
+      if (present(fswthru_idr) .and. present(fswthrun_idr)) &
          fswthru_idr   = fswthru_idr   + fswthrun_idr  * aicen
-      if (present(fswthru_idf)) &
+      if (present(fswthru_idf) .and. present(fswthrun_idf)) &
          fswthru_idf   = fswthru_idf   + fswthrun_idf  * aicen
 
       ! ice/snow thickness
@@ -217,12 +218,14 @@
       meltt     = meltt     + melttn    * aicen
       meltb     = meltb     + meltbn    * aicen
       melts     = melts     + meltsn    * aicen
+
       if (snwgrain) then
          meltsliq  = meltsliq  + meltsliqn * aicen
       endif
-      if (present(dsnow)) then
+
+      if (present(dsnow) .and. present(dsnown)) &
          dsnow     = dsnow     + dsnown    * aicen
-      endif
+
       congel    = congel    + congeln   * aicen
       snoice    = snoice    + snoicen   * aicen
 
