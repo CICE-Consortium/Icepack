@@ -162,6 +162,11 @@
          conserv_check = .false.  ! if true, do conservations checks and abort
 
       character(len=char_len), public :: &
+         congel_freeze  = 'two-step'  ! congelation computation
+                                      ! 'two-step' = original formulation
+                                      ! 'one-step' = Plante et al, The Cryosphere, 2024
+
+      character(len=char_len), public :: &
          tfrz_option  = 'mushy'   ! form of ocean freezing temperature
                                   ! 'minus1p8' = -1.8 C
                                   ! 'constant' = Tocnfrz
@@ -476,7 +481,7 @@
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
          atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
-         apnd_sl_in, saltflux_option_in, &
+         saltflux_option_in, congel_freeze_in, apnd_sl_in, &
          floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
          dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
          bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
@@ -586,15 +591,20 @@
          phi_i_mushy_in           ! liquid fraction of congelation ice
 
       character(len=*), intent(in), optional :: &
-         tfrz_option_in              ! form of ocean freezing temperature
-                                     ! 'minus1p8' = -1.8 C
-                                     ! 'linear_salt' = -depressT * sss
-                                     ! 'mushy' conforms with ktherm=2
+         congel_freeze_in         ! congelation computation
+                                  ! 'two-step' = original formulation
+                                  ! 'one-step' = Plante et al, The Cryosphere, 2024
 
       character(len=*), intent(in), optional :: &
-         saltflux_option_in         ! Salt flux computation
-                                    ! 'constant' reference value of ice_ref_salinity
-                                    ! 'prognostic' prognostic salt flux
+         tfrz_option_in           ! form of ocean freezing temperature
+                                  ! 'minus1p8' = -1.8 C
+                                  ! 'linear_salt' = -depressT * sss
+                                  ! 'mushy' conforms with ktherm=2
+
+      character(len=*), intent(in), optional :: &
+         saltflux_option_in       ! Salt flux computation
+                                  ! 'constant' reference value of ice_ref_salinity
+                                  ! 'prognostic' prognostic salt flux
 
 !-----------------------------------------------------------------------
 ! Parameters for radiation
@@ -964,6 +974,7 @@
       if (present(highfreq_in)          ) highfreq         = highfreq_in
       if (present(natmiter_in)          ) natmiter         = natmiter_in
       if (present(atmiter_conv_in)      ) atmiter_conv     = atmiter_conv_in
+      if (present(congel_freeze_in)     ) congel_freeze    = congel_freeze_in
       if (present(tfrz_option_in)       ) tfrz_option      = tfrz_option_in
       if (present(saltflux_option_in)   ) saltflux_option  = saltflux_option_in
       if (present(kitd_in)              ) kitd             = kitd_in
@@ -1208,7 +1219,7 @@
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
          atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
-         apnd_sl_out, saltflux_option_out, &
+         saltflux_option_out, congel_freeze_out, apnd_sl_out, &
          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
@@ -1327,16 +1338,21 @@
          phi_i_mushy_out           ! liquid fraction of congelation ice
 
       character(len=*), intent(out), optional :: &
-         tfrz_option_out              ! form of ocean freezing temperature
-                                      ! 'minus1p8' = -1.8 C
-                                      ! 'constant' = Tocnfrz
-                                      ! 'linear_salt' = -depressT * sss
-                                      ! 'mushy' conforms with ktherm=2
+         congel_freeze_out         ! congelation computation
+                                   ! 'two-step' = original formulation
+                                   ! 'one-step' = Plante et al, The Cryosphere, 2024
 
       character(len=*), intent(out), optional :: &
-         saltflux_option_out         ! Salt flux computation
-                                     ! 'constant' reference value of ice_ref_salinity
-                                     ! 'prognostic' prognostic salt flux
+         tfrz_option_out           ! form of ocean freezing temperature
+                                   ! 'minus1p8' = -1.8 C
+                                   ! 'constant' = Tocnfrz
+                                   ! 'linear_salt' = -depressT * sss
+                                   ! 'mushy' conforms with ktherm=2
+
+      character(len=*), intent(out), optional :: &
+         saltflux_option_out       ! Salt flux computation
+                                   ! 'constant' reference value of ice_ref_salinity
+                                   ! 'prognostic' prognostic salt flux
 
 
 !-----------------------------------------------------------------------
@@ -1739,6 +1755,7 @@
       if (present(highfreq_out)          ) highfreq_out     = highfreq
       if (present(natmiter_out)          ) natmiter_out     = natmiter
       if (present(atmiter_conv_out)      ) atmiter_conv_out = atmiter_conv
+      if (present(congel_freeze_out)     ) congel_freeze_out = congel_freeze
       if (present(tfrz_option_out)       ) tfrz_option_out  = tfrz_option
       if (present(saltflux_option_out)   ) saltflux_option_out = saltflux_option
       if (present(kitd_out)              ) kitd_out         = kitd
@@ -1947,6 +1964,7 @@
         write(iounit,*) "  highfreq   = ", highfreq
         write(iounit,*) "  natmiter   = ", natmiter
         write(iounit,*) "  atmiter_conv = ", atmiter_conv
+        write(iounit,*) "  congel_freeze = ", trim(congel_freeze)
         write(iounit,*) "  tfrz_option= ", trim(tfrz_option)
         write(iounit,*) "  saltflux_option = ", trim(saltflux_option)
         write(iounit,*) "  kitd       = ", kitd
