@@ -1154,7 +1154,7 @@
 
       call icepack_init_wave(nfreq=nfreq,                 &
                              wave_spectrum_profile=wave_spectrum_profile(i,:), &
-                             wavefreq=wavefreq(i,:), dwavefreq=dwavefreq(i,:))
+                             wavefreq=wavefreq(:), dwavefreq=dwavefreq(:))
       enddo
 
       do k = 1, nfreq

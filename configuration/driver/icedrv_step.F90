@@ -484,7 +484,7 @@
          if (tmask(i)) then
             ! wave_sig_ht - compute here to pass to add new ice
             if (tr_fsd) &
-            wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(i,:)))
+            wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
             call icepack_step_therm2(dt=dt,                           &
                          hin_max=hin_max(:),                          &
@@ -521,8 +521,8 @@
                          H2_18O_ocn=H2_18O_ocn(i),                    &
                          wave_sig_ht=wave_sig_ht(i),                  &
                          wave_spectrum=wave_spectrum(i,:),            &
-                         wavefreq=wavefreq(i,:),                        &
-                         dwavefreq=dwavefreq(i,:),                      &
+                         wavefreq=wavefreq(:),                        &
+                         dwavefreq=dwavefreq(:),                      &
                          d_afsd_latg=d_afsd_latg(i,:),                &
                          d_afsd_newi=d_afsd_newi(i,:),                &
                          d_afsd_latm=d_afsd_latm(i,:),                &
@@ -690,8 +690,8 @@
                         floe_rad_l    = floe_rad_l   (:),      &
                         floe_rad_c    = floe_rad_c   (:),      &
                         wave_spectrum = wave_spectrum(i,:),    &
-                        wavefreq      = wavefreq     (i,:),    &
-                        dwavefreq     = dwavefreq    (i,:),    &
+                        wavefreq      = wavefreq     (:),      &
+                        dwavefreq     = dwavefreq    (:),      &
                         trcrn         = trcrn        (i,:,:),  &
                         d_afsd_wave   = d_afsd_wave  (i,:))
       end do ! i
