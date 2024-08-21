@@ -1141,7 +1141,7 @@
 
       ! local variables
       integer (kind=int_kind) :: &
-         i,k
+         k
 
       real(kind=dbl_kind), dimension(nfreq) :: &
          wave_spectrum_profile  ! wave spectrum
@@ -1150,12 +1150,10 @@
 
       ! wave spectrum and frequencies
       ! get hardwired frequency bin info and a dummy wave spectrum profile
-      do i=1,nx
 
       call icepack_init_wave(nfreq=nfreq,                 &
                              wave_spectrum_profile=wave_spectrum_profile, &
                              wavefreq=wavefreq, dwavefreq=dwavefreq)
-      enddo
 
       do k = 1, nfreq
           wave_spectrum(:,k) = wave_spectrum_profile(k)
