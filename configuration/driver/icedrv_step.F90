@@ -687,11 +687,11 @@
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &
                         aicen         = aicen        (i,:),    &
-                        floe_rad_l    = floe_rad_l   (:),      &
-                        floe_rad_c    = floe_rad_c   (:),      &
+                        floe_rad_l    = floe_rad_l    (:),     &
+                        floe_rad_c    = floe_rad_c    (:),     &
                         wave_spectrum = wave_spectrum(i,:),    &
-                        wavefreq      = wavefreq     (:),      &
-                        dwavefreq     = dwavefreq    (:),      &
+                        wavefreq      = wavefreq      (:),     &
+                        dwavefreq     = dwavefreq     (:),     &
                         trcrn         = trcrn        (i,:,:),  &
                         d_afsd_wave   = d_afsd_wave  (i,:))
       end do ! i
