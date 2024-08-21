@@ -59,8 +59,6 @@
          tr_zaero, &   ! from icepack
          tr_fsd, wave_spec
 
-      integer (kind=int_kind) :: i
-
       character(len=*), parameter :: subname='(icedrv_initialize)'
 
       call icepack_configure()  ! initialize icepack
@@ -99,14 +97,12 @@
       endif
 
       if (tr_fsd) then
-
          call icepack_init_fsd_bounds(   &
             floe_rad_l=floe_rad_l,       &  ! fsd size lower bound in m (radius)
             floe_rad_c=floe_rad_c,       &  ! fsd size bin centre in m (radius)
             floe_binwidth=floe_binwidth, &  ! fsd size bin width in m (radius)
             c_fsd_range=c_fsd_range    , &  ! string for history output
             write_diags=.true.)
-
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted(subname)) then
             call icedrv_system_abort(file=__FILE__,line=__LINE__)
