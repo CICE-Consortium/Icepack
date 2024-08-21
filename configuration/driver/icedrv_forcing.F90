@@ -1137,7 +1137,7 @@
 
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
                                    dwavefreq, wavefreq
-      use icedrv_domain_size, only: nfreq, nx
+      use icedrv_domain_size, only: nfreq
 
       ! local variables
       integer (kind=int_kind) :: &
