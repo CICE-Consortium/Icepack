@@ -1143,7 +1143,7 @@
       integer (kind=int_kind) :: &
          i,k
 
-      real(kind=dbl_kind), dimension(nx,nfreq) :: &
+      real(kind=dbl_kind), dimension(nfreq) :: &
          wave_spectrum_profile  ! wave spectrum
 
        wave_spectrum(:,:) = c0
@@ -1153,12 +1153,12 @@
       do i=1,nx
 
       call icepack_init_wave(nfreq=nfreq,                 &
-                             wave_spectrum_profile=wave_spectrum_profile(i,:), &
-                             wavefreq=wavefreq(:), dwavefreq=dwavefreq(:))
+                             wave_spectrum_profile=wave_spectrum_profile, &
+                             wavefreq=wavefreq, dwavefreq=dwavefreq)
       enddo
 
       do k = 1, nfreq
-          wave_spectrum(:,k) = wave_spectrum_profile(:,k)
+          wave_spectrum(:,k) = wave_spectrum_profile(k)
       enddo
 
       end subroutine get_wave_spec
