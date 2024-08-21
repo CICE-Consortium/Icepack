@@ -521,8 +521,8 @@
                          H2_18O_ocn=H2_18O_ocn(i),                    &
                          wave_sig_ht=wave_sig_ht(i),                  &
                          wave_spectrum=wave_spectrum(i,:),            &
-                         wavefreq=wavefreq(:),                        &
-                         dwavefreq=dwavefreq(:),                      &
+                         wavefreq=wavefreq,                           &
+                         dwavefreq=dwavefreq,                         &
                          d_afsd_latg=d_afsd_latg(i,:),                &
                          d_afsd_newi=d_afsd_newi(i,:),                &
                          d_afsd_latm=d_afsd_latm(i,:),                &
