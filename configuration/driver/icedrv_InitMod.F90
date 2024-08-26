@@ -13,7 +13,7 @@
       use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_flags
       use icepack_intfc, only: icepack_write_tracer_flags, icepack_write_tracer_indices
       use icepack_intfc, only: icepack_write_tracer_sizes, icepack_write_parameters
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
       private
@@ -164,6 +164,8 @@
          call init_shortwave    ! initialize radiative transfer using current swdn
 
       call init_flux_atm_ocn    ! initialize atmosphere, ocean fluxes
+
+      call icedrv_system_flush(nu_diag)
 
       end subroutine icedrv_initialize
 

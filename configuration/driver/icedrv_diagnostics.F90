@@ -14,7 +14,7 @@
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
       private
@@ -271,6 +271,8 @@
 899   format (43x,a24)
 900   format (a25,2x,f24.17)
 901   format (a25,2x,f24.17,i6)
+
+      call icedrv_system_flush(nu_diag_out+n-1)
 
       end subroutine runtime_diags
 
@@ -612,6 +614,7 @@
       write(nu_diag,*) ' '
 
       call icepack_warnings_flush(nu_diag)
+      call icedrv_system_flush(nu_diag)
 
       end subroutine print_state
 

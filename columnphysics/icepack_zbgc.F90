@@ -863,9 +863,8 @@
                           snow_bio_net(1:nbtrcr),grow_net,               &
                           totalChla,                                     &
                           flux_bion_n(1:nbtrcr), iSin,                   &
-                          bioPorosityIceCell(:), bioSalinityIceCell(:),  &
-                          bioTemperatureIceCell(:)                       )
-
+                          bioPorosityIceCell, bioSalinityIceCell,        &
+                          bioTemperatureIceCell                          )
                if (icepack_warnings_aborted(subname)) return
 
                if (present(flux_bion)) then
@@ -891,6 +890,7 @@
             first_ice(n) = .false.
 
          else
+            if (z_tracers) then
             do mm = 1, nbtrcr
                do k  = 1, nblyr+1
                   if (present(flux_bion)) then
@@ -902,6 +902,7 @@
                   trcrn(bio_index(mm) + k-1,n) = c0
                 enddo
             enddo
+            endif
          endif             ! aicen > puny
       enddo                ! ncat
 

@@ -195,7 +195,7 @@
       real (kind=dbl_kind), optional, intent(inout):: &
          totalChla      ! total chla (mg chla/m^2)
 
-      real (kind=dbl_kind), optional, dimension (nblyr+1), intent(inout):: &  ! diagnostics
+      real (kind=dbl_kind), optional, dimension (:), intent(inout):: &  ! diagnostics (nblyr+1)
          bioPorosityIceCell , & ! porosity on vertical interface points
          bioSalinityIceCell , & ! salinity on vertical interface points (ppt)
          bioTemperatureIceCell  ! temperature on vertical interface points (oC)
@@ -262,7 +262,7 @@
                               Tot_BGC_i(mm))
              if (icepack_warnings_aborted(subname)) return
           enddo
-       endif
+      endif
 
       call update_snow_bgc     (dt,                      &
                                 meltt,     melts,        &

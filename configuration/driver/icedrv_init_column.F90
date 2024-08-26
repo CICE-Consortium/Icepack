@@ -29,7 +29,7 @@
       use icepack_intfc, only: icepack_init_bgc
       use icepack_intfc, only: icepack_init_ocean_bio, icepack_load_ocean_bio_array
       use icepack_intfc, only: icepack_init_hbrine
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
 
@@ -1016,6 +1016,14 @@
       ! biogeochemistry
       !-----------------------------------------------------------------
 
+      ! deprecate skl bgc (Aug 2024)
+      ! no skl code removed yet
+      if (skl_bgc) then
+         write(nu_diag,*) 'ERROR: skl_bgc is not validate and temporarily DEPRECATED'
+         write(nu_diag,*) 'ERROR: if you would like to use skl_bgc, please contact the Consortium'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
       if (.not. tr_brine) then
          if (solve_zbgc) then
             write(nu_diag,*) 'WARNING: tr_brine = F and solve_zbgc = T'
@@ -1035,7 +1043,7 @@
       endif
 
       if ((skl_bgc .AND. solve_zbgc) .or. (skl_bgc .AND. z_tracers)) then
-         print*, 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
+         write(nu_diag,*) 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
@@ -1067,27 +1075,27 @@
          modal_aero = .false.
       endif
       if (n_algae > icepack_max_algae) then
-         print*, 'error:number of algal types exceeds icepack_max_algae'
+         write(nu_diag,*) 'error:number of algal types exceeds icepack_max_algae'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_doc > icepack_max_doc) then
-         print*, 'error:number of algal types exceeds icepack_max_doc'
+         write(nu_diag,*) 'error:number of algal types exceeds icepack_max_doc'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_dic > icepack_max_dic) then
-         print*, 'error:number of dic types exceeds icepack_max_dic'
+         write(nu_diag,*) 'error:number of dic types exceeds icepack_max_dic'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_don > icepack_max_don) then
-         print*, 'error:number of don types exceeds icepack_max_don'
+         write(nu_diag,*) 'error:number of don types exceeds icepack_max_don'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fed > icepack_max_fe) then
-         print*, 'error:number of dissolved fe types exceeds icepack_max_fe'
+         write(nu_diag,*) 'error:number of dissolved fe types exceeds icepack_max_fe'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fep > icepack_max_fe) then
-         print*, 'error:number of particulate fe types exceeds icepack_max_fe'
+         write(nu_diag,*) 'error:number of particulate fe types exceeds icepack_max_fe'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
@@ -1131,7 +1139,7 @@
       if (tr_zaero .and. .not. z_tracers) z_tracers = .true.
 
       if (n_zaero > icepack_max_aero) then
-         print*, 'error:number of z aerosols exceeds icepack_max_aero'
+         write(nu_diag,*) 'error:number of z aerosols exceeds icepack_max_aero'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
@@ -1802,6 +1810,8 @@
          write(nu_diag,1000) ' frazil_scav               = ', frazil_scav
 
       endif  ! skl_bgc or solve_bgc
+
+      call icedrv_system_flush(nu_diag)
 
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
  1005    format (a30,2x,f9.6)  ! float

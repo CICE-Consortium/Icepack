@@ -40,7 +40,7 @@
       use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
-      use icepack_parameters, only: conserv_check
+      use icepack_parameters, only: conserv_check, z_tracers
       use icepack_tracers, only: ncat, nilyr, nslyr, nblyr, n_aero
       use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -1379,7 +1379,7 @@
                enddo
             endif
 
-            if (nbtrcr > 0) then
+            if (z_tracers .and. nbtrcr > 0) then
                dzssl = p5/real(nslyr,kind=dbl_kind)
                dzint = c1-dzssl
                do it = 1, nbtrcr

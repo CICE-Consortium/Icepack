@@ -21,7 +21,7 @@
       use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
       private
@@ -924,6 +924,8 @@
          write(nu_diag,*)' '
          write(nu_diag,1020) 'nx      = ', nx
          write(nu_diag,*)' '
+
+         call icedrv_system_flush(nu_diag)
 
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
  1005    format (a30,2x,f10.6) ! float
