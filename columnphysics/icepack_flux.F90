@@ -349,7 +349,7 @@
 
       character(len=*),parameter :: subname='(set_sfcflux)'
 
-      raicen        = c1 / aicen
+      raicen        = c1 !/ aicen
 
 #ifdef CICE_IN_NEMO
 !----------------------------------------------------------------------
