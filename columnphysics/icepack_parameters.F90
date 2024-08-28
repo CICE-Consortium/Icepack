@@ -407,16 +407,16 @@
          restartbgc = .false.
 
       real (kind=dbl_kind), public :: &
-         phi_snow     = p5              , & ! snow porosity
-         grid_o       = c5              , & ! for bottom flux
+         phi_snow     = -0.3_dbl_kind   , & ! snow porosity
+         grid_o       = 0.006_dbl_kind  , & ! for bottom flux
          initbio_frac = c1              , & ! fraction of ocean trcr concentration in bio trcrs
-         l_sk         = 7.0_dbl_kind    , & ! characteristic diffusive scale (m)
-         grid_oS      = c5              , & ! for bottom flux
-         l_skS        = 7.0_dbl_kind    , & ! characteristic skeletal layer thickness (m) (zsalinity)
-         algal_vel    = 1.0e-7_dbl_kind,  & ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
+         l_sk         = 20.0_dbl_kind   , & ! characteristic diffusive scale (m)
+         grid_oS      = c0              , & ! for bottom flux
+         l_skS        = 0.028_dbl_kind  , & ! characteristic skeletal layer thickness (m) (zsalinity)
+         algal_vel    = 1.0e-7_dbl_kind , & ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
          R_dFe2dust   = 0.035_dbl_kind  , & !  g/g (3.5% content) Tagliabue 2009
          dustFe_sol   = 0.005_dbl_kind  , & ! solubility fraction
-         frazil_scav  = c1              , & ! fraction or multiple of bgc concentrated in frazil ice
+         frazil_scav  = 0.8_dbl_kind    , & ! fraction or multiple of bgc concentrated in frazil ice
          sk_l         = 0.03_dbl_kind   , & ! skeletal layer thickness (m)
          min_bgc      = 0.01_dbl_kind   , & ! fraction of ocean bgc concentration in surface melt
          T_max        = c0              , & ! maximum temperature (C)
@@ -424,19 +424,19 @@
          op_dep_min   = p1              , & ! light attenuates for optical depths exceeding min
          fr_graze_s   = p5              , & ! fraction of grazing spilled or slopped
          fr_graze_e   = p5              , & ! fraction of assimilation excreted
-         fr_mort2min  = p5              , & ! fractionation of mortality to Am
-         fr_dFe       = 0.3_dbl_kind    , & ! fraction of remineralized nitrogen
+         fr_mort2min  = 0.9_dbl_kind    , & ! fractionation of mortality to Am
+         fr_dFe       = 1.0_dbl_kind    , & ! fraction of remineralized nitrogen
                                             ! (in units of algal iron)
-         k_nitrif     = c0              , & ! nitrification rate (1/day)
+         k_nitrif     = 0.046_dbl_kind  , & ! nitrification rate (1/day)
          t_iron_conv  = 3065.0_dbl_kind , & ! desorption loss pFe to dFe (day)
          max_loss     = 0.9_dbl_kind    , & ! restrict uptake to % of remaining value
          max_dfe_doc1 = 0.2_dbl_kind    , & ! max ratio of dFe to saccharides in the ice
                                             ! (nM Fe/muM C)
          fr_resp      = 0.05_dbl_kind   , & ! fraction of algal growth lost due to respiration
-         fr_resp_s    = 0.75_dbl_kind   , & ! DMSPd fraction of respiration loss as DMSPd
-         y_sk_DMS     = p5              , & ! fraction conversion given high yield
-         t_sk_conv    = 3.0_dbl_kind    , & ! Stefels conversion time (d)
-         t_sk_ox      = 10.0_dbl_kind   , & ! DMS oxidation time (d)
+         fr_resp_s    = 0.90_dbl_kind   , & ! DMSPd fraction of respiration loss as DMSPd
+         y_sk_DMS     = 0.7_dbl_kind    , & ! fraction conversion given high yield
+         t_sk_conv    = 5.0_dbl_kind    , & ! Stefels conversion time (d)
+         t_sk_ox      = 12.0_dbl_kind   , & ! DMS oxidation time (d)
          grid_o_t     =  0.006_dbl_kind , & ! ice surface molecular sublayer thickness (m)
          ratio_Si2N_diatoms = 1.8_dbl_kind , &  ! algal Si to N (mol/mol)
          ratio_Si2N_sp      = c0        , &
@@ -454,7 +454,7 @@
          ratio_Fe2DOC_s     = 0.1_dbl_kind   , &   ! Fe to C of DOC (nmol/umol) saccharids
          ratio_Fe2DOC_l     = 0.033_dbl_kind , & ! Fe to C of DOC (nmol/umol) lipids
          tau_min            = 3600.0_dbl_kind, &    ! rapid timescale for mobile to stationary exchanges (s)
-         tau_max            = 604800.0_dbl_kind, &  ! short timescale for mobile to stationary exchanges (s)
+         tau_max            = 7776000.0_dbl_kind, &  ! short timescale for mobile to stationary exchanges (s)
          chlabs_diatoms     = 0.03_dbl_kind  , & ! absorptivity for diatoms (1/m/(mg/m3))
          chlabs_sp          = 0.01_dbl_kind  , &      !  absorptivity for small plankton (1/m/(mg/m3))
          chlabs_phaeo       = 0.05_dbl_kind  , &   ! absorptivity for phaeocystis (1/m/(mg/m3))

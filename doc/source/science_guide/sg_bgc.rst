@@ -329,6 +329,10 @@ namelist, ``bgc_data_file``.
 Skeletal Layer BGC
 ~~~~~~~~~~~~~~~~~~
 
+**The skeletal layer implementation has been deprecated but not removed as of 
+September, 2024.  If users are interested in this feature, please contact
+the consortium.  The documentation below has not yet been removed.**
+
 In the skeletal layer model, biogeochemical processing is modelled as a
 single layer of reactive tracers attached to the sea ice bottom.
 Optional settings are available via the *zbgc\_nml* namelist in
