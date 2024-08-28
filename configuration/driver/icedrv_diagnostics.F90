@@ -267,12 +267,11 @@
              write(nu_diag_out+n-1,901) 'isotopic conc chg    = ',pdiso(n,k),k
           enddo
         endif
+        call icedrv_system_flush(nu_diag_out+n-1)
       end do
 899   format (43x,a24)
 900   format (a25,2x,f24.17)
 901   format (a25,2x,f24.17,i6)
-
-      call icedrv_system_flush(nu_diag_out+n-1)
 
       end subroutine runtime_diags
 

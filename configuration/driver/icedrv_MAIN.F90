@@ -35,6 +35,7 @@
       implicit none
 
       integer n
+      logical openflag
       character(len=*), parameter :: subname='(icedrv)'
 
       !-----------------------------------------------------------------
@@ -55,15 +56,24 @@
 
       write(ice_stdout, *) "ICEPACK COMPLETED SUCCESSFULLY "
 
-      call icedrv_system_flush(ice_stdout)
-      close (ice_stdout)
+      inquire(unit=ice_stdout,opened=openflag)
+      if (openflag) then
+         call icedrv_system_flush(ice_stdout)
+         close (ice_stdout)
+      endif
 
-      call icedrv_system_flush(nu_diag)
-      close (nu_diag)
+      inquire(unit=nu_diag,opened=openflag)
+      if (openflag) then
+         call icedrv_system_flush(nu_diag)
+         close (nu_diag)
+      endif
 
       do n = 1, nx
-         call icedrv_system_flush(nu_diag_out+n+1)
-         close (nu_diag_out+n-1)
+         inquire(unit=nu_diag_out+n-1,opened=openflag)
+         if (openflag) then
+            call icedrv_system_flush(nu_diag_out+n-1)
+            close (nu_diag_out+n-1)
+         endif
       enddo
 
       end program icedrv
