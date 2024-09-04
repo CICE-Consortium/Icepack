@@ -108,7 +108,7 @@
          natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-         cpl_frazil, tfrz_option, saltflux_option, &
+         cpl_frazil, congel_freeze, tfrz_option, saltflux_option, &
          frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
 
       logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain, update_ocn_f
@@ -185,12 +185,12 @@
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
-        atmiter_conv,    calc_dragio,                      &
+        atmiter_conv,    calc_dragio,     congel_freeze,   &
         tfrz_option,     saltflux_option, ice_ref_salinity, &
         default_season,  wave_spec_type,  cpl_frazil,      &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
-        lateral_flux_type,                                &
+        lateral_flux_type,                                 &
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
         ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
@@ -238,6 +238,7 @@
            dSdt_slow_mode_out=dSdt_slow_mode, &
            phi_c_slow_mode_out=phi_c_slow_mode, Tliquidus_max_out=Tliquidus_max, &
            phi_i_mushy_out=phi_i_mushy, conserv_check_out=conserv_check, &
+           congel_freeze_out=congel_freeze, &
            tfrz_option_out=tfrz_option, saltflux_option_out=saltflux_option, &
            ice_ref_salinity_out=ice_ref_salinity, kalg_out=kalg, &
            fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
@@ -816,6 +817,7 @@
          write(nu_diag,1005) ' hi_min                    = ', hi_min
          write(nu_diag,1030) ' fbot_xfer_type            = ', trim(fbot_xfer_type)
          write(nu_diag,1010) ' oceanmixed_ice            = ', oceanmixed_ice
+         write(nu_diag,1030) ' congel_freeze             = ', trim(congel_freeze)
          write(nu_diag,1030) ' tfrz_option               = ', trim(tfrz_option)
          write(nu_diag,*)    ' saltflux_option           = ', &
                                trim(saltflux_option)
@@ -1004,6 +1006,7 @@
            dSdt_slow_mode_in=dSdt_slow_mode, &
            phi_c_slow_mode_in=phi_c_slow_mode, Tliquidus_max_in=Tliquidus_max, &
            phi_i_mushy_in=phi_i_mushy, conserv_check_in=conserv_check, &
+           congel_freeze_in=congel_freeze, &
            tfrz_option_in=tfrz_option, saltflux_option_in=saltflux_option, &
            ice_ref_salinity_in=ice_ref_salinity, kalg_in=kalg, &
            fbot_xfer_type_in=fbot_xfer_type, &

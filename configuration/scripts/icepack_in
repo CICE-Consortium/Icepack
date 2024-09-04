@@ -118,6 +118,7 @@
     cpl_frazil      = 'fresh_ice_correction'
     update_ocn_f    = .false.
     l_mpond_fresh   = .false.
+    congel_freeze   = 'two-step'
     tfrz_option     = 'mushy'
     ice_ref_salinity = 4.0
     saltflux_option = 'constant'
