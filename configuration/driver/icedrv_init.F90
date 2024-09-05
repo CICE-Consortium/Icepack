@@ -82,7 +82,7 @@
       use icedrv_forcing, only: data_dir
       use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
       use icedrv_forcing, only: snw_ssp_table, lateral_flux_type
-      use icedrv_forcing, only: strict_forcing
+      use icedrv_forcing, only: precalc_forc
 
       ! local variables
 
@@ -196,7 +196,7 @@
         atm_data_format, ocn_data_format, bgc_data_format, &
         data_dir,        trestore,        restore_ocn,     &
         sss_fixed,       qdp_fixed,       hmix_fixed,     &
-        strict_forcing
+        precalc_forc
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -308,7 +308,7 @@
       restore_ocn     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
       snw_ssp_table   = 'test'    ! snow table type, test or snicar
-      strict_forcing  = .false.   ! if true require forcing to be present and align with time
+      precalc_forc    = .false.   ! whether to precalculate forcing
 
       ! extra tracers
       tr_iage      = .false. ! ice age
@@ -802,7 +802,7 @@
          write(nu_diag,1030) ' ocn_data_file             = ', trim(ocn_data_file)
          write(nu_diag,1030) ' bgc_data_file             = ', trim(bgc_data_file)
          write(nu_diag,1030) ' ice_data_file             = ', trim(ice_data_file)
-         write(nu_diag,1010) ' strict_forcing            = ', strict_forcing
+         write(nu_diag,1010) ' precalc_forc              = ', precalc_forc
 
          if (trim(atm_data_type)=='default') &
          write(nu_diag,1030) ' default_season            = ', trim(default_season)

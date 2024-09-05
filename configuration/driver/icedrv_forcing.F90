@@ -78,7 +78,7 @@
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
          atm_data_type,   & ! 'default', 'clim', 'CFS', 'MOSAiC'
-         ocn_data_type,   & ! 'default', 'SHEBA'
+         ocn_data_type,   & ! 'default', 'SHEBA' 'MOSAiC'
          bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
          lateral_flux_type,   & ! 'uniform_ice', 'open_water'
          atm_data_file,   & ! atmospheric forcing data file
@@ -99,7 +99,7 @@
       logical (kind=log_kind), public :: &
          oceanmixed_ice        , & ! if true, use internal ocean mixed layer
          restore_ocn           , & ! restore sst if true
-         strict_forcing            ! if true require forcing to align with time
+         precalc_forc              ! whether to precalculate forcing
 
       real (kind=dbl_kind), public :: &
          trest, &           ! restoring time scale (sec)
@@ -125,7 +125,7 @@
       character(len=*), parameter :: subname='(init_forcing)'
       
       ! Initialize ntime and allocate data arrays
-      if (strict_forcing) then
+      if (precalc_forc) then
          ntime = npt
       else
          ntime = 8760
@@ -251,7 +251,7 @@
 
       character(len=*), parameter :: subname='(get_forcing)'
 
-      if (strict_forcing) then
+      if (precalc_forc) then
          ! Fill all grid boxes with same forcing data
          Tair (:) = Tair_data(timestep)
          Qa   (:) = Qa_data(timestep)
@@ -585,12 +585,6 @@
 
       fsnow_data(1:12) = rhos*fsnow_clim(1:12) ! convert vol -> mass flux
       frain_data(1:12) = c0
-
-      ! DCS: I propose we remove this and set the default value of
-      ! qdp_fixed to -6.0 to be more transparent about forcing
-      ! 6 W/m2 warming of mixed layer from deep ocean
-        !qdp_data(:) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
-                              ! SH+LH with bulk transfer than in MU 71
 
       end subroutine atm_climatological
 
@@ -1058,8 +1052,6 @@
 
       character (char_len) :: &
          calendar_type, &  ! data calendar type
-         test_1, &
-         test_2, &
          varname
       
       character (char_len_long) :: &
@@ -1142,10 +1134,8 @@
          if (model_time(1) < data_time(1)) call icedrv_system_abort(&
          string=subname//'Simulation starts before atmospheric forcing',&
          file=__FILE__,line=__LINE__)
-         write (test_1,*) model_time(ntime)
-         write (test_2,*) data_time(dimlen)
          if (model_time(ntime) > data_time(dimlen)) call icedrv_system_abort(&
-         string=subname//'Simulation ends after atmospheric forcing: '//trim(test_1)//' '//trim(test_2),&
+         string=subname//'Simulation ends after atmospheric forcing',&
          file=__FILE__,line=__LINE__)
 
          ! data_sections is a 2D array where the first dimension
@@ -1177,51 +1167,33 @@
          data_sections(ntime, 2) = i
 
          ! Moving average forcing values into model arrays
-         call atm_MOSAiC_average("tas", Tair_data, dimlen, ncid, &
+         call MOSAiC_average("tas", Tair_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("hus", Qa_data, dimlen, ncid, &
+         call MOSAiC_average("hus", Qa_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("uas", uatm_data, dimlen, ncid, &
+         call MOSAiC_average("uas", uatm_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("vas", vatm_data, dimlen, ncid, &
+         call MOSAiC_average("vas", vatm_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("rlds", flw_data, dimlen, ncid, &
+         call MOSAiC_average("rlds", flw_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("rsds", fsw_data, dimlen, ncid, &
+         call MOSAiC_average("rsds", fsw_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("prsn", fsnow_data, dimlen, ncid, &
+         call MOSAiC_average("prsn", fsnow_data, dimlen, ncid, &
             data_sections, model_miss_val)
 
          ! Linearly interpolate missing values
-         call atm_MOSAiC_interpolate(Tair_data, model_miss_val)
-         call atm_MOSAiC_interpolate(Qa_data, model_miss_val)
-         call atm_MOSAiC_interpolate(uatm_data, model_miss_val)
-         call atm_MOSAiC_interpolate(vatm_data, model_miss_val)
-         call atm_MOSAiC_interpolate(flw_data, model_miss_val)
-         call atm_MOSAiC_interpolate(fsw_data, model_miss_val)
-         call atm_MOSAiC_interpolate(fsnow_data, model_miss_val)
+         call MOSAiC_interpolate(Tair_data, model_miss_val)
+         call MOSAiC_interpolate(Qa_data, model_miss_val)
+         call MOSAiC_interpolate(uatm_data, model_miss_val)
+         call MOSAiC_interpolate(vatm_data, model_miss_val)
+         call MOSAiC_interpolate(flw_data, model_miss_val)
+         call MOSAiC_interpolate(fsw_data, model_miss_val)
+         call MOSAiC_interpolate(fsnow_data, model_miss_val)
 
-         ! hack for missing values
-         !fsnow_data(:) = c0
-         ! Stakes 3 snow accumulation
-         ! 11 cm accumulation over 61 days
-         ! 0.11 m * 330 kg/m3 = 36.3 kg/m2 / 61 * 24 * 3600 s = 6.9e-6
-         ! That rate continues until March 8, which is julian date 68
-         ! For Ridge Ranch, have the cutoff date be Feb. 20 (JD51), but the rate 
-         ! almost douple 
-         !do nt = 1, ntime
-         !   if (model_time(nt) <= (50 * Gregorian_year + 51) * 24 * 3600) then
-         !      fsnow_data(nt) = 0.000010_dbl_kind!0.0000069_dbl_kind
-         !   endif
-         !enddo
-         !fsnow_data(:) = 0.0000069_dbl_kind
+         ! Currently no rainfall data, to do
          frain_data(:) = c0
          
-
-         !call icedrv_system_abort(string=subname//&
-         !' Made it to the end for testing', &
-         !file=__FILE__,line=__LINE__)
-
 #else
          call icedrv_system_abort(string=subname//&
          ' ERROR: atm_data_format = "nc" requires USE_NETCDF', &
@@ -1238,7 +1210,7 @@
 !=======================================================================
 
 #ifdef USE_NETCDF
-      subroutine atm_MOSAiC_average(data_var_name, model_var_arr, &
+      subroutine MOSAiC_average(data_var_name, model_var_arr, &
          data_var_len, ncid, data_sections, model_miss_val)
 
       character(len=*), intent(in) :: &
@@ -1272,7 +1244,7 @@
          i,      &         ! index for forcing data arrays
          varid             ! NetCDF variable id
       
-      character(len=*), parameter :: subname='(atm_MOSAiC_average)'
+      character(len=*), parameter :: subname='(MOSAiC_average)'
       
       ! Allocate get data and missing value from file
       status = nf90_inq_varid(ncid, trim(data_var_name), varid)
@@ -1305,12 +1277,12 @@
          endif
       end do
 
-      end subroutine atm_MOSAiC_average
+      end subroutine MOSAiC_average
 #endif
 
 !=======================================================================
 
-      subroutine atm_MOSAiC_interpolate(model_var_arr, model_miss_val)
+      subroutine MOSAiC_interpolate(model_var_arr, model_miss_val)
       
       real (kind=dbl_kind), dimension(ntime), intent(inout) :: &
          model_var_arr  ! array to place averaged forcing data in
@@ -1323,15 +1295,7 @@
          nt, m,         &  ! model timestep indices
          count             ! counter for missing values
       
-      character(len=*), parameter :: subname='(atm_MOSAiC_interpolate)'
-      
-      ! Check for extrapolation
-      !if (model_var_arr(1) == model_miss_val) call icedrv_system_abort(&
-      !string=subname//'Missing value at start of atmospheric forcing',&
-      !file=__FILE__,line=__LINE__)
-      !if (model_var_arr(ntime) == model_miss_val) call icedrv_system_abort(&
-      !string=subname//'Missing value at end of atmospheric forcing',&
-      !file=__FILE__,line=__LINE__)
+      character(len=*), parameter :: subname='(MOSAiC_interpolate)'
 
       ! Interpolate, extrapolate for first and last values
       if (model_var_arr(1) == model_miss_val) then
@@ -1368,7 +1332,7 @@
          endif
       end do
 
-      end subroutine atm_MOSAiC_interpolate
+      end subroutine MOSAiC_interpolate
 
 !=======================================================================
 
@@ -1579,16 +1543,6 @@
             model_time(nt) = int(model_time0 + dt * nt, kind=8)
          enddo
 
-         ! Check that we are not extrapolating forcing outside of time bounds
-         !if (model_time(1) < data_time(1)) call icedrv_system_abort(&
-         !string=subname//'Simulation starts before atmospheric forcing',&
-         !file=__FILE__,line=__LINE__)
-         !write (test_1,*) model_time(ntime)
-         !write (test_2,*) data_time(dimlen)
-         !if (model_time(ntime) > data_time(dimlen)) call icedrv_system_abort(&
-         !string=subname//'Simulation ends after atmospheric forcing: '//trim(test_1)//' '//trim(test_2),&
-         !file=__FILE__,line=__LINE__)
-
          ! data_sections is a 2D array where the first dimension
          ! is the same length as model_time. The 1D array at each index
          ! contains the start and stop indices of the data to be averaged
@@ -1618,21 +1572,17 @@
          data_sections(ntime, 2) = i
 
          ! Moving average forcing values into model arrays
-         call atm_MOSAiC_average("so", sss_data, dimlen, ncid, &
+         call MOSAiC_average("so", sss_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("mlotst", hmix_data, dimlen, ncid, &
+         call MOSAiC_average("mlotst", hmix_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("hfsot", qdp_data, dimlen, ncid, &
+         call MOSAiC_average("hfsot", qdp_data, dimlen, ncid, &
             data_sections, model_miss_val)
          
          ! Linearly interpolate missing values
-         call atm_MOSAiC_interpolate(sss_data, model_miss_val)
-         call atm_MOSAiC_interpolate(hmix_data, model_miss_val)
-         call atm_MOSAiC_interpolate(qdp_data, model_miss_val)
-
-         !call icedrv_system_abort(string=subname//&
-         !' Made it to the end for testing', &
-         !file=__FILE__,line=__LINE__)
+         call MOSAiC_interpolate(sss_data, model_miss_val)
+         call MOSAiC_interpolate(hmix_data, model_miss_val)
+         call MOSAiC_interpolate(qdp_data, model_miss_val)
 
 #else
          call icedrv_system_abort(string=subname//&
@@ -1644,16 +1594,6 @@
          ' ERROR: only NetCDF input implemented for ocn_MOSAiC', &
          file=__FILE__,line=__LINE__)
       endif      
-      
-      
-      
-      
-      ! For now this just sets constant values for testing
-      
-      !sss_data(:) = 32.0_dbl_kind ! ~mixed layer salinity on Jan 1 from Kiki
-      ! we are using evolving ocean mixed layer so just initial T matters
-      !hmix_data(:) = 30.0_dbl_kind ! ~average Oct to Feb
-      !qdp_data(:) = c0  ! ~ from Kiki
 
       end subroutine ocn_MOSAiC
       
