@@ -425,7 +425,7 @@ section :ref:`reactions`.
 
 .. _zbgc:
 
-Vertical BGC (''zbgc'')
+Vertical BGC ("zbgc")
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to solve for the vertically resolved biogeochemistry, several
@@ -1012,7 +1012,7 @@ are true).
    "DMSPd", "DMSPdin", "`tr_bgc_DMS`", "dissolved DMSP", ":math:`mmol` :math:`S/m^3`"
    "DMS", "DMSin", "`tr_bgc_DMS`", "DMS", ":math:`mmol` :math:`S/m^3`"
    "PON", "PON :math:`^a`", "`tr_bgc_PON`", "passive mobile tracer", ":math:`mmol` :math:`N/m^3`"
-   "hum", "hum :math:`^{a}`", "`tr_bgc_hum`", "refractive dissolved organic carbon", ":math:`mmol C` :math:`/m^3`"
+   "hum", "hum :math:`^{a}`", "`tr_bgc_hum`", "refractory dissolved organic carbon", ":math:`mmol C` :math:`/m^3`"
    "BC (1)", "zaero(1) :math:`^a`", "`tr_zaero`", "black carbon species 1", ":math:`kg` :math:`/m^3`"
    "BC (2)", "zaero(2) :math:`^a`", "`tr_zaero`", "black carbon species 2", ":math:`kg` :math:`/m^3`"
    "dust (1)", "zaero(3) :math:`^a`", "`tr_zaero`", "dust species 1", ":math:`kg` :math:`/m^3`"
@@ -1097,13 +1097,6 @@ lipids. The :math:`{\mbox{DOC}}^i` equation is:
    \begin{aligned}
    \frac{\Delta {\mbox{DOC}}^i}{dt} & = & R_{{\mbox{DOC}}} = f^i_{cg}(graze^{tot} + M_{ort}^{tot} - f_{ng}\mu^{tot} - \frac{DON_{source}}{dt}) R^i_{c:n}-[{\mbox{DOC}}]k^i_{cb} \\
    & = & R_{{\mbox{DOC}}} = f^i_{cg}(graze^{tot} + M_{ort}^{tot} - f_{ng}\mu^{tot} - \frac{DON_{source}}{dt}) R^i_{c:n} - \frac{DOC_{loss}}{dt}\end{aligned}
-
-Dissolved inorganic carbon closes the carbon loop. The :math:`{\mbox{DIC}}`
-   
-.. math::
-
-   \begin{aligned}
-   \frac{\Delta {\mbox{DIC}}^i}{dt} & = & \frac{DOC_{loss}}{dt}\end{aligned}
    
 Silicate has no biochemical source terms within the ice and is lost only
 through algal uptake:
@@ -1124,16 +1117,16 @@ and particulate iron is
 .. math::
 
    \begin{aligned}
-   \frac{\Delta_{fe}{\mbox{fed}}}{dt} & = & -\frac{[{\mbox{fed}}]}{\tau_{fe}} \nonumber \\
-   \frac{\Delta_{fe}{\mbox{fep}}}{dt} & = & \frac{[{\mbox{fed}}]}{\tau_{fe}}\end{aligned}
+   \frac{\tilde{\Delta} {\mbox{fed}}}{dt} & = & -\frac{[{\mbox{fed}}]}{\tau_{fe}} \nonumber \\
+   \frac{\tilde{\Delta} {\mbox{fep}}}{dt} & = & \frac{[{\mbox{fed}}]}{\tau_{fe}}\end{aligned}
 
 for values less than :math:`r^{max}_{fed:doc}`.
 
 .. math::
 
    \begin{aligned}
-   \frac{\Delta_{fe}{\mbox{fed}}}{dt} & = & \frac{[{\mbox{fep}}]}{\tau_{fe}} \nonumber \\
-   \frac{\Delta_{fe}{\mbox{fep}}}{dt} & = & -\frac{[{\mbox{fep}}]}{\tau_{fe}}\end{aligned}
+   \frac{\tilde{\Delta} {\mbox{fed}}}{dt} & = & \frac{[{\mbox{fep}}]}{\tau_{fe}} \nonumber \\
+   \frac{\tilde{\Delta} {\mbox{fep}}}{dt} & = & -\frac{[{\mbox{fep}}]}{\tau_{fe}}\end{aligned}
 
 Very long timescales :math:`\tau_{fe}` will remove this source/sink
 term. The default value is currently set at 3065 days to turn off this
@@ -1147,7 +1140,7 @@ remineralization is
 
    \begin{aligned}
    \frac{\Delta {\mbox{fed}}}{dt} & = & R_{{\mbox{fed}}} = -U^{tot}_{{\mbox{fed}}} + f_{fa}R_{fe:n}N_{remin}
-   + \frac{\Delta_{fe}{\mbox{fed}}}{dt}\end{aligned}
+   + \frac{\tilde{\Delta}{\mbox{fed}}}{dt}\end{aligned}
 
 Particulate iron also includes a source term from algal mortality and
 grazing that is not immediately bioavailable. The full equation for
@@ -1157,7 +1150,7 @@ grazing that is not immediately bioavailable. The full equation for
 
    \begin{aligned}
    \frac{\Delta {\mbox{fep}}}{dt} & = & R_{{\mbox{fep}}} =  R_{fe:n}[\frac{\mbox{Z}_{oo}}{dt} + (1-f_{fa})]N_{remin}
-   + \frac{\Delta_{fe}{\mbox{fep}}}{dt}\end{aligned}
+   + \frac{\tilde{\Delta}{\mbox{fep}}}{dt}\end{aligned}
 
 The sulfur cycle includes :math:`{\mbox{DMS}}` and dissolved DMSP
 (:math:`{\mbox{DMSPd}}`). Particulate DMSP is assumed to be proportional
@@ -1172,14 +1165,14 @@ to the algal concentration, i.e.
    +f_{nm}M_{ort} ] - \frac{[{\mbox{DMSPd}}]}{\tau_{dmsp}} \nonumber \\
    \frac{\Delta {\mbox{DMS}}}{dt} & = & R_{{\mbox{DMS}}} =  y_{dms}\frac{[{\mbox{DMSPd}}]}{\tau_{dmsp}} - \frac{[{\mbox{DMS}}]}{\tau_{dms}}\end{aligned}
 
-The dissolved inorganic carbon tracer, :math:`{\mbox{DIC}}`, currently serves to conserve carbon in sea ice.  There is no alkalinity tracer nor precipitated forms of carbonate that would be needed for solving the carbonate chemistry. In addition, :math:`{\mbox{DIC}}` never limits photosynthesis in this formulation and carbon to nitrogen ratios for each algal species are fixed at run-time. In the event that :math:`{\mbox{DIC}}` algal requirements exceed the available in situ concentration at a given timestep, the demand is met by an assumed ocean flux into the sea ice.  :math:`{\mbox{DIC}}` reactive sources are equivalent to the remineralized losses of :math:`{\mbox{DON}}_{loss} = [{\mbox{DON}}] k_{nb}`
+The dissolved inorganic carbon tracer, :math:`{\mbox{DIC}}`, currently serves to conserve carbon in sea ice.  There is no alkalinity tracer nor precipitated forms of carbonate that would be needed for solving the carbonate chemistry. In addition, :math:`{\mbox{DIC}}` never limits photosynthesis in this formulation and carbon to nitrogen ratios for each algal species are fixed at run-time. In the event that :math:`{\mbox{DIC}}` algal requirements exceed the available in situ concentration at a given timestep, the demand is met by an assumed ocean flux into the sea ice.  :math:`{\mbox{DIC}}` reactive sources are equivalent to the remineralized losses of :math:`{\mbox{DON}}_{loss} = [{\mbox{DON}}] k_{nb}` and :math:`{\mbox{DOC}}^{tot}_{loss} = \sum^{i} [{\mbox{DOC}}]_i (k_{bac})_i`
 
 The :math:`{\mbox{DIC}}` reaction equation is
 
 .. math::
 
    \begin{aligned}
-   \frac{\Delta {\mbox{DIC}}}{dt} & = & R_{{\mbox{DIC}}} = {\mbox{DON}}_{loss} * R_{C2N:DON} -\sum^{algae} [(1-fr_{resp})*grow_{N} * R_{C:N}]\end{aligned}
+   \frac{\Delta {\mbox{DIC}}}{dt} & = & R_{{\mbox{DIC}}} = {\mbox{DON}}_{loss} * R_{C2N:DON} + {\mbox{DOC}}^{tot}_{loss}-\sum^{algae} [(1-fr_{resp})*grow_{N} * R_{C:N}]\end{aligned}
 
 where the summation is over all algal groups,  :math:`R_{C:N}` is the carbon to nitrogen ratio of each algal group  :math:`{\mbox{N}}`, and :math:`R_{C2N:DON}` is the carbon to nitrogen ratio of :math:`{\mbox{DON}}`.
 
