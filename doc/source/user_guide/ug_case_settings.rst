@@ -419,8 +419,6 @@ zbgc_nml
    "``bgc_data_type``", "``clim``", "bgc climatological data", "``default``"
    "", "``default``", "constant values defined in the code", ""
    "", "``ncar``", "POP ocean forcing data", ""
-   "``bgc_flux_type``", "``constant``", "constant ice–ocean flux velocity  (DEPRECATED)", "``Jin2006``"
-   "", "``Jin2006``", "ice–ocean flux velocity of :cite:`Jin06` (DEPRECATED)", ""
    "``chlabs_diatoms``", "real", "chl absorbtion diatoms 1/m/(mg/m^3)", "0.03"
    "``chlabs_phaeo``", "real", "chl absorbtion phaeocystis 1/m/(mg/m^3)", "0.05"
    "``chlabs_sp``", "real", "chl absorbtion small plankton 1/m/(mg/m^3)", "0.01"
