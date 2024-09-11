@@ -416,7 +416,7 @@ zbgc_nml
    "``beta2max_diatoms``", "real", "light inhibition diatoms 1/(W/m^2)", "0.001"
    "``beta2max_phaeo``", "real", "light inhibition phaeocystis 1/(W/m^2)", "0.04"
    "``beta2max_sp``", "real", "light inhibition small plankton 1/(W/m^2)", "0.001"
-    "``bgc_flux_type``", "``constant``", "constant ice–ocean flux velocity", "``Jin2006``"
+   "``bgc_flux_type``", "``constant``", "constant ice–ocean flux velocity", "``Jin2006``"
    "", "``Jin2006``", "ice–ocean flux velocity of :cite:`Jin06`", ""
    "``chlabs_diatoms``", "real", "chl absorbtion diatoms 1/m/(mg/m^3)", "0.03"
    "``chlabs_phaeo``", "real", "chl absorbtion phaeocystis 1/m/(mg/m^3)", "0.05"
