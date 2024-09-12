@@ -1826,7 +1826,11 @@
       !----------------------------------------------------------------------------
 
           growmax_N(k) = mu_max(k) / secday * exp(grow_Tdep(k) * dTemp)* Nin(k) *fsal
-          grow_N(k)    = min(L_lim(k), N_lim(k), Sil_lim(k), Fe_lim(k)) * growmax_N(k)
+          if (n_fed == 0) then
+             grow_N(k)    = min(L_lim(k), N_lim(k), Sil_lim(k)) * growmax_N(k)
+          else
+             grow_N(k)    = min(L_lim(k), N_lim(k), Sil_lim(k), Fe_lim(k)) * growmax_N(k)
+          endif
 !         potU_Nit(k)  = Nit_lim(k)* growmax_N(k)
           potU_Am(k)   = Am_lim(k)* growmax_N(k)
           U_Am(k)      = min(grow_N(k), potU_Am(k))
@@ -1857,10 +1861,12 @@
           U_Sil(k) = U_Sil_f(k)*U_Sil_tot
           U_Fe(k)  = U_Fe_f(k)*U_Fe_tot
 
-          if (R_Si2N(k) > c0) then
-             grow_N(k) = min(U_Sil(k)/R_Si2N(k),U_Nit(k) + U_Am(k), U_Fe(k)/R_Fe2N(k))
-          else
-             grow_N(k) = min(U_Nit(k) + U_Am(k),U_Fe(k)/R_Fe2N(k))
+          if (n_fed == 0) then
+             if (R_Si2N(k) > c0) then
+                grow_N(k) = min(U_Sil(k)/R_Si2N(k),U_Nit(k) + U_Am(k), U_Fe(k)/R_Fe2N(k))
+             else
+                grow_N(k) = min(U_Nit(k) + U_Am(k),U_Fe(k)/R_Fe2N(k))
+             endif
           endif
 
           fr_Am(k) = c0

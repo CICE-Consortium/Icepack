@@ -407,10 +407,10 @@
          restartbgc = .false.
 
       real (kind=dbl_kind), public :: &
-         phi_snow     = -0.3_dbl_kind   , & ! snow porosity
+         phi_snow     = -1.0_dbl_kind   , & ! snow porosity (compute from snow density if negative)
          grid_o       = 0.006_dbl_kind  , & ! for bottom flux
          initbio_frac = c1              , & ! fraction of ocean trcr concentration in bio trcrs
-         l_sk         = 20.0_dbl_kind   , & ! characteristic diffusive scale (m)
+         l_sk         = 2.0_dbl_kind    , & ! characteristic diffusive scale (m)
          grid_oS      = c0              , & ! for bottom flux
          l_skS        = 0.028_dbl_kind  , & ! characteristic skeletal layer thickness (m) (zsalinity)
          algal_vel    = 1.0e-7_dbl_kind , & ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
@@ -441,20 +441,20 @@
          ratio_Si2N_diatoms = 1.8_dbl_kind , &  ! algal Si to N (mol/mol)
          ratio_Si2N_sp      = c0        , &
          ratio_Si2N_phaeo   = c0        , &
-         ratio_S2N_diatoms  = 0.03_dbl_kind  , &   ! algal S  to N (mol/mol)
+         ratio_S2N_diatoms  = 0.03_dbl_kind  , & ! algal S  to N (mol/mol)
          ratio_S2N_sp       = 0.03_dbl_kind  , &
          ratio_S2N_phaeo    = 0.03_dbl_kind  , &
-         ratio_Fe2C_diatoms = 0.0033_dbl_kind, &   ! algal Fe to C  (umol/mol)
+         ratio_Fe2C_diatoms = 0.0033_dbl_kind, & ! algal Fe to C  (umol/mol)
          ratio_Fe2C_sp      = 0.0033_dbl_kind, &
          ratio_Fe2C_phaeo   = 0.1_dbl_kind   , &
          ratio_Fe2N_diatoms = 0.023_dbl_kind , & ! algal Fe to N  (umol/mol)
          ratio_Fe2N_sp      = 0.023_dbl_kind , &
          ratio_Fe2N_phaeo   = 0.7_dbl_kind   , &
          ratio_Fe2DON       = 0.023_dbl_kind , & ! Fe to N of DON (nmol/umol)
-         ratio_Fe2DOC_s     = 0.1_dbl_kind   , &   ! Fe to C of DOC (nmol/umol) saccharids
+         ratio_Fe2DOC_s     = 0.1_dbl_kind   , & ! Fe to C of DOC (nmol/umol) saccharids
          ratio_Fe2DOC_l     = 0.033_dbl_kind , & ! Fe to C of DOC (nmol/umol) lipids
          tau_min            = 3600.0_dbl_kind, &    ! rapid timescale for mobile to stationary exchanges (s)
-         tau_max            = 7776000.0_dbl_kind, &  ! short timescale for mobile to stationary exchanges (s)
+         tau_max            = 604800.0_dbl_kind, &  ! short timescale for mobile to stationary exchanges (s)
          chlabs_diatoms     = 0.03_dbl_kind  , & ! absorptivity for diatoms (1/m/(mg/m3))
          chlabs_sp          = 0.01_dbl_kind  , &      !  absorptivity for small plankton (1/m/(mg/m3))
          chlabs_phaeo       = 0.05_dbl_kind  , &   ! absorptivity for phaeocystis (1/m/(mg/m3))

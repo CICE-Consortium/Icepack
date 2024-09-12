@@ -13,7 +13,7 @@ Basic Aerosols
 
 Aerosols may be deposited on the ice and gradually work their way
 through it until the ice melts and they are passed into the ocean. They
-are defined as ice and snow volume tracers (Eq. 15 and 16 in CICE.v5
+are defined as ice and snow volume tracers (see CICE "Tracers"
 documentation), with the snow and ice each having two tracers for each
 aerosol species, one in the surface scattering layer (delta-Eddington
 SSL) and one in the snow or ice interior below the SSL.
@@ -264,6 +264,10 @@ where the sums are taken over thickness categories.
 Sea ice ecosystem
 -----------------
 
+**The skeletal layer implementation has been deprecated but not removed as of 
+September, 2024.  If users are interested in this feature, please contact
+the consortium.  The documentation below has not yet been removed.**
+
 There are two options for modeling biogeochemistry in sea ice: 1) a
 skeletal layer or bottom layer model that assumes biology
 and biological molecules are restricted to a single layer at the base of
@@ -468,7 +472,7 @@ humic material.
 The **icepack\_in** namelist options are described in the :ref:`tabnamelist`.
 
 
-Vertically resolved z-tracers are brine- volume conserved and thus depend
+Vertically resolved z-tracers are brine volume conserved and thus depend
 on both the ice volume and the brine height fraction tracer
 (:math:`v_{in}f_b`). These tracers follow the conservation equations for
 multiply dependent tracers (see, for example Equation :eq:`transport-apnd-lvl` where :math:`a_{pnd}` is a tracer on :math:`a_{lvl}a_{i}`)  
@@ -613,7 +617,7 @@ The tracer, ``zbgc_frac``, is initialized to 1 during new ice formation,
 because all z-tracers are initially in the purely mobile phase.
 Similarly, as the ice melts, z-tracers gradually return to the mobile phase.
 
-Maximum accumulation of tracers (based on diatoms) on ice crystals (i.e. collectors) is ultimately limited by their saturation concentration based on :cite:p:`Johnson95`'s model of bacterial detachment in porous media.  This is modeled simply using a single saturation concentration for all tracers. This could be modified to be tracer dependent in future versions if warranted. Several local parameters defined in **z\_biogeochemistry** are used in the calculation: 1) mean ice crystal radius :math:`r_c` ; 2) large diatom radius :math:`r_{bac}` ; 3) small diatom radius :math:`r_{alg}` ; 4) two parameters in a conversion from algal nitrogen quota to cell volume :math:`Nquota_{A}` and :math:`Nquota_I` :cite:p:`Edwards2012` ; 5) fraction of sites available for saturation :math:`f_s` ; 6) fraction of the collector (ice crystal) available for attachment :math:`f_a` ; 6) fraction of algal coverage by area available for attachment :math:`f_v`.  These are used to compute the volume and surface area of a diatom cell (assumed to be a prolate spheriod) :math:`V_alg = \frac{\pi}{6} r_{bac}r_{alg}^{2}` and :math:`P_b = \pi r_{bac}^{2}`, respectively; and the volume and surface area of the collector (assumed to be spherical)  :math:`V_c = \frac{4 \pi}{3} r_{c}^{3}` and   :math:`S_{col} = 4 \pi r_{c}^{2}`, respectively.
+Maximum accumulation of tracers (based on diatoms) on ice crystals (i.e. collectors) is ultimately limited by their saturation concentration based on :cite:`Johnson95`'s model of bacterial detachment in porous media.  This is modeled simply using a single saturation concentration for all tracers. This could be modified to be tracer dependent in future versions if warranted. Several local parameters defined in **z\_biogeochemistry** are used in the calculation: 1) mean ice crystal radius :math:`r_c` ; 2) large diatom radius :math:`r_{bac}` ; 3) small diatom radius :math:`r_{alg}` ; 4) two parameters in a conversion from algal nitrogen quota to cell volume :math:`Nquota_{A}` and :math:`Nquota_I` :cite:`Edwards2012` ; 5) fraction of sites available for saturation :math:`f_s` ; 6) fraction of the collector (ice crystal) available for attachment :math:`f_a` ; 6) fraction of algal coverage by area available for attachment :math:`f_v`.  These are used to compute the volume and surface area of a diatom cell (assumed to be a prolate spheriod) :math:`V_alg = \frac{\pi}{6} r_{bac}r_{alg}^{2}` and :math:`P_b = \pi r_{bac}^{2}`, respectively; and the volume and surface area of the collector (assumed to be spherical)  :math:`V_c = \frac{4 \pi}{3} r_{c}^{3}` and   :math:`S_{col} = 4 \pi r_{c}^{2}`, respectively.
 
 The saturation concentration ``Sat_conc`` is approximated as:
 
