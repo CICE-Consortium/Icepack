@@ -1,4 +1,5 @@
 ### Tracers                # match icepack_in tracer_nml to conserve memory
+setenv NBGCLYR   7         # number of zbgc layers
 setenv NTRAERO   0         # number of aerosol tracers 
 setenv TRBRI     1         # set to 1 for brine height tracer
 setenv TRBGCZ    1         # set to 1 for zbgc tracers
