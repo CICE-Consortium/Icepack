@@ -3,6 +3,7 @@ smoke          col     1x1        diag1,run1year
 smoke          col     1x1        debug,run1year
 smoke          col     1x1        debug,bgcispol
 smoke          col     1x1        debug,bgcnice
+smoke          col     1x1        debug,zaero
 #smoke          col     1x1        debug,bgcsklnice
 smoke          col     1x1        debug,run1year,thermo1
 smoke          col     1x1        debug,run1year,swredist
@@ -30,6 +31,7 @@ restart        col     1x1        pondlvl
 restart        col     1x1        pondtopo
 restart        col     1x1        bgcispol
 restart        col     1x1        bgcnice
+restart        col     1x1        zaero,snwitdrdg,snwgrain
 #restart        col     1x1        bgcsklnice
 restart        col     1x1        thermo1
 restart        col     1x1        swccsm3
