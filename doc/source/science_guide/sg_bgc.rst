@@ -98,7 +98,7 @@ Water Isotope
 
 Water isotopes may be deposited on the ice from above or below, and gradually work their way
 through it until the ice melts and they are passed into the ocean. They
-are defined as ice and snow volume tracers (Eq. 15 and 16 in CICE.v5
+are defined as ice and snow volume tracers (see CICE "Tracers"
 documentation), with the snow and ice each having one tracer for each
 water isotope species.
 
@@ -266,7 +266,7 @@ Sea ice ecosystem
 
 **The skeletal layer implementation has been deprecated but not removed as of 
 September, 2024.  If users are interested in this feature, please contact
-the consortium.  The documentation below has not yet been removed.**
+the CICE Consortium.  The documentation below has not yet been removed.**
 
 There are two options for modeling biogeochemistry in sea ice: 1) a
 skeletal layer or bottom layer model that assumes biology
@@ -334,7 +334,7 @@ Skeletal Layer BGC
 
 **The skeletal layer implementation has been deprecated but not removed as of 
 September, 2024.  If users are interested in this feature, please contact
-the consortium.  The documentation below has not yet been removed.**
+the CICE Consortium.  The documentation below has not yet been removed.**
 
 In the skeletal layer model, biogeochemical processing is modelled as a
 single layer of reactive tracers attached to the sea ice bottom.
