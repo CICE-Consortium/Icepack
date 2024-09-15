@@ -30,11 +30,12 @@
       use icedrv_constants, only: ice_stdout, nu_diag, nu_diag_out
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
 
       integer n
+      logical openflag
       character(len=*), parameter :: subname='(icedrv)'
 
       !-----------------------------------------------------------------
@@ -55,10 +56,24 @@
 
       write(ice_stdout, *) "ICEPACK COMPLETED SUCCESSFULLY "
 
-      close (ice_stdout)
-      close (nu_diag)
+      inquire(unit=ice_stdout,opened=openflag)
+      if (openflag) then
+         call icedrv_system_flush(ice_stdout)
+         close (ice_stdout)
+      endif
+
+      inquire(unit=nu_diag,opened=openflag)
+      if (openflag) then
+         call icedrv_system_flush(nu_diag)
+         close (nu_diag)
+      endif
+
       do n = 1, nx
-         close (nu_diag_out+n-1)
+         inquire(unit=nu_diag_out+n-1,opened=openflag)
+         if (openflag) then
+            call icedrv_system_flush(nu_diag_out+n-1)
+            close (nu_diag_out+n-1)
+         endif
       enddo
 
       end program icedrv

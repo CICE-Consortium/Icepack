@@ -21,7 +21,7 @@
       use icepack_parameters, only: pih, dragio, rhoi, rhos, rhow
       use icepack_parameters, only: atmbndy, calc_strair, formdrag
       use icepack_parameters, only: icepack_chkoptargflag
-      use icepack_tracers, only: n_iso
+      use icepack_tracers, only: ncat, n_iso
       use icepack_tracers, only: tr_iso
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -521,12 +521,9 @@
                                       hdraft,   hridge,          &
                                       distrdg,  hkeel,           &
                                       dkeel,    lfloe,           &
-                                      dfloe,    ncat)
+                                      dfloe)
 
       use icepack_tracers, only: tr_pond
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          apnd     ,& ! melt pond fraction of sea ice

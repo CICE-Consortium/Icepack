@@ -13,7 +13,7 @@
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_sizes
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
       private
@@ -82,6 +82,8 @@
          if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 
          call init_flux_atm_ocn ! initialize atmosphere, ocean fluxes
+
+         call icedrv_system_flush(nu_diag)
 
       enddo timeLoop
 

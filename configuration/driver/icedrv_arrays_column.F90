@@ -122,17 +122,6 @@
 
       ! biogeochemistry components
 
-      real (kind=dbl_kind), dimension (nblyr+2), public :: &
-         bgrid          ! biology nondimensional vertical grid points
-
-      real (kind=dbl_kind), dimension (nblyr+1), public :: &
-         igrid          ! biology vertical interface points
-
-      real (kind=dbl_kind), dimension (nilyr+1), public :: &
-         cgrid     , &  ! CICE vertical coordinate
-         icgrid    , &  ! interface grid for CICE (shortwave variable)
-         swgrid         ! grid for ice tracers used in dEdd scheme
-
       real (kind=dbl_kind), dimension (nx,ncat), public :: &
          first_ice_real ! .true. = c1, .false. = c0
 
@@ -208,10 +197,6 @@
       real (kind=dbl_kind), dimension (nx), public :: &
          chl_net    , & ! Total chla (mg chla/m^2) per grid cell
          NO_net         ! Total nitrate per grid cell
-
-      real (kind=dbl_kind), &
-         dimension (nx,ncat), public :: &
-         sice_rho       ! avg sea ice density  (kg/m^3)  ! ech: diagnostic only?
 
       real (kind=dbl_kind), dimension (nx,nblyr+1,ncat), public :: &
          zfswin         ! Shortwave flux into layers interpolated on bio grid  (W/m^2)
