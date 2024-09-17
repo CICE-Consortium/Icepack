@@ -26,7 +26,7 @@
       module icepack_itd
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
+      use icepack_parameters, only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny, p2
       use icepack_parameters, only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, rhoi
       use icepack_parameters, only: rhosi, sk_l, hs_ssl, min_salin, rsnw_fall, rhosnew
       use icepack_tracers,    only: ncat, nilyr, nslyr, nblyr, ntrcr, nbtrcr, n_aero

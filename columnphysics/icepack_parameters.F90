@@ -120,7 +120,7 @@
          kice      = 2.03_dbl_kind    ,&! thermal conductivity of fresh ice(W/m/deg)
                                         ! kice is only used with ktherm=1 (BL99) and conduct='MU71'
          ksno      = 0.30_dbl_kind    ,&! thermal conductivity of snow  (W/m/deg)
-         hs_min    = 1.e-4_dbl_kind   ,&! min snow thickness for computing zTsn (m)
+         hs_min    = 0.10_dbl_kind    ,&! min snow thickness for computing zTsn (m)
          snowpatch = 0.02_dbl_kind    ,&! parameter for fractional snow area (m)
          saltmax   = 3.2_dbl_kind     ,&! max salinity at ice base for BL99 (ppt)
                                         ! phi_init, dSin0_frazil are for mushy thermo
