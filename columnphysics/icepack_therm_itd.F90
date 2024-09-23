@@ -1072,7 +1072,7 @@
                      end do
 
                      ! timestep required for this
-                     subdt = get_subdt_fsd(nfsd, afsd_tmp(:), d_afsd_tmp(:))
+                     subdt = get_subdt_fsd(afsd_tmp(:), d_afsd_tmp(:))
                      subdt = MIN(subdt, dt)
 
                      ! update fsd and elapsed time

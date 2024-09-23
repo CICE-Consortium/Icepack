@@ -1141,7 +1141,7 @@
 
       ! local variables
       integer (kind=int_kind) :: &
-         i,k
+         k
 
       real(kind=dbl_kind), dimension(nfreq) :: &
          wave_spectrum_profile  ! wave spectrum
