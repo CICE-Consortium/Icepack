@@ -21,7 +21,7 @@
       use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
       private
@@ -950,6 +950,8 @@
          write(nu_diag,1020) 'nx      = ', nx
          write(nu_diag,*)' '
 
+         call icedrv_system_flush(nu_diag)
+
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
  1005    format (a30,2x,f10.6) ! float
  1010    format (a30,2x,l6)    ! logical
@@ -1278,8 +1280,7 @@
          enddo
 
          if (tmask(i)) &
-         call icepack_aggregate(ncat=ncat,                    &
-                                trcrn=trcrn(i,1:ntrcr,:),     &
+         call icepack_aggregate(trcrn=trcrn(i,1:ntrcr,:),     &
                                 aicen=aicen(i,:),             &
                                 vicen=vicen(i,:),             &
                                 vsnon=vsnon(i,:),             &
@@ -1288,7 +1289,6 @@
                                 vice=vice (i),                &
                                 vsno=vsno (i),                &
                                 aice0=aice0(i),               &
-                                ntrcr=ntrcr,                  &
                                 trcr_depend=trcr_depend(1:ntrcr),     &
                                 trcr_base=trcr_base    (1:ntrcr,:),   &
                                 n_trcr_strata=n_trcr_strata(1:ntrcr), &
@@ -1465,11 +1465,10 @@
                                 Sprofile = salinz(i,:), &
                                 Tprofile = Tmltz(i,:),  &
                                 Tsfc     = Tsfc,        &
-                                nilyr=nilyr, nslyr=nslyr, &
                                 qin=qin(:), qsn=qsn(:))
 
          ! floe size distribution
-         if (tr_fsd) call icepack_init_fsd(nfsd=nfsd, ice_ic=ice_ic, &
+         if (tr_fsd) call icepack_init_fsd(ice_ic=ice_ic, &
                                   floe_rad_c=floe_rad_c,             &
                                   floe_binwidth=floe_binwidth,       &
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
@@ -1538,10 +1537,9 @@
                                 Sprofile = salinz(i,:), &
                                 Tprofile = Tmltz(i,:),  &
                                 Tsfc     = Tsfc,        &
-                                nilyr=nilyr, nslyr=nslyr, &
                                 qin=qin(:), qsn=qsn(:))
          ! floe size distribution
-         if (tr_fsd) call icepack_init_fsd(nfsd=nfsd, ice_ic=ice_ic, &
+         if (tr_fsd) call icepack_init_fsd(ice_ic=ice_ic, &
                                   floe_rad_c=floe_rad_c,             &
                                   floe_binwidth=floe_binwidth,       &
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))

@@ -23,7 +23,7 @@ setenv TRALG     3         # number of algal tracers
                            # (up to max_algae = 3)
 setenv TRDOC     2         # number of dissolve organic carbon 
                            # (up to max_doc = 3)
-setenv TRDIC     0         # number of dissolve inorganic carbon 
+setenv TRDIC     1         # number of dissolve inorganic carbon 
                            # (up to max_dic = 1)
 setenv TRDON     1         # number of dissolve organic nitrogen
                            # (up to max_don = 1)

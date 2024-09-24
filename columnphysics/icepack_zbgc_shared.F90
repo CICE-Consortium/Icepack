@@ -14,9 +14,11 @@
       use icepack_parameters, only: rhoi, cp_ocn, cp_ice, Lfresh
       use icepack_parameters, only: solve_zbgc
       use icepack_parameters, only: fr_resp
-      use icepack_tracers, only: max_nbtrcr, max_algae, max_doc
-      use icepack_tracers, only: max_don
-      use icepack_tracers, only: nt_bgc_N, nt_fbri
+      use icepack_tracers, only: nbtrcr, ntrcr, nblyr, nilyr, nslyr
+      use icepack_tracers, only: n_algae
+      use icepack_tracers, only: max_nbtrcr, max_algae, max_doc, max_fe
+      use icepack_tracers, only: max_don, max_aero, max_dic
+      use icepack_tracers, only: nt_bgc_N, nt_fbri, nlt_bgc_N
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -57,7 +59,7 @@
       real (kind=dbl_kind), dimension(max_don), public :: &  ! increase compare to algal R_Fe2C
          R_C2N_DON
 
-       real (kind=dbl_kind),  dimension(max_algae), public :: &
+      real (kind=dbl_kind),  dimension(max_algae), public :: &
          R_Si2N     , & ! algal Sil to N (mole/mole)
          R_S2N      , & ! algal S to N (mole/mole)
          ! Marchetti et al 2006, 3 umol Fe/mol C for iron limited Pseudo-nitzschia
@@ -100,6 +102,15 @@
       ! general biogeochemistry
       !-----------------------------------------------------------------
 
+      real (kind=dbl_kind), parameter, dimension(max_algae), public :: &
+         graze_exponent = (/ 0.333_dbl_kind, c1, c1/) ! Implicit grazing exponent (Dunneet al. 2005)
+
+      real (kind=dbl_kind), parameter, public :: &
+         graze_conc = 1.36_dbl_kind, & ! (mmol N/m^3) converted from Dunne et al 2005
+                                       ! data fit for phytoplankton (1.9 mmol C/m^3) to
+                                       ! ice algal N with 20% porosity and C/N = 7
+         large_bgc = 1.0e8_dbl_kind    ! warning value for large bgc concentrations (mmol/m^3)
+
       real (kind=dbl_kind), dimension(max_nbtrcr), public :: &
          zbgc_frac_init,&! initializes mobile fraction
          bgc_tracer_type ! described tracer in mobile or stationary phases
@@ -141,6 +152,29 @@
          f_exude          , & ! fraction of exuded carbon to each DOC pool
          k_bac                ! Bacterial degredation of DOC (1/d)
 
+      ! polysaccharids, lipids, proteins+nucleic acids (Lonborg et al. 2020)
+      real (kind=dbl_kind), dimension(max_doc), parameter, public :: &
+         doc_pool_fractions = (/0.26_dbl_kind, 0.17_dbl_kind, 0.57_dbl_kind/)
+
+      real (kind=dbl_kind),  dimension(max_algae), public :: &
+         algaltype   ! mobility type for algae
+
+      real (kind=dbl_kind),  dimension(max_doc), public :: &
+         doctype     ! mobility type for DOC
+
+      real (kind=dbl_kind),  dimension(max_dic), public :: &
+         dictype     ! mobility type for DIC
+
+      real (kind=dbl_kind),  dimension(max_don), public :: &
+         dontype     ! mobility type for DON
+
+      real (kind=dbl_kind),  dimension(max_fe), public :: &
+         fedtype, &  ! mobility type for iron
+         feptype
+
+      real (kind=dbl_kind),  dimension(max_aero), public :: &
+         zaerotype   ! mobility type for aerosols
+
       !-----------------------------------------------------------------
       ! brine
       !-----------------------------------------------------------------
@@ -162,6 +196,13 @@
          viscos_dynamic = 2.2_dbl_kind   , & ! 1.8e-3_dbl_kind (pure water at 0^oC) (kg/m/s)
          Dm             = 1.0e-9_dbl_kind, & ! molecular diffusion (m^2/s)
          Ra_c           = 0.05_dbl_kind      ! critical Rayleigh number for bottom convection
+
+      real (kind=dbl_kind), dimension (:), allocatable, public :: &
+         bgrid     , &  ! biology nondimensional vertical grid points
+         igrid     , &  ! biology vertical interface points
+         cgrid     , &  ! CICE vertical coordinate
+         icgrid    , &  ! interface grid for CICE (shortwave variable)
+         swgrid         ! grid for ice tracers used in dEdd scheme
 
 !=======================================================================
 
@@ -397,14 +438,9 @@
 
       subroutine regrid_stationary (C_stationary, hbri_old, &
                                     hbri,         dt,       &
-                                    ntrcr,        nblyr,    &
                                     top_conc,     igrid,    &
                                     flux_bio,               &
                                     melt_b,       con_gel)
-
-      integer (kind=int_kind), intent(in) :: &
-         ntrcr,         & ! number of tracers
-         nblyr            ! number of bio layers
 
       real (kind=dbl_kind), intent(inout) ::  &
          flux_bio         ! ocean tracer flux (mmol/m^2/s) positive into ocean
@@ -548,13 +584,12 @@
 ! Aggregate flux information from all ice thickness categories
 ! for z layer biogeochemistry
 !
-      subroutine merge_bgc_fluxes (dt,       nblyr,      &
-                               nslyr,                    &
-                               bio_index,    n_algae,    &
-                               nbtrcr,       aicen,      &
+      subroutine merge_bgc_fluxes (dt,     &
+                               bio_index,  &
+                               aicen,      &
                                vicen,        vsnon,      &
-                               iphin,      &
-                               trcrn,      &
+                               iphin,                    &
+                               trcrn,        aice_init,  &
                                flux_bion,    flux_bio,   &
                                upNOn,        upNHn,      &
                                upNO,         upNH,       &
@@ -562,28 +597,29 @@
                                zbgc_snow,    zbgc_atm,   &
                                PP_net,       ice_bio_net,&
                                snow_bio_net, grow_alg,   &
-                               grow_net)
+                               grow_net,     totalChla,  &
+                               iTin,         iSin,       &
+                               bioPorosityIceCell,       &
+                               bioSalinityIceCell,       &
+                               bioTemperatureIceCell)
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! timestep (s)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr      , & ! number of bio layers
-         nslyr      , & ! number of snow layers
-         n_algae    , & ! number of algal tracers
-         nbtrcr         ! number of biology tracer tracers
 
       integer (kind=int_kind), dimension(:), intent(in) :: &
          bio_index      ! relates bio indices, ie.  nlt_bgc_N to nt_bgc_N
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          trcrn     , &  ! input tracer fields
-         iphin          ! porosity
+         iphin     , &  ! porosity
+         iTin      , &  ! temperature per cat on vertical bio interface points (oC)
+         iSin           ! salinity per cat on vertical bio interface points (ppt)
 
       real (kind=dbl_kind), intent(in):: &
          aicen      , & ! concentration of ice
          vicen      , & ! volume of ice (m)
-         vsnon          ! volume of snow(m)
+         vsnon      , & ! volume of snow(m)
+         aice_init      ! initial concentration of ice
 
       ! single category rates
       real (kind=dbl_kind), dimension(:), intent(in):: &
@@ -605,12 +641,21 @@
          ice_bio_net, & ! integrated ice tracers mmol or mg/m^2)
          snow_bio_net   ! integrated snow tracers mmol or mg/m^2)
 
+      real (kind=dbl_kind), optional, dimension(:), intent(inout):: &
+         bioPorosityIceCell, & ! average cell porosity on interface points
+         bioSalinityIceCell, & ! average cell salinity on interface points (ppt)
+         bioTemperatureIceCell ! average cell temperature on interface points (oC)
+
       ! cumulative variables and rates
       real (kind=dbl_kind), intent(inout):: &
          PP_net     , & ! net PP (mg C/m^2/d)  times aice
          grow_net   , & ! net specific growth (m/d) times vice
          upNO       , & ! tot nitrate uptake rate (mmol/m^2/d) times aice
          upNH           ! tot ammonium uptake rate (mmol/m^2/d) times aice
+
+      ! cumulative variables and rates
+      real (kind=dbl_kind), optional, intent(inout):: &
+         totalChla      ! total Chla (mg chla/m^2)
 
       ! local variables
 
@@ -645,18 +690,25 @@
       !-----------------------------------------------------------------
       ! Merge fluxes
       !-----------------------------------------------------------------
-         dvssl  = min(p5*vsnon/real(nslyr,kind=dbl_kind), hs_ssl*aicen) ! snow surface layer
-         dvint  = vsnon - dvssl               ! snow interior
+         dvssl  = p5*vsnon/real(nslyr,kind=dbl_kind) !snow surface layer
+         dvint  = vsnon - dvssl                      ! snow interior
          snow_bio_net(mm) = snow_bio_net(mm) &
                           + trcrn(bio_index(mm)+nblyr+1)*dvssl &
                           + trcrn(bio_index(mm)+nblyr+2)*dvint
          flux_bio    (mm) = flux_bio (mm) + flux_bion (mm)*aicen
          zbgc_snow   (mm) = zbgc_snow(mm) + zbgc_snown(mm)*aicen/dt
          zbgc_atm    (mm) = zbgc_atm (mm) + zbgc_atmn (mm)*aicen/dt
-      enddo     ! mm
 
+      enddo     ! mm
+      ! diagnostics : mean cell bio interface grid profiles
+      do k = 1, nblyr+1
+         if (present(bioPorosityIceCell)) bioPorosityIceCell(k) = bioPorosityIceCell(k) + iphin(k)*vicen
+         if (present(bioSalinityIceCell)) bioSalinityIceCell(k) = bioSalinityIceCell(k) + iSin(k)*vicen
+         if (present(bioTemperatureIceCell)) bioTemperatureIceCell(k) = bioTemperatureIceCell(k) + iTin(k)*vicen
+      end do
       if (solve_zbgc) then
          do mm = 1, n_algae
+            if (present(totalChla)) totalChla = totalChla + ice_bio_net(nlt_bgc_N(mm))*R_chl2N(mm)
             do k = 1, nblyr+1
                tmp      = iphin(k)*trcrn(nt_fbri)*vicen*zspace(k)*secday
                PP_net   = PP_net   + grow_alg(k,mm)*tmp &
@@ -678,17 +730,13 @@
 !
 ! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
 
-      subroutine merge_bgc_fluxes_skl (nbtrcr, n_algae,    &
+      subroutine merge_bgc_fluxes_skl ( &
                                aicen,     trcrn,           &
                                flux_bion, flux_bio,        &
                                PP_net,    upNOn,           &
                                upNHn,     upNO,            &
                                upNH,      grow_net,        &
                                grow_alg)
-
-      integer (kind=int_kind), intent(in) :: &
-         nbtrcr  , & ! number of bgc tracers
-         n_algae     ! number of autotrophs
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in):: &

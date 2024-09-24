@@ -17,6 +17,7 @@
       use icepack_parameters, only: snowage_rhos, snowage_Tgrd, snowage_T
       use icepack_parameters, only: snowage_tau, snowage_kappa, snowage_drdt0
       use icepack_parameters, only: snw_aging_table, use_smliq_pnd
+      use icepack_tracers, only: ncat, nilyr, nslyr
 
       use icepack_therm_shared, only: icepack_ice_temperature
       use icepack_therm_shared, only: adjust_enthalpy
@@ -240,8 +241,7 @@
 ! authors: Elizabeth C. Hunke, LANL
 !          Nicole Jeffery, LANL
 
-      subroutine icepack_step_snow(dt,        nilyr,     &
-                                   nslyr,     ncat,      &
+      subroutine icepack_step_snow(dt,                   &
                                    wind,      aice,      &
                                    aicen,     vicen,     &
                                    vsnon,     Tsfc,      &
@@ -252,11 +252,6 @@
                                    rsnw,      rhos_cmpn, &
                                    fresh,     fhocn,     &
                                    fsloss,    fsnow)
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr, & ! number of snow layers
-         nilyr, & ! number of ice  layers
-         ncat     ! number of thickness categories
 
       real (kind=dbl_kind), intent(in) :: &
          dt     , & ! time step
@@ -329,7 +324,6 @@
 
       if (snwredist(1:3) == 'ITD' .and. aice > puny) then
          call snow_redist(dt,                  &
-                          nslyr,    ncat,      &
                           wind,     aicen(:),  &
                           vicen(:), vsnon(:),  &
                           zqsn(:,:),           &
@@ -368,8 +362,7 @@
             endif
          enddo
 
-         call update_snow_radius (dt,         ncat,  &
-                                  nslyr,      nilyr, &
+         call update_snow_radius (dt,                &
                                   rsnw,       hin,   &
                                   Tsfc,       zTin1, &
                                   hsn,        zqsn,  &
@@ -397,12 +390,8 @@
 ! volume, mass and energy include factor of ain
 ! thickness does not
 
-      subroutine snow_redist(dt, nslyr, ncat, wind, ain, vin, vsn, zqsn, &
+      subroutine snow_redist(dt, wind, ain, vin, vsn, zqsn, &
          alvl, vlvl, fresh, fhocn, fsloss, rhos_cmpn, fsnow)
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr     , & ! number of snow layers
-         ncat          ! number of thickness categories
 
       real (kind=dbl_kind), intent(in) :: &
          dt        , & ! time step (s)
@@ -682,13 +671,13 @@
                      zs2(k+1) = zs2(k) + hslyr  ! new layer depths (equal thickness)
                   enddo
 
-                  call adjust_enthalpy (nslyr,                &
-                                        zs1(:),   zs2(:),     &
-                                        hslyr,    hsn_new(n), &
+                  call adjust_enthalpy (nslyr,              &
+                                        zs1(:), zs2(:),     &
+                                        hslyr , hsn_new(n), &
                                         zqsn(:,n))
                   if (icepack_warnings_aborted(subname)) return
                else
-                  hsn_new(1) = hsn_new(1) + dhsn
+                  hsn_new(n) = hsn_new(n) + dhsn
                endif   ! nslyr > 1
             endif      ! |dhsn| > puny
          endif         ! ain > puny
@@ -824,13 +813,8 @@
 
 !  Snow grain metamorphism
 
-      subroutine update_snow_radius (dt, ncat, nslyr, nilyr, rsnw, hin, &
+      subroutine update_snow_radius (dt, rsnw, hin, &
                                      Tsfc, zTin, hsn, zqsn, smice, smliq)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat     , & ! number of categories
-         nslyr    , & ! number of snow layers
-         nilyr        ! number of ice layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -871,7 +855,7 @@
       !-----------------------------------------------------------------
       ! dry metamorphism
       !-----------------------------------------------------------------
-            call snow_dry_metamorph (nslyr, nilyr, dt, rsnw(:,n), &
+            call snow_dry_metamorph (dt, rsnw(:,n), &
                                      drsnw_dry, zqsn(:,n), Tsfc(n), &
                                      zTin(n), hsn(n), hin(n))
             if (icepack_warnings_aborted(subname)) return
@@ -902,7 +886,7 @@
 
 !  Snow grain metamorphism
 
-      subroutine snow_dry_metamorph (nslyr,nilyr, dt, rsnw, drsnw_dry, zqsn, &
+      subroutine snow_dry_metamorph (dt, rsnw, drsnw_dry, zqsn, &
                                      Tsfc, zTin1, hsn, hin)
 
       ! Vapor redistribution: Method is to retrieve 3 best-fit parameters that
@@ -917,10 +901,6 @@
       !   drdt_0 is the initial rate of change of effective radius, and
       !   dr_fresh is the difference between the current and fresh snow states
       !   (r_current - r_fresh).
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr,  & ! number of snow layers
-         nilyr     ! number of ice layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt                    ! time step (s)
@@ -1175,11 +1155,8 @@
 
 !  Conversions between ice mass, liquid water mass in snow
 
-      subroutine drain_snow (nslyr, vsnon, aicen, &
+      subroutine drain_snow (vsnon, aicen, &
                              massice, massliq, meltsliq)
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          vsnon,  & ! snow volume (m)

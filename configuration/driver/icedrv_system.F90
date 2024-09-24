@@ -13,7 +13,8 @@
 
       implicit none
       private
-      public :: icedrv_system_abort
+      public :: icedrv_system_abort, &
+                icedrv_system_flush
 
 !=======================================================================
 
@@ -46,9 +47,28 @@
       if (present(istep))  write (nu_diag,*) subname,' istep =', istep
       if (present(icell))  write (nu_diag,*) subname,' i, aice =', icell, aice(icell)
       if (present(string)) write (nu_diag,*) subname,' string = ',trim(string)
+      call icedrv_system_flush(nu_diag)
       stop
 
       end subroutine icedrv_system_abort
+
+!=======================================================================
+! flushes iunit IO buffer
+
+      subroutine icedrv_system_flush(iunit)
+
+      integer (kind=int_kind), intent(in) :: &
+         iunit        ! unit number to flush
+
+      ! local variables
+
+      character(len=*), parameter :: subname='(icedrv_system_flush)'
+
+#ifndef NO_F2003
+      flush(iunit)
+#endif
+
+      end subroutine icedrv_system_flush
 
 !=======================================================================
 

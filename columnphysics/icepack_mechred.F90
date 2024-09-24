@@ -40,12 +40,13 @@
       use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
-      use icepack_parameters, only: conserv_check
+      use icepack_parameters, only: conserv_check, z_tracers
+      use icepack_tracers, only: ncat, nilyr, nslyr, nblyr, n_aero
       use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
       use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_apnd, nt_hpnd
-      use icepack_tracers, only: n_iso
+      use icepack_tracers, only: n_iso, bio_index
       use icepack_tracers, only: icepack_compute_tracers
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -87,9 +88,7 @@
 ! author: William H. Lipscomb, LANL
 
       subroutine ridge_ice (dt,          ndtd,       &
-                            ncat,        n_aero,     &
-                            nilyr,       nslyr,      &
-                            ntrcr,       hin_max,    &
+                            hin_max,                 &
                             rdg_conv,    rdg_shear,  &
                             aicen,       trcrn,      &
                             vicen,       vsnon,      &
@@ -101,7 +100,7 @@
                             mu_rdg,      tr_brine,   &
                             dardg1dt,    dardg2dt,   &
                             dvirdgdt,    opening,    &
-                            fpond,                   &
+                            fpond,       flux_bio,   &
                             fresh,       fhocn,      &
                             faero_ocn,   fiso_ocn,   &
                             aparticn,    krdgn,      &
@@ -112,12 +111,7 @@
                             closing )
 
       integer (kind=int_kind), intent(in) :: &
-         ndtd       , & ! number of dynamics subcycles
-         ncat  , & ! number of thickness categories
-         nilyr , & ! number of ice layers
-         nslyr , & ! number of snow layers
-         n_aero, & ! number of aerosol tracers
-         ntrcr     ! number of tracers in use
+         ndtd       ! number of dynamics subcycles
 
       real (kind=dbl_kind), intent(in) :: &
          mu_rdg , & ! gives e-folding scale of ridged ice (m^.5)
@@ -188,6 +182,9 @@
          faero_ocn      ! aerosol flux to ocean (kg/m^2/s)
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         flux_bio       ! biological and zaerosol flux to ocean (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn       ! isotope flux to ocean (kg/m^2/s)
 
       ! local variables
@@ -219,6 +216,9 @@
 
       real (kind=dbl_kind), dimension (n_aero) :: &
          maero          ! aerosol mass added to ocean (kg m-2)
+
+      real (kind=dbl_kind), dimension (nbtrcr) :: &
+         mbio           ! bio mass added to ocean (mmol or kg m-2)
 
       real (kind=dbl_kind), dimension (n_iso) :: &
          miso          ! isotope mass added to ocean (kg m-2)
@@ -272,6 +272,7 @@
       msnow_mlt = c0
       esnow_mlt = c0
       maero (:) = c0
+      mbio  (:) = c0
       miso  (:) = c0
       mpond     = c0
       ardg1     = c0
@@ -287,7 +288,7 @@
       ! Compute area of ice plus open water before ridging.
       !-----------------------------------------------------------------
 
-      call asum_ridging (ncat, aicen, aice0, asum)
+      call asum_ridging (aicen, aice0, asum)
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -302,8 +303,7 @@
 
       else
 
-         call ridge_prep (dt,                      &
-                          ncat,      hin_max,      &
+         call ridge_prep (dt,        hin_max,      &
                           rdg_conv,  rdg_shear,    &
                           asum,      closing_net,  &
                           divu_adv,  opning)
@@ -366,10 +366,10 @@
       ! and various quantities associated with the new ridged ice.
       !-----------------------------------------------------------------
 
-         call ridge_itd (ncat,        aice0,      &
+         call ridge_itd (aice0,                   &
                          aicen,       vicen,      &
-                         krdg_partic, krdg_redist, &
-                         mu_rdg,                   &
+                         krdg_partic, krdg_redist,&
+                         mu_rdg,                  &
                          aksum,       apartic,    &
                          hrmin,       hrmax,      &
                          hrexp,       krdg,       &
@@ -381,8 +381,7 @@
       ! Redistribute area, volume, and energy.
       !-----------------------------------------------------------------
 
-         call ridge_shift (ntrcr,       dt,          &
-                           ncat,        hin_max,     &
+         call ridge_shift (dt,          hin_max,     &
                            aicen,       trcrn,       &
                            vicen,       vsnon,       &
                            aice0,       trcr_depend, &
@@ -396,11 +395,11 @@
                            virdg,       aopen,       &
                            ardg1n,      ardg2n,      &
                            virdgn,                   &
-                           nslyr,       n_aero,      &
                            msnow_mlt,   esnow_mlt,   &
                            maero,       miso,        &
                            mpond,       Tf,          &
-                           aredistn,    vredistn)
+                           aredistn,    vredistn,    &
+                           mbio)
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -409,7 +408,7 @@
       ! with new rates.
       !-----------------------------------------------------------------
 
-         call asum_ridging (ncat, aicen, aice0, asum)
+         call asum_ridging (aicen, aice0, asum)
          if (icepack_warnings_aborted(subname)) return
 
          if (abs(asum - c1) < puny) then
@@ -590,6 +589,11 @@
             faero_ocn(it) = faero_ocn(it) + maero(it)*dti
          enddo
       endif
+      if (present(flux_bio)) then
+         do it = 1, nbtrcr
+            flux_bio(it) = flux_bio(it) + mbio(it)*dti
+         enddo
+      endif
       if (present(fiso_ocn)) then
          if (tr_iso) then
             ! check size fiso_ocn vs n_iso ???
@@ -639,10 +643,7 @@
 !
 ! author: William H. Lipscomb, LANL
 
-      subroutine asum_ridging (ncat, aicen, aice0, asum)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat        ! number of thickness categories
+      subroutine asum_ridging (aicen, aice0, asum)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen          ! concentration of ice in each category
@@ -672,14 +673,10 @@
 !
 ! author: William H. Lipscomb, LANL
 
-      subroutine ridge_prep (dt,                          &
-                             ncat,       hin_max,         &
+      subroutine ridge_prep (dt,         hin_max,         &
                              rdg_conv,   rdg_shear,       &
                              asum,       closing_net,     &
                              divu_adv,   opning)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat        ! number of thickness categories
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! time step (s)
@@ -774,7 +771,7 @@
 ! 2006: Changed subroutine name to ridge_itd
 !       Added new options for ridging participation and redistribution.
 
-      subroutine ridge_itd (ncat,        aice0,           &
+      subroutine ridge_itd (aice0,                        &
                             aicen,       vicen,           &
                             krdg_partic, krdg_redist,     &
                             mu_rdg,                       &
@@ -783,9 +780,6 @@
                             hrexp,       krdg,            &
                             aparticn,    krdgn,           &
                             mraft)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat        ! number of thickness categories
 
       real (kind=dbl_kind), intent(in) :: &
          mu_rdg , & ! gives e-folding scale of ridged ice (m^.5)
@@ -1066,8 +1060,7 @@
 !
 ! author: William H. Lipscomb, LANL
 
-      subroutine ridge_shift (ntrcr,       dt,              &
-                              ncat,        hin_max,         &
+      subroutine ridge_shift (dt,          hin_max,         &
                               aicen,       trcrn,           &
                               vicen,       vsnon,           &
                               aice0,       trcr_depend,     &
@@ -1081,17 +1074,13 @@
                               virdg,       aopen,           &
                               ardg1nn,     ardg2nn,         &
                               virdgnn,                      &
-                              nslyr,       n_aero,          &
                               msnow_mlt,   esnow_mlt,       &
                               maero,       miso,            &
                               mpond,       Tf,              &
-                              aredistn,    vredistn)
+                              aredistn,    vredistn,        &
+                              mbio)
 
       integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         nslyr , & ! number of snow layers
-         ntrcr , & ! number of tracers in use
-         n_aero, & ! number of aerosol tracers
          krdg_redist      ! selects redistribution function
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1162,6 +1151,9 @@
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          miso           ! isotope mass added to ocean (kg m-2)
 
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         mbio           ! biology and zaerosol  mass added to ocean (kg m-2)
+
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          aredistn   , & ! redistribution function: fraction of new ridge area
          vredistn       ! redistribution function: fraction of new ridge volume
@@ -1214,7 +1206,9 @@
          hL, hR     , & ! left and right limits of integration
          expL, expR , & ! exponentials involving hL, hR
          tmpfac     , & ! factor by which opening/closing rates are cut
-         wk1            ! work variable
+         wk1        , & ! work variable
+         dzssl      , & ! fraction of snow surface biotracers
+         dzint          ! fraction of interior snow biotracers
 
       character(len=*),parameter :: subname='(ridge_shift)'
 
@@ -1382,6 +1376,16 @@
                   miso(it) = miso(it) + vsrdgn*(c1-fsnowrdg) &
                            * (trcrn(nt_isosno+it-1,n) &
                             + trcrn(nt_isoice+it-1,n))
+               enddo
+            endif
+
+            if (z_tracers .and. nbtrcr > 0) then
+               dzssl = p5/real(nslyr,kind=dbl_kind)
+               dzint = c1-dzssl
+               do it = 1, nbtrcr
+                  mbio(it) = mbio(it) + vsrdgn*(c1-fsnowrdg) &
+                           * (trcrn(bio_index(it) + nblyr + 1,n) * dzssl &
+                            + trcrn(bio_index(it) + nblyr + 2,n) * dzint)
                enddo
             endif
 
@@ -1570,7 +1574,7 @@
       !-----------------------------------------------------------------
 
       do n = 1, ncat
-         call icepack_compute_tracers (ntrcr,       trcr_depend,   &
+         call icepack_compute_tracers (trcr_depend,                &
                                        atrcrn(:,n), aicen(n),      &
                                        vicen(n),    vsnon(n),      &
                                        trcr_base,   n_trcr_strata, &
@@ -1596,14 +1600,10 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_ice_strength (ncat,               &
-                                      aice,     vice,     &
+      subroutine icepack_ice_strength(aice,     vice,     &
                                       aice0,    aicen,    &
                                       vicen,    &
                                       strength)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat       ! number of thickness categories
 
       real (kind=dbl_kind), intent(in) :: &
          aice   , & ! concentration of ice
@@ -1652,13 +1652,13 @@
       ! Compute thickness distribution of ridging and ridged ice.
       !-----------------------------------------------------------------
 
-         call asum_ridging (ncat, aicen, aice0, asum)
+         call asum_ridging (aicen, aice0, asum)
          if (icepack_warnings_aborted(subname)) return
 
-         call ridge_itd (ncat,     aice0,      &
+         call ridge_itd (aice0,                &
                          aicen,    vicen,      &
                          krdg_partic, krdg_redist, &
-                         mu_rdg,                   &
+                         mu_rdg,               &
                          aksum,    apartic,    &
                          hrmin,    hrmax,      &
                          hrexp,    krdg)
@@ -1719,10 +1719,8 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_ridge (dt,           ndtd,         &
-                                    nilyr,        nslyr,         &
-                                    nblyr,                       &
-                                    ncat,         hin_max,       &
+      subroutine icepack_step_ridge(dt,           ndtd,          &
+                                    hin_max,                     &
                                     rdg_conv,     rdg_shear,     &
                                     aicen,                       &
                                     trcrn,                       &
@@ -1734,7 +1732,6 @@
                                     dvirdgdt,     opening,       &
                                     fpond,                       &
                                     fresh,        fhocn,         &
-                                    n_aero,                      &
                                     faero_ocn,    fiso_ocn,      &
                                     aparticn,     krdgn,         &
                                     aredistn,     vredistn,      &
@@ -1752,12 +1749,7 @@
          Tf           ! freezing temperature
 
       integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         ndtd  , & ! number of dynamics supercycles
-         nblyr , & ! number of bio layers
-         nilyr , & ! number of ice layers
-         nslyr , & ! number of snow layers
-         n_aero    ! number of aerosol tracers
+         ndtd      ! number of dynamics supercycles
 
       real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
          hin_max   ! category limits (m)
@@ -1858,9 +1850,7 @@
       !-----------------------------------------------------------------
 
       call ridge_ice (dt,           ndtd,           &
-                      ncat,         n_aero,         &
-                      nilyr,        nslyr,          &
-                      ntrcr,        hin_max,        &
+                      hin_max,                      &
                       rdg_conv,     rdg_shear,      &
                       aicen,                        &
                       trcrn,                        &
@@ -1874,7 +1864,7 @@
                       mu_rdg,       tr_brine,       &
                       dardg1dt,     dardg2dt,       &
                       dvirdgdt,     opening,        &
-                      fpond,                        &
+                      fpond,        flux_bio,       &
                       fresh,        fhocn,          &
                       faero_ocn,    fiso_ocn,       &
                       aparticn,     krdgn,          &
@@ -1891,14 +1881,10 @@
       !-----------------------------------------------------------------
 
       dtt = dt * ndtd  ! for proper averaging over thermo timestep
-      call cleanup_itd (dtt,                  ntrcr,            &
-                        nilyr,                nslyr,            &
-                        ncat,                 hin_max,          &
+      call cleanup_itd (dtt,                  hin_max,          &
                         aicen,                trcrn,            &
                         vicen,                vsnon,            &
                         aice0,                aice,             &
-                        n_aero,                                 &
-                        nbtrcr,               nblyr,            &
                         tr_aero,                                &
                         tr_pond_topo,                           &
                         first_ice,                              &

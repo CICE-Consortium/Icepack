@@ -415,8 +415,7 @@
 
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate (ncat=ncat,          &
-                                 aicen=aicen(i,:),   &
+         call icepack_aggregate (aicen=aicen(i,:),   &
                                  trcrn=trcrn(i,:,:), &
                                  vicen=vicen(i,:),   &
                                  vsnon=vsnon(i,:),   &
@@ -425,7 +424,6 @@
                                  vice=vice (i),      &
                                  vsno=vsno (i),      &
                                  aice0=aice0(i),     &
-                                 ntrcr=max_ntrcr,    &
                                  trcr_depend=trcr_depend, &
                                  trcr_base=trcr_base,     &
                                  n_trcr_strata=n_trcr_strata, &
