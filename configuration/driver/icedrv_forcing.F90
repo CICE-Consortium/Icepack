@@ -1093,16 +1093,16 @@
          if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt get time01 var id', &
                            file=__FILE__,line=__LINE__)
-         !status = nf90_get_att(ncid, varid, "calendar", calendar_type)
-         !if (status /= nf90_noerr) call icedrv_system_abort(&
-         !   string=subname//'Couldnt get calendar attribute', &
-         !                  file=__FILE__,line=__LINE__)
-         ! In future this check could be replaced with a better one
-         !if (calendar_type /= "standard" .or. .not. use_leap_years) then
-         !   call icedrv_system_abort(&
-         !   string=subname//'Forcing calendar not standard or not using leap years',&
-         !   file=__FILE__,line=__LINE__)
-         !endif
+         status = nf90_get_att(ncid, varid, "calendar", calendar_type)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get calendar attribute', &
+                           file=__FILE__,line=__LINE__)
+         ! In future this check could be replaced with calendar matching
+         if (calendar_type /= "standard" .or. .not. use_leap_years) then
+            call icedrv_system_abort(&
+            string=subname//'Forcing calendar not standard or not using leap years',&
+            file=__FILE__,line=__LINE__)
+         endif
          ! Get the time array
          !! Note, in the file the value is actually unsigned, need to make sure this
          ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
@@ -1506,16 +1506,16 @@
          if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt get time1440 var id', &
                            file=__FILE__,line=__LINE__)
-         !status = nf90_get_att(ncid, varid, "calendar", calendar_type)
-         !if (status /= nf90_noerr) call icedrv_system_abort(&
-         !   string=subname//'Couldnt get calendar attribute', &
-         !                  file=__FILE__,line=__LINE__)
-         ! In future this check could be replaced with a better one
-         !if (calendar_type /= "standard" .or. .not. use_leap_years) then
-         !   call icedrv_system_abort(&
-         !   string=subname//'Forcing calendar not standard or not using leap years',&
-         !   file=__FILE__,line=__LINE__)
-         !endif
+         status = nf90_get_att(ncid, varid, "calendar", calendar_type)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get calendar attribute', &
+                           file=__FILE__,line=__LINE__)
+         ! In future this check could check for calendar matching
+         if (calendar_type /= "standard" .or. .not. use_leap_years) then
+            call icedrv_system_abort(&
+            string=subname//'Forcing calendar not standard or not using leap years',&
+            file=__FILE__,line=__LINE__)
+         endif
          ! Get the time array
          !! Note, in the file the value is actually unsigned, need to make sure this
          ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
@@ -1529,7 +1529,7 @@
          ! Create the model time array, note this depends on the format not changing
          status = nf90_get_att(ncid, varid, "units", time_basis)
          if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time01 units', &
+            string=subname//'Couldnt get time1440 units', &
                            file=__FILE__,line=__LINE__)
          if (time_basis /= "minutes since 1970-01-01 00:00:00") then
             call icedrv_system_abort(&
