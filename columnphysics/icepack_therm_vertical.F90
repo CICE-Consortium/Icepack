@@ -30,7 +30,7 @@
       use icepack_parameters, only: saltflux_option, congel_freeze
       use icepack_parameters, only: icepack_chkoptargflag
 
-      use icepack_tracers, only: ncat, nilyr, nslyr
+      use icepack_tracers, only: ncat, nilyr, nslyr, nfsd
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
       use icepack_tracers, only: n_aero, n_iso
@@ -486,7 +486,7 @@
                                         Tbot,     fbot,     &
                                         rsiden,    Cdn_ocn,  &
                                         wlat,      aicen, &
-                                        afsdn,     nfsd,     &
+                                        afsdn,            &
                                         floe_rad_c, floe_binwidth)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -532,9 +532,6 @@
 
       real (kind=dbl_kind), dimension (:,:), intent(in), optional :: &
          afsdn     ! area floe size distribution
-
-      integer (kind=int_kind), intent(in), optional :: &
-         nfsd        ! number of floe size categories
 
       ! local variables
       real (kind=dbl_kind), dimension (ncat) :: &
@@ -2208,8 +2205,7 @@
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice, &
-                                    zlvs        , &
-                                    afsdn       , nfsd        , &
+                                    zlvs        , afsdn       , &
                                     floe_rad_c,   floe_binwidth)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -2338,9 +2334,6 @@
 
       real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
          afsdn        ! afsd tracer
-
-      integer (kind=int_kind), intent(in), optional :: &
-         nfsd         ! number of fsd categories
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          aicen_init  , & ! fractional area of ice
@@ -2583,7 +2576,7 @@
                                   Tbot,       fbot,     &
                                   rsiden,     Cdn_ocn,   &
                                   wlat,       aicen,  &
-                                  afsdn,      nfsd,      &
+                                  afsdn,              &
                                   floe_rad_c, floe_binwidth)
 
       if (icepack_warnings_aborted(subname)) return

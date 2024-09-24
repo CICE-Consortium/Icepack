@@ -438,7 +438,7 @@
       use icedrv_arrays_column, only: first_ice
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, &
-                                    nx, nfsd
+                                    nx
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
       use icedrv_flux, only: fsalt, Tf, sss, salinz, fhocn, rsiden, wlat
       use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
@@ -657,7 +657,7 @@
 
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
           d_afsd_wave, floe_rad_l, floe_rad_c, wavefreq, dwavefreq
-      use icedrv_domain_size, only: ncat, nfsd, nfreq, nx
+      use icedrv_domain_size, only: ncat, nfreq, nx
       use icedrv_state, only: trcrn, aicen, aice, vice
       use icepack_intfc, only: icepack_step_wavefracture
 
