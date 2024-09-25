@@ -496,7 +496,8 @@
       vocn   (:) = c0
       frzmlt (:) = c0              ! freezing/melting potential (W/m^2)
       sss    (:) = sss_fixed       ! sea surface salinity (ppt)
-      sstdat (:) = sst_init        ! sea surface temperature (C)
+      sst    (:) = sst_init        ! sea surface temperature (C)
+      sstdat (:) = sst(:)          ! sea surface temperature (C)
 
       ! water isotopes from ocean
       HDO_ocn   (:) = c0
