@@ -129,6 +129,9 @@
          qdp     , & ! deep ocean heat flux (W/m^2), negative upward
          hmix        ! mixed layer depth (m)
 
+      real (kind=dbl_kind), public :: &
+         sst_init    ! initial sea surface temperature (C)
+
       ! water isotopes
       real (kind=dbl_kind), dimension (nx), public :: &
          HDO_ocn    , & ! seawater concentration of HDO (kg/kg)
@@ -493,7 +496,7 @@
       vocn   (:) = c0
       frzmlt (:) = c0              ! freezing/melting potential (W/m^2)
       sss    (:) = sss_fixed       ! sea surface salinity (ppt)
-      sstdat (:) = sst(:)          ! sea surface temperature (C)
+      sstdat (:) = sst_init        ! sea surface temperature (C)
 
       ! water isotopes from ocean
       HDO_ocn   (:) = c0

@@ -10,6 +10,7 @@
       use icedrv_constants, only: nu_diag, ice_stdout, nu_diag_out, nu_nml
       use icedrv_constants, only: c0, c1, c2, c3, p2, p5
       use icedrv_domain_size, only: nx
+      use icedrv_flux, only: sst_init
       use icepack_intfc, only: icepack_init_parameters
       use icepack_intfc, only: icepack_init_fsd
       use icepack_intfc, only: icepack_init_tracer_flags
@@ -47,8 +48,7 @@
          hi_init_slab,   & ! initial ice thickness for slab cell (nx=2)
          hsno_init_slab, & ! initial snow thickness for slab cell (nx=2)
          hbar_init_itd,  & ! hbar for ice thickness for itd cell (nx=3)
-         hsno_init_itd,  & ! initial snow thickness for itd cell (nx=3)
-         sst_init          ! initial sea surface temperature (C)
+         hsno_init_itd     ! initial snow thickness for itd cell (nx=3)     
 
 !=======================================================================
 
