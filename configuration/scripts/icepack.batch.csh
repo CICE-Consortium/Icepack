@@ -55,7 +55,7 @@ cat >> ${jobfile} << EOFB
 #PBS -l job_priority=regular
 #PBS -N ${ICE_CASENAME}
 #PBS -A ${acct}
-#PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
+#PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}:mem=5GB
 #PBS -l walltime=${ICE_RUNLENGTH}
 #PBS -j oe
 #PBS -W umask=022
