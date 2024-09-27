@@ -127,7 +127,7 @@
     restore_ocn     = .false.
     trestore        = 90
     sss_fixed       = 34.0
-    qdp_fixed       = -6.0
+    qdp_fixed       = 0.0
     hmix_fixed      = 20.0
     precip_units    = 'mks'
     default_season  = 'spring'
