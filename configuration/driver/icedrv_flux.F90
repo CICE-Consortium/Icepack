@@ -186,7 +186,7 @@
          fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf     ! nir dif shortwave penetrating to ocean (W/m^2)
-      
+
       ! fixed ocean mixed layer properties (are overwritten by forcing data)
       real (kind=dbl_kind), public :: &
          sss_fixed   , & ! Sea surface salinity (PSU)

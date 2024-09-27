@@ -43,12 +43,12 @@
          tmask  , & ! land/boundary mask, thickness (T-cell)
          lmask_n, & ! northern hemisphere mask
          lmask_s    ! southern hemisphere mask
-      
+
       real (kind=dbl_kind), public :: &
          hi_init_slab,   & ! initial ice thickness for slab cell (nx=2)
          hsno_init_slab, & ! initial snow thickness for slab cell (nx=2)
          hbar_init_itd,  & ! hbar for ice thickness for itd cell (nx=3)
-         hsno_init_itd     ! initial snow thickness for itd cell (nx=3)     
+         hsno_init_itd     ! initial snow thickness for itd cell (nx=3)
 
 !=======================================================================
 

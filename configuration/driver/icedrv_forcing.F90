@@ -123,7 +123,7 @@
          i                ! index
 
       character(len=*), parameter :: subname='(init_forcing)'
-      
+
       ! Initialize ntime and allocate data arrays
       if (precalc_forc) then
          ntime = npt
@@ -1030,7 +1030,7 @@
 !=======================================================================
 
       subroutine atm_MOSAiC
-      
+
       integer (kind=int_kind) :: &
          nt,      &  ! timestep index for Icepack arrays
          i,       &  ! index for forcing data arrays
@@ -1040,33 +1040,33 @@
          dimid,   &  ! NetCDF dimension id
          status,  &  ! NetCDF status flag
          varid       ! NetCDF variable id
-      
+
       integer (kind=8), allocatable :: &
          data_time(:)   ! array for time array in forcing data
-      
+
       integer (kind=8), dimension(ntime) :: &
          model_time ! array for Icepack minutely time
 
       real (kind=dbl_kind) :: &
          work, &     ! variable for moving averaging
          model_time0
-      
+
       real (kind=dbl_kind), allocatable :: &
          data(:)  ! data array from file
 
       character (char_len) :: &
          calendar_type, &  ! data calendar type
          varname
-      
+
       character (char_len_long) :: &
          filename, &
          time_basis     ! time basis for data
-      
+
       integer (kind=int_kind), dimension(ntime, 2) :: &
          data_sections  ! 2D array for indices corresponding
                         ! to which data values should be averaged to
                         ! create the model forcing values
-      
+
       real (kind=dbl_kind), parameter :: &
          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
          model_miss_val = -9999.00     ! missing value for internal use
@@ -1074,7 +1074,7 @@
       character(len=*), parameter :: subname='(atm_MOSAiC)'
 
       filename = trim(data_dir)//'/MOSAiC/'//trim(atm_data_file)
-      
+
       if (atm_data_format == 'nc') then
 #ifdef USE_NETCDF
          ! Open forcing file
@@ -1197,7 +1197,7 @@
 
          ! Currently no rainfall data, to do
          frain_data(:) = c0
-         
+
 #else
          call icedrv_system_abort(string=subname//&
          ' ERROR: atm_data_format = "nc" requires USE_NETCDF', &
@@ -1219,37 +1219,37 @@
 
       character(len=*), intent(in) :: &
          data_var_name  ! Name of the variable in the MDF forcing file
-      
+
       real (kind=dbl_kind), dimension(ntime), intent(out) :: &
          model_var_arr  ! array to place averaged forcing data in
-      
+
       integer (kind=int_kind), intent(in) :: &
          data_var_len, &   ! Size of data array in MDF forcing file
          ncid              ! NetCDF file id
-      
+
       integer (kind=int_kind), dimension(ntime, 2) :: &
          data_sections     ! indices for which data values to average
-      
+
       real (kind=dbl_kind), intent(in) :: &
          model_miss_val ! for when there is no data in a time step
-      
+
       ! Local variables
       real (kind=dbl_kind), dimension(data_var_len) :: &
          data_var_arr      ! array for data from forcing file
-      
+
       real (kind=dbl_kind) :: &
          work, &           ! variable for averaging
          data_miss_val, &  ! value of missing data
          count             ! counter for data to average
-      
+
       integer (kind=int_kind) :: &
          status, &         ! NetCDF status flag
          nt,     &         ! timestep index for Icepack arrays
          i,      &         ! index for forcing data arrays
          varid             ! NetCDF variable id
-      
+
       character(len=*), parameter :: subname='(MOSAiC_average)'
-      
+
       ! Allocate get data and missing value from file
       status = nf90_inq_varid(ncid, trim(data_var_name), varid)
       if (status /= nf90_noerr) call icedrv_system_abort(&
@@ -1263,7 +1263,7 @@
       if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt get '//data_var_name//' values', &
                            file=__FILE__,line=__LINE__)
-      
+
       ! For each model time point average non-missing data values
       do nt = 1, ntime
          count = 0
@@ -1287,10 +1287,10 @@
 !=======================================================================
 
       subroutine MOSAiC_interpolate(model_var_arr, model_miss_val)
-      
+
       real (kind=dbl_kind), dimension(ntime), intent(inout) :: &
          model_var_arr  ! array to place averaged forcing data in
-      
+
       real (kind=dbl_kind), intent(in) :: &
          model_miss_val ! for when there is no data in a time step
 
@@ -1298,7 +1298,7 @@
          mlast,         &  ! index of last present data
          nt, m,         &  ! model timestep indices
          count             ! counter for missing values
-      
+
       character(len=*), parameter :: subname='(MOSAiC_interpolate)'
 
       ! Interpolate, extrapolate for first and last values
@@ -1441,7 +1441,7 @@
 !=======================================================================
 
       subroutine ocn_MOSAiC
-      
+
       integer (kind=int_kind) :: &
          nt,      &  ! timestep index for Icepack arrays
          i,       &  ! index for forcing data arrays
@@ -1451,17 +1451,17 @@
          dimid,   &  ! NetCDF dimension id
          status,  &  ! NetCDF status flag
          varid       ! NetCDF variable id
-      
+
       integer (kind=8), allocatable :: &
          data_time(:)   ! array for time array in forcing data
-      
+
       integer (kind=8), dimension(ntime) :: &
          model_time ! array for Icepack minutely time
 
       real (kind=dbl_kind) :: &
          work, &     ! variable for moving averaging
          model_time0
-      
+
       real (kind=dbl_kind), allocatable :: &
          data(:)  ! data array from file
 
@@ -1470,16 +1470,16 @@
          test_1, &
          test_2, &
          varname
-      
+
       character (char_len_long) :: &
          filename, &
          time_basis     ! time basis for data
-      
+
       integer (kind=int_kind), dimension(ntime, 2) :: &
          data_sections  ! 2D array for indices corresponding
                         ! to which data values should be averaged to
                         ! create the model forcing values
-      
+
       real (kind=dbl_kind), parameter :: &
          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
          model_miss_val = -9999.00     ! missing value for internal use
@@ -1487,7 +1487,7 @@
       character(len=*), parameter :: subname='(ocn_MOSAiC)'
 
       filename = trim(data_dir)//'/MOSAiC/'//trim(ocn_data_file)
-      
+
       if (ocn_data_format == 'nc') then
 #ifdef USE_NETCDF
          ! Open forcing file
@@ -1582,7 +1582,7 @@
             data_sections, model_miss_val)
          call MOSAiC_average("hfsot", qdp_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         
+
          ! Linearly interpolate missing values
          call MOSAiC_interpolate(sss_data, model_miss_val)
          call MOSAiC_interpolate(hmix_data, model_miss_val)
@@ -1597,10 +1597,10 @@
          call icedrv_system_abort(string=subname//&
          ' ERROR: only NetCDF input implemented for ocn_MOSAiC', &
          file=__FILE__,line=__LINE__)
-      endif      
+      endif
 
       end subroutine ocn_MOSAiC
-      
+
 !=======================================================================
 
       subroutine finish_ocn_forcing(sst_temp)
