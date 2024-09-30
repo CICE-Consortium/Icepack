@@ -126,6 +126,15 @@
 
       ! Initialize ntime and allocate data arrays
       if (precalc_forc) then
+         if (trim(atm_data_type(1:6)) /= 'MOSAiC') &
+            call icedrv_system_abort(string=subname//&
+            'precalc_forc should only be used with MOSAiC atmosphere', &
+            file=__FILE__,line=__LINE__)
+         if (.not. ((trim(ocn_data_type(1:6)) == 'MOSAiC') &
+            .or. (trim(ocn_data_type(1:7)) == 'default'))) &
+            call icedrv_system_abort(string=subname//&
+            'precalc_forc should only be used with MOSAiC ocean or'//&
+            ' default ocean', file=__FILE__,line=__LINE__)
          ntime = npt
       else
          ntime = 8760
