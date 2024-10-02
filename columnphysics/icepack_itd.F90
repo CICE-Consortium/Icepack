@@ -738,8 +738,8 @@
 !=======================================================================
 
 ! Cleanup subroutine that rebins thickness categories if necessary,
-!  eliminates very small ice areas while conserving mass and energy,
-!  aggregates state variables, and does a boundary call.
+!  eliminates very small ice areas while conserving mass and energy
+!  and aggregates state variables.
 ! It is a good idea to call this subroutine after the thermodynamics
 !  (thermo_vertical/thermo_itd) and again after the dynamics
 !  (evp/transport/ridging).
