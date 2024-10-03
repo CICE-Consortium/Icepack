@@ -20,6 +20,9 @@
       module icepack_therm_vertical
 
       use icepack_kinds
+
+      use icepack_fsd, only: floe_rad_c, floe_binwidth
+
       use icepack_parameters, only: c0, c1, c2, p001, p5, puny
       use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
@@ -486,8 +489,7 @@
                                         Tbot,     fbot,     &
                                         rsiden,    Cdn_ocn,  &
                                         wlat,      aicen, &
-                                        afsdn,            &
-                                        floe_rad_c, floe_binwidth)
+                                        afsdn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt                  ! time step
@@ -522,10 +524,6 @@
 
       real (kind=dbl_kind), intent(out), optional :: &
          wlat        ! lateral melt rate (m/s)
-
-      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
-         floe_rad_c     , & ! fsd size bin centre in m (radius)
-         floe_binwidth      ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension(:), intent(in), optional :: &
          aicen     ! ice concentration
@@ -2205,8 +2203,7 @@
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice, &
-                                    zlvs        , afsdn       , &
-                                    floe_rad_c,   floe_binwidth)
+                                    zlvs        , afsdn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2327,10 +2324,6 @@
          H2_16O_ocn  , & ! ocean concentration of H2_16O      (kg/kg)
          H2_18O_ocn  , & ! ocean concentration of H2_18O      (kg/kg)
          zlvs            ! atm level height for scalars (if different than zlvl) (m)
-
-      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
-         floe_rad_c, &  ! fsd size bin centre in m (radius)
-         floe_binwidth  ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
          afsdn        ! afsd tracer
@@ -2576,8 +2569,7 @@
                                   Tbot,       fbot,     &
                                   rsiden,     Cdn_ocn,   &
                                   wlat,       aicen,  &
-                                  afsdn,              &
-                                  floe_rad_c, floe_binwidth)
+                                  afsdn)
 
       if (icepack_warnings_aborted(subname)) return
 

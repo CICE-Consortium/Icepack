@@ -111,7 +111,6 @@
       use icedrv_arrays_column, only: fswsfcn, fswintn, Sswabsn, Iswabsn
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: meltsliqn, meltsliq
-      use icedrv_arrays_column, only: floe_rad_c, floe_binwidth
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nfsd, nx
       use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rsiden, wlat, &
@@ -372,8 +371,6 @@
             dsnow    = dsnow(i),      dsnown    = dsnown(i,:),    &
             meltsliqn= meltsliqn(i,:), &
             afsdn         = trcrn       (i,nt_fsd:nt_fsd+nfsd-1,:), &
-            floe_rad_c    = floe_rad_c   (:),                     &
-            floe_binwidth = floe_binwidth(:),                     &
             lmask_n  = lmask_n(i),    lmask_s   = lmask_s(i),     &
             mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
             yday = yday,  prescribed_ice = prescribed_ice)
@@ -433,7 +430,6 @@
       use icedrv_arrays_column, only: hin_max, ocean_bio, &
                                       wave_sig_ht, wave_spectrum, &
                                       wavefreq, dwavefreq,        &
-                                      floe_rad_c, floe_binwidth,  &
                                d_afsd_latg, d_afsd_newi, d_afsd_latm, d_afsd_weld
       use icedrv_arrays_column, only: first_ice
       use icedrv_calendar, only: yday
@@ -526,9 +522,7 @@
                          d_afsd_latg=d_afsd_latg(i,:),                &
                          d_afsd_newi=d_afsd_newi(i,:),                &
                          d_afsd_latm=d_afsd_latm(i,:),                &
-                         d_afsd_weld=d_afsd_weld(i,:),                &
-                         floe_rad_c=floe_rad_c(:),                    &
-                         floe_binwidth=floe_binwidth(:))
+                         d_afsd_weld=d_afsd_weld(i,:))
 
          endif ! tmask
 
@@ -656,7 +650,7 @@
       subroutine step_dyn_wave (dt)
 
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
-          d_afsd_wave, floe_rad_l, floe_rad_c, wavefreq, dwavefreq
+          d_afsd_wave, wavefreq, dwavefreq
       use icedrv_domain_size, only: ncat, nfreq, nx
       use icedrv_state, only: trcrn, aicen, aice, vice
       use icepack_intfc, only: icepack_step_wavefracture
@@ -687,8 +681,6 @@
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &
                         aicen         = aicen        (i,:),    &
-                        floe_rad_l    = floe_rad_l   (:),      &
-                        floe_rad_c    = floe_rad_c   (:),      &
                         wave_spectrum = wave_spectrum(i,:),    &
                         wavefreq      = wavefreq     (:),      &
                         dwavefreq     = dwavefreq    (:),      &

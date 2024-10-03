@@ -29,6 +29,7 @@
       module icepack_wavefracspec
 
       use icepack_kinds
+
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd, ncat, nfsd
@@ -182,7 +183,6 @@
       subroutine icepack_step_wavefracture(wave_spec_type,   &
                   dt,            nfreq,                      &
                   aice,          vice,            aicen,     &
-                  floe_rad_l,    floe_rad_c,                 &
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
@@ -200,10 +200,6 @@
 
       real (kind=dbl_kind), dimension(ncat), intent(in) :: &
          aicen           ! ice area fraction (categories)
-
-      real(kind=dbl_kind), dimension(:), intent(in) ::  &
-         floe_rad_l,   & ! fsd size lower bound in m (radius)
-         floe_rad_c      ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          wavefreq,     & ! wave frequencies (s^-1)
@@ -268,7 +264,6 @@
 
          ! calculate fracture histogram
          call wave_frac(nfreq, wave_spec_type, &
-                        floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
 
@@ -397,7 +392,6 @@
 !  authors: 2018 Lettie Roach, NIWA/VUW
 
       subroutine wave_frac(nfreq, wave_spec_type, &
-                           floe_rad_l, floe_rad_c, &
                            wavefreq, dwavefreq, &
                            hbar, spec_efreq, frac_local)
 
@@ -409,10 +403,6 @@
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
-
-      real(kind=dbl_kind), dimension(:), intent(in) ::  &
-         floe_rad_l, & ! fsd size lower bound in m (radius)
-         floe_rad_c    ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          wavefreq,   & ! wave frequencies (s^-1)

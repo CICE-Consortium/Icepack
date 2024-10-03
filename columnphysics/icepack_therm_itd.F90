@@ -20,6 +20,9 @@
       module icepack_therm_itd
 
       use icepack_kinds
+
+      use icepack_fsd, only: floe_rad_c, floe_binwidth
+
       use icepack_parameters, only: c0, c1, c2, c3, c4, c6, c10
       use icepack_parameters, only: p001, p1, p333, p5, p666, puny, bignum
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
@@ -874,8 +877,7 @@
                                wlat,                   &
                                aicen,      vicen,      &
                                vsnon,      trcrn,      &
-                               flux_bio,   d_afsd_latm,&
-                               floe_rad_c, floe_binwidth)
+                               flux_bio,   d_afsd_latm)
 
       real (kind=dbl_kind), intent(in) :: &
          dt        ! time step (s)
@@ -909,10 +911,6 @@
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn     ! isotope flux to ocean (kg/m^2/s)
-
-      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
-         floe_rad_c     , & ! fsd size bin centre in m (radius)
-         floe_binwidth      ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(out), optional :: &
          d_afsd_latm        ! change in fsd due to lateral melt (m)
@@ -1220,8 +1218,7 @@
                               wavefreq,              &
                               dwavefreq,             &
                               d_afsd_latg,           &
-                              d_afsd_newi,           &
-                              floe_rad_c, floe_binwidth)
+                              d_afsd_newi)
 
       use icepack_fsd, only: fsd_lateral_growth, fsd_add_new_ice
 
@@ -1294,10 +1291,6 @@
       real(kind=dbl_kind), dimension(:), intent(in), optional :: &
          wavefreq,              & ! wave frequencies (s^-1)
          dwavefreq                ! wave frequency bin widths (s^-1)
-
-      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
-         floe_rad_c     , & ! fsd size bin centre in m (radius)
-         floe_binwidth      ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension(:), intent(out), optional :: &
                             ! change in thickness distribution (area)
@@ -1527,7 +1520,7 @@
             call fsd_lateral_growth(dt,       aice,         &
                                   aicen,      vicen,        &
                                   vi0new,     frazil,       &
-                                  floe_rad_c, afsdn,        &
+                                  afsdn,        &
                                   lead_area,  latsurf_area, &
                                   G_radial,   d_an_latg,    &
                                   tot_latg)
@@ -1723,7 +1716,6 @@
             call fsd_add_new_ice (n,                         &
                                   dt,         ai0new,        &
                                   d_an_latg,  d_an_newi,     &
-                                  floe_rad_c, floe_binwidth, &
                                   G_radial,   area2,         &
                                   wave_sig_ht,               &
                                   wave_spectrum,             &
@@ -1884,8 +1876,7 @@
                                      wavefreq,                    &
                                      dwavefreq,                   &
                                      d_afsd_latg,  d_afsd_newi,   &
-                                     d_afsd_latm,  d_afsd_weld,   &
-                                     floe_rad_c,   floe_binwidth)
+                                     d_afsd_latm,  d_afsd_weld)
 
       use icepack_parameters, only: icepack_init_parameters
 
@@ -1982,10 +1973,6 @@
          d_afsd_latm, & ! lateral melt
          d_afsd_weld    ! welding
 
-      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
-         floe_rad_c, &  ! fsd size bin centre in m (radius)
-         floe_binwidth  ! fsd size bin width in m (radius)
-
 !autodocument_end
 
       ! local variables
@@ -2022,9 +2009,7 @@
                        present(d_afsd_latg)   .and. &
                        present(d_afsd_newi)   .and. &
                        present(d_afsd_latm)   .and. &
-                       present(d_afsd_weld)   .and. &
-                       present(floe_rad_c)    .and. &
-                       present(floe_binwidth))) then
+                       present(d_afsd_weld))) then
                 call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
                 call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                 return
@@ -2109,8 +2094,7 @@
                            wave_sig_ht,                 &
                            wave_spectrum,               &
                            wavefreq,      dwavefreq,    &
-                           d_afsd_latg,   d_afsd_newi,  &
-                           floe_rad_c, floe_binwidth)
+                           d_afsd_latg,   d_afsd_newi)
 
          if (icepack_warnings_aborted(subname)) return
 
@@ -2127,8 +2111,7 @@
                          aicen,     vicen,         &
                          vsnon,     trcrn,         &
                          flux_bio,                 &
-                         d_afsd_latm,              &
-                         floe_rad_c,floe_binwidth)
+                         d_afsd_latm)
       if (icepack_warnings_aborted(subname)) return
 
       ! Floe welding during freezing conditions
