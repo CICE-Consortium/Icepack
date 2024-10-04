@@ -216,7 +216,7 @@
 
 !=======================================================================
 !autodocument_start icepack_init_salinity
-! Initialize the vertical profile of ice salinity and melting temperature.
+! Initialize the vertical profile of ice salinity.
 ! This subroutine was renamed from icepack_init_thermo in Oct 2024
 !
 ! authors: C. M. Bitz, UW
@@ -245,7 +245,7 @@
       if (saltmax > min_salin) l_brine = .true.
 
       !-----------------------------------------------------------------
-      ! Prescibe vertical profile of salinity and melting temperature.
+      ! Prescibe vertical profile of salinity.
       ! Note this profile is only used for BL99 thermodynamics.
       !-----------------------------------------------------------------
 
@@ -298,7 +298,7 @@
 !autodocument_start icepack_init_enthalpy
 ! This subroutine was renamed from icepack_init_trcr in Oct 2024
 !
-      subroutine icepack_init_enthalpy(Tair,     Tf,       &
+      subroutine icepack_init_enthalpy(Tair, Tf,      &
                                   Sprofile, Tprofile, &
                                   Tsfc,               &
                                   qin,      qsn)
