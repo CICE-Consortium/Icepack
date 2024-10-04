@@ -42,14 +42,12 @@
       ! state of the ice aggregated over all categories
       !-----------------------------------------------------------------
 
-      real (kind=dbl_kind), dimension(nx), &
-         public :: &
+      real (kind=dbl_kind), dimension(nx), public :: &
          aice  , & ! concentration of ice
          vice  , & ! volume per unit area of ice          (m)
          vsno      ! volume per unit area of snow         (m)
 
-      real (kind=dbl_kind), &
-         dimension(nx,max_ntrcr), public :: &
+      real (kind=dbl_kind), dimension(nx,max_ntrcr), public :: &
          trcr      ! ice tracers
                    ! 1: surface temperature of ice/snow   (C)
 
@@ -57,18 +55,15 @@
       ! state of the ice for each category
       !-----------------------------------------------------------------
 
-      real (kind=dbl_kind), dimension (nx), &
-         public:: &
+      real (kind=dbl_kind), dimension (nx), public:: &
          aice0     ! concentration of open water
 
-      real (kind=dbl_kind), &
-         dimension (nx,ncat), public :: &
+      real (kind=dbl_kind), dimension (nx,ncat), public :: &
          aicen , & ! concentration of ice
          vicen , & ! volume per unit area of ice          (m)
          vsnon     ! volume per unit area of snow         (m)
 
-      real (kind=dbl_kind), public, &
-         dimension (nx,max_ntrcr,ncat) :: &
+      real (kind=dbl_kind), dimension (nx,max_ntrcr,ncat), public :: &
          trcrn     ! tracers
                    ! 1: surface temperature of ice/snow   (C)
 

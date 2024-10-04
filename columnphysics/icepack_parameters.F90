@@ -117,8 +117,8 @@
          Timelt    = 0.0_dbl_kind     ,&! melting temperature, ice top surface  (C)
          Tsmelt    = 0.0_dbl_kind     ,&! melting temperature, snow top surface (C)
          ice_ref_salinity =4._dbl_kind,&! (ppt)
-                                        ! kice is not used for mushy thermo
          kice      = 2.03_dbl_kind    ,&! thermal conductivity of fresh ice(W/m/deg)
+                                        ! kice is only used with ktherm=1 (BL99) and conduct='MU71'
          ksno      = 0.30_dbl_kind    ,&! thermal conductivity of snow  (W/m/deg)
          hs_min    = 1.e-4_dbl_kind   ,&! min snow thickness for computing zTsn (m)
          snowpatch = 0.02_dbl_kind    ,&! parameter for fractional snow area (m)
@@ -316,7 +316,7 @@
          nfreq = 25                   ! number of frequencies
 
       real (kind=dbl_kind), public :: &
-         floeshape = 0.66_dbl_kind    ! constant from Steele (unitless)
+         floeshape = 0.66_dbl_kind    ! constant from Rothrock 1984 (unitless)
 
       real (kind=dbl_kind), public :: &
          floediam  = 300.0_dbl_kind   ! effective floe diameter for lateral melt (m)
@@ -856,7 +856,7 @@
          nfreq_in           ! number of frequencies
 
       real (kind=dbl_kind), intent(in), optional :: &
-         floeshape_in       ! constant from Steele (unitless)
+         floeshape_in       ! constant from Rothrock 1984 (unitless)
 
       logical (kind=log_kind), intent(in), optional :: &
          wave_spec_in       ! if true, use wave forcing
@@ -1876,7 +1876,7 @@
          nfreq_out          ! number of frequencies
 
       real (kind=dbl_kind), intent(out), optional :: &
-         floeshape_out      ! constant from Steele (unitless)
+         floeshape_out      ! constant from Rothrock 1984 (unitless)
 
       logical (kind=log_kind), intent(out), optional :: &
          wave_spec_out      ! if true, use wave forcing
