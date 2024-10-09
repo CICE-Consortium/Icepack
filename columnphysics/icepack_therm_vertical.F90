@@ -525,7 +525,7 @@
       real (kind=dbl_kind), intent(out), optional :: &
          wlat        ! lateral melt rate (m/s)
 
-      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen     ! ice concentration
 
       real (kind=dbl_kind), dimension (:,:), intent(in), optional :: &
@@ -2439,6 +2439,9 @@
       real (kind=dbl_kind), dimension(ncat) :: &
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
+      real (kind=dbl_kind), dimension(:,:), allocatable :: &
+         l_afsdn         ! (kg/m^2)
+
       real (kind=dbl_kind) :: &
          l_fswthrun_vdr, & ! vis dir SW local n ice to ocean  (W/m^2)
          l_fswthrun_vdf, & ! vis dif SW local n ice to ocean  (W/m^2)
@@ -2487,6 +2490,13 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
+         if (tr_fsd) then
+            if (.not.present(afsdn)) then
+               call icepack_warnings_add(subname//' error in fsd arguments, tr_fsd=T')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            endif
+         endif
       endif
 
       !-----------------------------------------------------------------
@@ -2499,6 +2509,14 @@
 
       l_meltsliq  = c0
       l_meltsliqn = c0
+
+      if (tr_fsd) then
+         allocate(l_afsdn(nfsd,ncat))
+         l_afsdn(:,:) = afsdn(:,:)
+      else
+         allocate(l_afsdn(1,1))
+         l_afsdn = c0
+      endif
 
       ! solid and liquid components of snow mass
       massicen(:,:) = c0
@@ -2569,7 +2587,7 @@
                                   Tbot,       fbot,     &
                                   rsiden,     Cdn_ocn,   &
                                   wlat,       aicen,  &
-                                  afsdn)
+                                  afsdn = l_afsdn)
 
       if (icepack_warnings_aborted(subname)) return
 
