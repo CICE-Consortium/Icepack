@@ -248,6 +248,7 @@
 
       real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
+         rsiden,   & ! fraction of ice that melts laterally
          fsurfn,   & ! category fsurf
          fcondtopn,& ! category fcondtop
          fcondbotn,& ! category fcondbot
@@ -272,8 +273,6 @@
       !-----------------------------------------------------------------
 
       real (kind=dbl_kind), dimension (nx), public :: &
-         rside   , & ! fraction of ice that melts laterally
-         fside   , & ! lateral heat flux (W/m^2)
          wlat    , & ! lateral melt rate (m/s)
          fsw     , & ! incoming shortwave radiation (W/m^2)
          coszen  , & ! cosine solar zenith angle, < 0 for sun below horizon
