@@ -1057,8 +1057,7 @@
          model_time ! array for Icepack minutely time
 
       real (kind=dbl_kind) :: &
-         work, &     ! variable for moving averaging
-         model_time0
+         model_time0    ! start time for model in seconds since 1970
 
       real (kind=dbl_kind), allocatable :: &
          data(:)  ! data array from file
@@ -1091,51 +1090,8 @@
          if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt open netcdf file', &
                            file=__FILE__,line=__LINE__)
-         ! Allocate time and data arrays
-         status = nf90_inq_dimid(ncid, "time01", dimid)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time01 dim id', &
-                           file=__FILE__,line=__LINE__)
-         status = nf90_inquire_dimension(ncid, dimid, len = dimlen)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time01 dim length', &
-                           file=__FILE__,line=__LINE__)
-         allocate (data_time(dimlen), data(dimlen))
-         ! Check that time01 variable exists and calendars match
-         status = nf90_inq_varid(ncid, "time01", varid)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time01 var id', &
-                           file=__FILE__,line=__LINE__)
-         status = nf90_get_att(ncid, varid, "calendar", calendar_type)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get calendar attribute', &
-                           file=__FILE__,line=__LINE__)
-         ! In future this check could be replaced with calendar matching
-         if (calendar_type /= "standard" .or. .not. use_leap_years) then
-            call icedrv_system_abort(&
-            string=subname//'Forcing calendar not standard or not using leap years',&
-            file=__FILE__,line=__LINE__)
-         endif
-         ! Get the time array
-         !! Note, in the file the value is actually unsigned, need to make sure this
-         ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
-         status = nf90_get_var(ncid, varid, data_time)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt read time01 values', &
-                           file=__FILE__,line=__LINE__)
-         ! Convert the data time from minutes into seconds for compatability w/ icepack
-         data_time = data_time * 60
-
-         ! Create the model time array, note this depends on the format not changing
-         status = nf90_get_att(ncid, varid, "units", time_basis)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time01 units', &
-                           file=__FILE__,line=__LINE__)
-         if (time_basis /= "minutes since 1970-01-01 00:00:00") then
-            call icedrv_system_abort(&
-            string=subname//'Time basis is not minutes since 1970',&
-            file=__FILE__,line=__LINE__)
-         endif
+         
+         ! Create array for the time step values in seconds since 1970
          ! CF standard calendar is Gregorian
          ! May have strange behavior if dt is not an integer
          model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
@@ -1143,66 +1099,15 @@
             model_time(nt) = int(model_time0 + dt * nt, kind=8)
          enddo
 
-         ! Check that we are not extrapolating forcing outside of time bounds
-         if (model_time(1) < data_time(1)) call icedrv_system_abort(&
-         string=subname//'Simulation starts before atmospheric forcing',&
-         file=__FILE__,line=__LINE__)
-         if (model_time(ntime) > data_time(dimlen)) call icedrv_system_abort(&
-         string=subname//'Simulation ends after atmospheric forcing',&
-         file=__FILE__,line=__LINE__)
-
-         ! data_sections is a 2D array where the first dimension
-         ! is the same length as model_time. The 1D array at each index
-         ! contains the start and stop indices of the data to be averaged
-         ! into each model timestep
-         ! Get the first start index
-         bound = model_time(1) - (model_time(2) - model_time(1))/2
-         i = 1
-         do while (data_time(i) < bound)
-            i = i + 1
-         end do
-         data_sections(1, 1) = i
-         do nt = 1, ntime - 1
-            ! Bound is halfway between this time step and the next
-            bound = (model_time(nt + 1) + model_time(nt))/2
-            do while (data_time(i) < bound)
-               i = i + 1
-            end do ! i - 1 is now the last element in timestep nt
-            data_sections(nt, 2) = i - 1
-            data_sections(nt + 1, 1) = i
-         end do
-         ! Get the last index
-         bound = model_time(ntime) + (model_time(ntime) - model_time(ntime - 1))/2
-         i = dimlen
-         do while (data_time(i) > bound)
-            i = i - 1
-         end do
-         data_sections(ntime, 2) = i
-
+         ! Read, average, and interpolate forcing data from each variable
          ! Moving average forcing values into model arrays
-         call MOSAiC_average("tas", Tair_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-         call MOSAiC_average("hus", Qa_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-         call MOSAiC_average("uas", uatm_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-         call MOSAiC_average("vas", vatm_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-         call MOSAiC_average("rlds", flw_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-         call MOSAiC_average("rsds", fsw_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-         call MOSAiC_average("prsn", fsnow_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-
-         ! Linearly interpolate missing values
-         call MOSAiC_interpolate(Tair_data, model_miss_val)
-         call MOSAiC_interpolate(Qa_data, model_miss_val)
-         call MOSAiC_interpolate(uatm_data, model_miss_val)
-         call MOSAiC_interpolate(vatm_data, model_miss_val)
-         call MOSAiC_interpolate(flw_data, model_miss_val)
-         call MOSAiC_interpolate(fsw_data, model_miss_val)
-         call MOSAiC_interpolate(fsnow_data, model_miss_val)
+         call load_var_MOSAiC("tas", Tair_data, ncid, model_time)
+         call load_var_MOSAiC("hus", Qa_data, ncid, model_time)
+         call load_var_MOSAiC("uas", uatm_data, ncid, model_time)
+         call load_var_MOSAiC("vas", vatm_data, ncid, model_time)
+         call load_var_MOSAiC("rlds", flw_data, ncid, model_time)
+         call load_var_MOSAiC("rsds", fsw_data, ncid, model_time)
+         call load_var_MOSAiC("prsn", fsnow_data, ncid, model_time)
 
          ! Currently no rainfall data, to do
          frain_data(:) = c0
@@ -1346,6 +1251,167 @@
       end do
 
       end subroutine MOSAiC_interpolate
+!=======================================================================
+
+      subroutine load_var_MOSAiC(data_var_name, model_var_arr, ncid, &
+                                 model_time)
+
+      character(len=*), intent(in) :: &
+         data_var_name  ! Name of the variable in the MDF forcing file
+
+      real (kind=dbl_kind), dimension(ntime), intent(out) :: &
+         model_var_arr  ! array to place forcing data in
+
+      integer (kind=int_kind), intent(in) :: &
+         ncid           ! NetCDF file id
+
+      integer (kind=8), dimension(ntime), intent(in) :: &
+         model_time     ! model time array
+
+      ! Local variables
+
+      integer (kind=int_kind) :: &
+         nt,      &  ! timestep index for Icepack arrays
+         i,       &  ! index for forcing data arrays
+         bound,   &  ! bound for subsetting data
+         dimlen,  &  ! length of the data arrays
+         dimid,   &  ! NetCDF dimension id
+         status,  &  ! NetCDF status flag
+         nvardims,&  ! number of dimensions for variable
+         varid       ! NetCDF variable id
+
+      integer (kind=8), allocatable :: &
+         data_time(:)   ! array for time array in forcing data
+
+      integer, dimension(1) :: &
+         vardimids      ! dimension id for variable
+
+      character (char_len) :: &
+         calendar_type, &  ! data calendar type
+         dimname           ! name for variables dimension
+
+      character (char_len_long) :: &
+         time_basis     ! time basis for data
+
+      integer (kind=int_kind), dimension(ntime, 2) :: &
+         data_sections  ! 2D array for indices corresponding
+                        ! to which data values should be averaged to
+                        ! create the model forcing values
+
+      real (kind=dbl_kind), parameter :: &
+         Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+         model_miss_val = -9999.00     ! missing value for internal use      
+
+      character(len=*), parameter :: subname='(load_var_MOSAiC)'
+
+#ifdef USE_NETCDF
+
+      ! Get varid and missing value from file
+      status = nf90_inq_varid(ncid, trim(data_var_name), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get '//data_var_name//' var id', &
+                           file=__FILE__,line=__LINE__)
+      ! Get information about the dimension for this variable
+      status = nf90_inquire_variable(ncid, varid, ndims=nvardims)
+      if (nvardims /= 1) call icedrv_system_abort(&
+            string=subname//data_var_name//' has more than 1 dimension', &
+                           file=__FILE__,line=__LINE__)
+      status = nf90_inquire_variable(ncid, varid, dimids=vardimids)
+      status = nf90_inquire_dimension(ncid, vardimids(1), &
+            name=dimname, len=dimlen)
+      ! Check that dimname matches pattern
+      if (dimname(1:4) /= 'time') call icedrv_system_abort(&
+            string=subname//data_var_name//' dimension name is not timeXXXX', &
+                           file=__FILE__,line=__LINE__)
+      if (verify(trim(dimname(5:)), "0123456789") /= 0) call icedrv_system_abort(&
+            string=subname//data_var_name//' dimension name is not timeXXXX', &
+                           file=__FILE__,line=__LINE__)
+      allocate (data_time(dimlen))
+      ! Check that cadence variable exists and calendars match
+      status = nf90_inq_varid(ncid, trim(dimname), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+         string=subname//'Couldnt get '//trim(dimname)//' var id', &
+                        file=__FILE__,line=__LINE__)
+      status = nf90_get_att(ncid, varid, "calendar", calendar_type)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+         string=subname//'Couldnt get calendar attribute', &
+                        file=__FILE__,line=__LINE__)
+      ! In future this check could be replaced with calendar matching
+      if (calendar_type /= "standard" .or. .not. use_leap_years) then
+         call icedrv_system_abort(&
+         string=subname//'Forcing calendar not standard or not using leap years',&
+         file=__FILE__,line=__LINE__)
+      endif
+      ! Get the time array
+      !! Note, in the file the value is actually unsigned, need to make sure this
+      ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
+      status = nf90_get_var(ncid, varid, data_time)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+         string=subname//'Couldnt read '//trim(dimname)//' values', &
+                        file=__FILE__,line=__LINE__)
+      ! Convert the data time from minutes into seconds for compatability w/ icepack
+      data_time = data_time * 60
+
+      ! Check that the time basis in forcing file is correct
+      status = nf90_get_att(ncid, varid, "units", time_basis)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+         string=subname//'Couldnt get '//trim(dimname)//' units', &
+                        file=__FILE__,line=__LINE__)
+      if (time_basis /= "minutes since 1970-01-01 00:00:00") then
+         call icedrv_system_abort(&
+         string=subname//'Time basis is not minutes since 1970',&
+         file=__FILE__,line=__LINE__)
+      endif
+      
+      ! Check that we are not extrapolating forcing outside of time bounds
+      if (model_time(1) < data_time(1)) call icedrv_system_abort(&
+      string=subname//'Simulation starts before forcing',&
+      file=__FILE__,line=__LINE__)
+      if (model_time(ntime) > data_time(dimlen)) call icedrv_system_abort(&
+      string=subname//'Simulation ends after forcing',&
+      file=__FILE__,line=__LINE__)
+
+      ! data_sections is a 2D array where the first dimension
+      ! is the same length as model_time. The 1D array at each index
+      ! contains the start and stop indices of the data to be averaged
+      ! into each model timestep
+      ! Get the first start index
+      bound = model_time(1) - (model_time(2) - model_time(1))/2
+      i = 1
+      do while (data_time(i) < bound)
+         i = i + 1
+      end do
+      data_sections(1, 1) = i
+      do nt = 1, ntime - 1
+         ! Bound is halfway between this time step and the next
+         bound = (model_time(nt + 1) + model_time(nt))/2
+         do while (data_time(i) < bound)
+            i = i + 1
+         end do ! i - 1 is now the last element in timestep nt
+         data_sections(nt, 2) = i - 1
+         data_sections(nt + 1, 1) = i
+      end do
+      ! Get the last index
+      bound = model_time(ntime) + (model_time(ntime) - model_time(ntime - 1))/2
+      i = dimlen
+      do while (data_time(i) > bound)
+         i = i - 1
+      end do
+      data_sections(ntime, 2) = i
+
+      ! Moving average forcing values into model arrays
+      call MOSAiC_average(data_var_name, model_var_arr, dimlen, ncid, &
+         data_sections, model_miss_val)
+      ! Linearly interpolate missing values
+      call MOSAiC_interpolate(model_var_arr, model_miss_val)
+
+#else
+      call icedrv_system_abort(string=subname//&
+      ' load_var_MOSAiC requires USE_NETCDF', &
+      file=__FILE__,line=__LINE__)
+#endif
+
+      end subroutine load_var_MOSAiC
 
 !=======================================================================
 
@@ -1468,16 +1534,13 @@
          model_time ! array for Icepack minutely time
 
       real (kind=dbl_kind) :: &
-         work, &     ! variable for moving averaging
-         model_time0
+         model_time0    ! start time for model in seconds since 1970
 
       real (kind=dbl_kind), allocatable :: &
          data(:)  ! data array from file
 
       character (char_len) :: &
          calendar_type, &  ! data calendar type
-         test_1, &
-         test_2, &
          varname
 
       character (char_len_long) :: &
@@ -1495,7 +1558,7 @@
 
       character(len=*), parameter :: subname='(ocn_MOSAiC)'
 
-      filename = trim(data_dir)//'/MOSAiC/'//trim(ocn_data_file)
+      filename = trim(data_dir)//'/MOSAiC/'//trim(atm_data_file)
 
       if (ocn_data_format == 'nc') then
 #ifdef USE_NETCDF
@@ -1504,51 +1567,8 @@
          if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt open netcdf file', &
                            file=__FILE__,line=__LINE__)
-         ! Allocate time and data arrays
-         status = nf90_inq_dimid(ncid, "time1440", dimid)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time1440 dim id', &
-                           file=__FILE__,line=__LINE__)
-         status = nf90_inquire_dimension(ncid, dimid, len = dimlen)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time1440 dim length', &
-                           file=__FILE__,line=__LINE__)
-         allocate (data_time(dimlen), data(dimlen))
-         ! Check that time1440 variable exists and calendars match
-         status = nf90_inq_varid(ncid, "time1440", varid)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time1440 var id', &
-                           file=__FILE__,line=__LINE__)
-         status = nf90_get_att(ncid, varid, "calendar", calendar_type)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get calendar attribute', &
-                           file=__FILE__,line=__LINE__)
-         ! In future this check could check for calendar matching
-         if (calendar_type /= "standard" .or. .not. use_leap_years) then
-            call icedrv_system_abort(&
-            string=subname//'Forcing calendar not standard or not using leap years',&
-            file=__FILE__,line=__LINE__)
-         endif
-         ! Get the time array
-         !! Note, in the file the value is actually unsigned, need to make sure this
-         ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
-         status = nf90_get_var(ncid, varid, data_time)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt read time1440 values', &
-                           file=__FILE__,line=__LINE__)
-         ! Convert the data time from minutes into seconds for compatability w/ icepack
-         data_time = data_time * 60
-
-         ! Create the model time array, note this depends on the format not changing
-         status = nf90_get_att(ncid, varid, "units", time_basis)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get time1440 units', &
-                           file=__FILE__,line=__LINE__)
-         if (time_basis /= "minutes since 1970-01-01 00:00:00") then
-            call icedrv_system_abort(&
-            string=subname//'Time basis is not minutes since 1970',&
-            file=__FILE__,line=__LINE__)
-         endif
+         
+         ! Create array for the time step values in seconds since 1970
          ! CF standard calendar is Gregorian
          ! May have strange behavior if dt is not an integer
          model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
@@ -1556,46 +1576,12 @@
             model_time(nt) = int(model_time0 + dt * nt, kind=8)
          enddo
 
-         ! data_sections is a 2D array where the first dimension
-         ! is the same length as model_time. The 1D array at each index
-         ! contains the start and stop indices of the data to be averaged
-         ! into each model timestep
-         ! Get the first start index
-         bound = model_time(1) - (model_time(2) - model_time(1))/2
-         i = 1
-         do while (data_time(i) < bound)
-            i = i + 1
-         end do
-         data_sections(1, 1) = i
-         do nt = 1, ntime - 1
-            ! Bound is halfway between this time step and the next
-            bound = (model_time(nt + 1) + model_time(nt))/2
-            do while (data_time(i) < bound)
-               i = i + 1
-            end do ! i - 1 is now the last element in timestep nt
-            data_sections(nt, 2) = i - 1
-            data_sections(nt + 1, 1) = i
-         end do
-         ! Get the last index
-         bound = model_time(ntime) + (model_time(ntime) - model_time(ntime - 1))/2
-         i = dimlen
-         do while (data_time(i) > bound)
-            i = i - 1
-         end do
-         data_sections(ntime, 2) = i
-
+         ! Read, average, and interpolate forcing data from each variable
          ! Moving average forcing values into model arrays
-         call MOSAiC_average("so", sss_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-         call MOSAiC_average("mlotst", hmix_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-         call MOSAiC_average("hfsot", qdp_data, dimlen, ncid, &
-            data_sections, model_miss_val)
-
-         ! Linearly interpolate missing values
-         call MOSAiC_interpolate(sss_data, model_miss_val)
-         call MOSAiC_interpolate(hmix_data, model_miss_val)
-         call MOSAiC_interpolate(qdp_data, model_miss_val)
+         call load_var_MOSAiC("so", sss_data, ncid, model_time)
+         call load_var_MOSAiC("mlotst", hmix_data, ncid, model_time)
+         call load_var_MOSAiC("hfsot", qdp_data, ncid, model_time)
+         call load_var_MOSAiC("tos", sst_data, ncid, model_time)
 
 #else
          call icedrv_system_abort(string=subname//&
