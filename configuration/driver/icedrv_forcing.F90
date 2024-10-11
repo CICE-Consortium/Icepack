@@ -1083,7 +1083,11 @@
 
       filename = trim(data_dir)//'/MOSAiC/'//trim(atm_data_file)
 
-      if (atm_data_format == 'nc') then
+      if (atm_data_format /= 'nc') then
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: only NetCDF input implemented for atm_MOSAiC', &
+         file=__FILE__,line=__LINE__)
+      else
 #ifdef USE_NETCDF
          ! Open forcing file
          status = nf90_open(trim(filename), nf90_nowrite, ncid)
@@ -1117,10 +1121,6 @@
          ' ERROR: atm_data_format = "nc" requires USE_NETCDF', &
          file=__FILE__,line=__LINE__)
 #endif
-      else
-         call icedrv_system_abort(string=subname//&
-         ' ERROR: only NetCDF input implemented for atm_MOSAiC', &
-         file=__FILE__,line=__LINE__)
       endif
 
       end subroutine atm_MOSAiC
@@ -1560,7 +1560,11 @@
 
       filename = trim(data_dir)//'/MOSAiC/'//trim(ocn_data_file)
 
-      if (ocn_data_format == 'nc') then
+      if (ocn_data_format /= 'nc') then
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: only NetCDF input implemented for ocn_MOSAiC', &
+         file=__FILE__,line=__LINE__)
+      else
 #ifdef USE_NETCDF
          ! Open forcing file
          status = nf90_open(trim(filename), nf90_nowrite, ncid)
@@ -1588,10 +1592,6 @@
          ' ERROR: ocn_data_format = "nc" requires USE_NETCDF', &
          file=__FILE__,line=__LINE__)
 #endif
-      else
-         call icedrv_system_abort(string=subname//&
-         ' ERROR: only NetCDF input implemented for ocn_MOSAiC', &
-         file=__FILE__,line=__LINE__)
       endif
 
       end subroutine ocn_MOSAiC
