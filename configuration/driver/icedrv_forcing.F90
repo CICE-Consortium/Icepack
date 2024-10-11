@@ -598,6 +598,10 @@
       ! 6 W/m2 warming of mixed layer from deep ocean
         qdp_data(:) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
                               ! SH+LH with bulk transfer than in MU 71
+      ! Warn that this overwrites default and namelist value
+      write(nu_diag,*) subname
+      write(nu_diag,*) 'WARNING: atm_data_type = clim overwrites '//&
+         'oceanic heat flux convergence from default or namelist'
 
       end subroutine atm_climatological
 
@@ -1109,8 +1113,8 @@
          if ((model_time(1) < leg5_start_time) .and. &
              (model_time(ntime) > leg4_end_time)) then
             write(nu_diag,*) subname
-            write(nu_diag,*) 'WARNING: Time includes leg 4-5 transition'
-            write(nu_diag,*) 'WARNING: forcing interpolation is not valid'
+            write(nu_diag,*) 'WARNING: Time includes MOSAiC leg 4-5 '//&
+               'repositioning, forcing interpolation is not valid'
          endif
 
          ! Read, average, and interpolate forcing data from each variable
@@ -1596,8 +1600,8 @@
          if ((model_time(1) < leg5_start_time) .and. &
              (model_time(ntime) > leg4_end_time)) then
             write(nu_diag,*) subname
-            write(nu_diag,*) 'WARNING: Time includes leg 4-5 transition'
-            write(nu_diag,*) 'WARNING: forcing interpolation is not valid'
+            write(nu_diag,*) 'WARNING: Time includes MOSAIC leg 4-5 '//&
+               'repositioning, forcing interpolation is not valid'
          endif
 
          ! Read, average, and interpolate forcing data from each variable
