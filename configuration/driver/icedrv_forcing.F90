@@ -1558,7 +1558,7 @@
 
       character(len=*), parameter :: subname='(ocn_MOSAiC)'
 
-      filename = trim(data_dir)//'/MOSAiC/'//trim(atm_data_file)
+      filename = trim(data_dir)//'/MOSAiC/'//trim(ocn_data_file)
 
       if (ocn_data_format == 'nc') then
 #ifdef USE_NETCDF
