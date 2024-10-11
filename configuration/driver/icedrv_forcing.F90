@@ -1077,7 +1077,9 @@
 
       real (kind=dbl_kind), parameter :: &
          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
-         model_miss_val = -9999.00     ! missing value for internal use
+         model_miss_val = -9999.00, &  ! missing value for internal use
+         leg4_end_time  = 1596034800, &! end of leg 4 in seconds since 1970
+         leg5_start_time= 1598451600   ! start of leg 5 in seconds since 1970
 
       character(len=*), parameter :: subname='(atm_MOSAiC)'
 
@@ -1102,6 +1104,14 @@
          do nt = 1, ntime
             model_time(nt) = int(model_time0 + dt * nt, kind=8)
          enddo
+
+         ! Warn if simulation includes leg 4-5 transition
+         if ((model_time(1) < leg5_start_time) .and. &
+             (model_time(ntime) > leg4_end_time)) then
+            write(nu_diag,*) subname
+            write(nu_diag,*) 'WARNING: Time includes leg 4-5 transition'
+            write(nu_diag,*) 'WARNING: forcing interpolation is not valid'
+         endif
 
          ! Read, average, and interpolate forcing data from each variable
          ! Moving average forcing values into model arrays
@@ -1554,7 +1564,9 @@
 
       real (kind=dbl_kind), parameter :: &
          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
-         model_miss_val = -9999.00     ! missing value for internal use
+         model_miss_val = -9999.00, &  ! missing value for internal use
+         leg4_end_time  = 1596034800, &! end of leg 4 in seconds since 1970
+         leg5_start_time= 1598451600   ! start of leg 5 in seconds since 1970
 
       character(len=*), parameter :: subname='(ocn_MOSAiC)'
 
@@ -1579,6 +1591,14 @@
          do nt = 1, ntime
             model_time(nt) = int(model_time0 + dt * nt, kind=8)
          enddo
+
+         ! Warn if simulation includes leg 4-5 transition
+         if ((model_time(1) < leg5_start_time) .and. &
+             (model_time(ntime) > leg4_end_time)) then
+            write(nu_diag,*) subname
+            write(nu_diag,*) 'WARNING: Time includes leg 4-5 transition'
+            write(nu_diag,*) 'WARNING: forcing interpolation is not valid'
+         endif
 
          ! Read, average, and interpolate forcing data from each variable
          ! Moving average forcing values into model arrays
