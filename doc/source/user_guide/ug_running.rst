@@ -736,6 +736,11 @@ cases.  Current filenames can be found in the options scripts in
     At present, only the opening and closing rates (1/s) are used from the forcing data. 
     In the namelist, set ``ocn_data_type = SHEBA`` to use this forcing in Icepack.
 
+   d) **Multidisciplinary Drifting Observatory for the Study of Arctic Climate (MOSAiC)**
+
+    Atmospheric and oceanic forcing are available from the 2019-2020 Multidisciplinary Drifting Observatory 
+    for the Study of Arctic Climate (MOSAiC) expedition :cite:`Clemens-Sewall24`.
+
 3) **Climatological** - Maykut and Untersteiner 1971 :cite:`Maykut71`
 
    The climatological forcing consists of a monthly climatology of downward radiative fluxes, air temperature, 
