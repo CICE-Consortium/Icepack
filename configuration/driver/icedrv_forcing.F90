@@ -77,8 +77,8 @@
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
-         atm_data_type,   & ! 'default', 'clim', 'CFS', 'MOSAiC'
-         ocn_data_type,   & ! 'default', 'SHEBA' 'MOSAiC'
+         atm_data_type,   & ! 'default', 'clim', 'CFS', 'MDF'
+         ocn_data_type,   & ! 'default', 'SHEBA' 'MDF'
          bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
          lateral_flux_type,   & ! 'uniform_ice', 'open_water'
          atm_data_file,   & ! atmospheric forcing data file
@@ -126,14 +126,14 @@
 
       ! Initialize ntime and allocate data arrays
       if (precalc_forc) then
-         if (trim(atm_data_type(1:6)) /= 'MOSAiC') &
+         if (trim(atm_data_type(1:3)) /= 'MDF') &
             call icedrv_system_abort(string=subname//&
-            'precalc_forc should only be used with MOSAiC atmosphere', &
+            'precalc_forc should only be used with MDF atmosphere', &
             file=__FILE__,line=__LINE__)
-         if (.not. ((trim(ocn_data_type(1:6)) == 'MOSAiC') &
+         if (.not. ((trim(ocn_data_type(1:3)) == 'MDF') &
             .or. (trim(ocn_data_type(1:7)) == 'default'))) &
             call icedrv_system_abort(string=subname//&
-            'precalc_forc should only be used with MOSAiC ocean or'//&
+            'precalc_forc should only be used with MDF ocean or'//&
             ' default ocean', file=__FILE__,line=__LINE__)
          ntime = npt
       else
@@ -192,7 +192,7 @@
       if (trim(atm_data_type(1:4)) == 'clim')  call atm_climatological
       if (trim(atm_data_type(1:5)) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type(1:4)) == 'NICE')  call atm_NICE
-      if (trim(atm_data_type(1:6)) == 'MOSAiC') call atm_MOSAiC
+      if (trim(atm_data_type(1:6)) == 'MDF')   call atm_MDF
       if (trim(ocn_data_type(1:5)) == 'SHEBA') call ice_open_clos
 
       if (restore_ocn) then
@@ -208,7 +208,7 @@
 
       if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
       if (trim(ocn_data_type(1:4)) == 'NICE')  call ocn_NICE
-      if (trim(ocn_data_type(1:6)) == 'MOSAiC') call ocn_MOSAiC
+      if (trim(ocn_data_type(1:6)) == 'MDF') call ocn_MDF
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     &
@@ -1042,7 +1042,7 @@
 
 !=======================================================================
 
-      subroutine atm_MOSAiC
+      subroutine atm_MDF
 
       integer (kind=int_kind) :: &
          nt,      &  ! timestep index for Icepack arrays
@@ -1085,13 +1085,13 @@
          leg4_end_time  = 1596034800, &! end of leg 4 in seconds since 1970
          leg5_start_time= 1598451600   ! start of leg 5 in seconds since 1970
 
-      character(len=*), parameter :: subname='(atm_MOSAiC)'
+      character(len=*), parameter :: subname='(atm_MDF)'
 
-      filename = trim(data_dir)//'/MOSAiC/'//trim(atm_data_file)
+      filename = trim(data_dir)//'/MDF/'//trim(atm_data_file)
 
       if (atm_data_format /= 'nc') then
          call icedrv_system_abort(string=subname//&
-         ' ERROR: only NetCDF input implemented for atm_MOSAiC', &
+         ' ERROR: only NetCDF input implemented for atm_MDF', &
          file=__FILE__,line=__LINE__)
       else
 #ifdef USE_NETCDF
@@ -1111,21 +1111,23 @@
 
          ! Warn if simulation includes leg 4-5 transition
          if ((model_time(1) < leg5_start_time) .and. &
-             (model_time(ntime) > leg4_end_time)) then
+             (model_time(ntime) > leg4_end_time) .and. &
+             (index(atm_data_file, 'MOSAiC') > 0)) then
             write(nu_diag,*) subname
-            write(nu_diag,*) 'WARNING: Time includes MOSAiC leg 4-5 '//&
-               'repositioning, forcing interpolation is not valid'
+            write(nu_diag,*) 'WARNING: Forcing may be from MOSAiC '// &
+               'and time includes MOSAIC leg 4-5 repositioning. ' // &
+               'If so, forcing interpolation is not valid.'
          endif
 
          ! Read, average, and interpolate forcing data from each variable
          ! Moving average forcing values into model arrays
-         call load_var_MOSAiC("tas", Tair_data, ncid, model_time)
-         call load_var_MOSAiC("hus", Qa_data, ncid, model_time)
-         call load_var_MOSAiC("uas", uatm_data, ncid, model_time)
-         call load_var_MOSAiC("vas", vatm_data, ncid, model_time)
-         call load_var_MOSAiC("rlds", flw_data, ncid, model_time)
-         call load_var_MOSAiC("rsds", fsw_data, ncid, model_time)
-         call load_var_MOSAiC("prsn", fsnow_data, ncid, model_time)
+         call load_var_MDF("tas", Tair_data, ncid, model_time)
+         call load_var_MDF("hus", Qa_data, ncid, model_time)
+         call load_var_MDF("uas", uatm_data, ncid, model_time)
+         call load_var_MDF("vas", vatm_data, ncid, model_time)
+         call load_var_MDF("rlds", flw_data, ncid, model_time)
+         call load_var_MDF("rsds", fsw_data, ncid, model_time)
+         call load_var_MDF("prsn", fsnow_data, ncid, model_time)
 
          ! Currently no rainfall data, to do
          frain_data(:) = c0
@@ -1137,12 +1139,12 @@
 #endif
       endif
 
-      end subroutine atm_MOSAiC
+      end subroutine atm_MDF
 
 !=======================================================================
 
 #ifdef USE_NETCDF
-      subroutine MOSAiC_average(data_var_name, model_var_arr, &
+      subroutine MDF_average(data_var_name, model_var_arr, &
          data_var_len, ncid, data_sections, model_miss_val)
 
       character(len=*), intent(in) :: &
@@ -1176,7 +1178,7 @@
          i,      &         ! index for forcing data arrays
          varid             ! NetCDF variable id
 
-      character(len=*), parameter :: subname='(MOSAiC_average)'
+      character(len=*), parameter :: subname='(MDF_average)'
 
       ! Allocate get data and missing value from file
       status = nf90_inq_varid(ncid, trim(data_var_name), varid)
@@ -1209,12 +1211,12 @@
          endif
       end do
 
-      end subroutine MOSAiC_average
+      end subroutine MDF_average
 #endif
 
 !=======================================================================
 
-      subroutine MOSAiC_interpolate(model_var_arr, model_miss_val)
+      subroutine MDF_interpolate(model_var_arr, model_miss_val)
 
       real (kind=dbl_kind), dimension(ntime), intent(inout) :: &
          model_var_arr  ! array to place averaged forcing data in
@@ -1227,7 +1229,7 @@
          nt, m,         &  ! model timestep indices
          count             ! counter for missing values
 
-      character(len=*), parameter :: subname='(MOSAiC_interpolate)'
+      character(len=*), parameter :: subname='(MDF_interpolate)'
 
       ! Interpolate, extrapolate for first and last values
       if (model_var_arr(1) == model_miss_val) then
@@ -1264,10 +1266,10 @@
          endif
       end do
 
-      end subroutine MOSAiC_interpolate
+      end subroutine MDF_interpolate
 !=======================================================================
 
-      subroutine load_var_MOSAiC(data_var_name, model_var_arr, ncid, &
+      subroutine load_var_MDF(data_var_name, model_var_arr, ncid, &
                                  model_time)
 
       character(len=*), intent(in) :: &
@@ -1316,7 +1318,7 @@
          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
          model_miss_val = -9999.00     ! missing value for internal use      
 
-      character(len=*), parameter :: subname='(load_var_MOSAiC)'
+      character(len=*), parameter :: subname='(load_var_MDF)'
 
 #ifdef USE_NETCDF
 
@@ -1414,18 +1416,18 @@
       data_sections(ntime, 2) = i
 
       ! Moving average forcing values into model arrays
-      call MOSAiC_average(data_var_name, model_var_arr, dimlen, ncid, &
+      call MDF_average(data_var_name, model_var_arr, dimlen, ncid, &
          data_sections, model_miss_val)
       ! Linearly interpolate missing values
-      call MOSAiC_interpolate(model_var_arr, model_miss_val)
+      call MDF_interpolate(model_var_arr, model_miss_val)
 
 #else
       call icedrv_system_abort(string=subname//&
-      ' load_var_MOSAiC requires USE_NETCDF', &
+      ' load_var_MDF requires USE_NETCDF', &
       file=__FILE__,line=__LINE__)
 #endif
 
-      end subroutine load_var_MOSAiC
+      end subroutine load_var_MDF
 
 !=======================================================================
 
@@ -1529,7 +1531,7 @@
 
 !=======================================================================
 
-      subroutine ocn_MOSAiC
+      subroutine ocn_MDF
 
       integer (kind=int_kind) :: &
          nt,      &  ! timestep index for Icepack arrays
@@ -1572,13 +1574,13 @@
          leg4_end_time  = 1596034800, &! end of leg 4 in seconds since 1970
          leg5_start_time= 1598451600   ! start of leg 5 in seconds since 1970
 
-      character(len=*), parameter :: subname='(ocn_MOSAiC)'
+      character(len=*), parameter :: subname='(ocn_MDF)'
 
-      filename = trim(data_dir)//'/MOSAiC/'//trim(ocn_data_file)
+      filename = trim(data_dir)//'/MDF/'//trim(ocn_data_file)
 
       if (ocn_data_format /= 'nc') then
          call icedrv_system_abort(string=subname//&
-         ' ERROR: only NetCDF input implemented for ocn_MOSAiC', &
+         ' ERROR: only NetCDF input implemented for ocn_MDF', &
          file=__FILE__,line=__LINE__)
       else
 #ifdef USE_NETCDF
@@ -1598,18 +1600,20 @@
 
          ! Warn if simulation includes leg 4-5 transition
          if ((model_time(1) < leg5_start_time) .and. &
-             (model_time(ntime) > leg4_end_time)) then
+             (model_time(ntime) > leg4_end_time) .and. &
+             (index(ocn_data_file, 'MOSAiC') > 0)) then
             write(nu_diag,*) subname
-            write(nu_diag,*) 'WARNING: Time includes MOSAIC leg 4-5 '//&
-               'repositioning, forcing interpolation is not valid'
+            write(nu_diag,*) 'WARNING: Forcing may be from MOSAiC '// &
+               'and time includes MOSAIC leg 4-5 repositioning. ' // &
+               'If so, forcing interpolation is not valid.'
          endif
 
          ! Read, average, and interpolate forcing data from each variable
          ! Moving average forcing values into model arrays
-         call load_var_MOSAiC("so", sss_data, ncid, model_time)
-         call load_var_MOSAiC("mlotst", hmix_data, ncid, model_time)
-         call load_var_MOSAiC("hfsot", qdp_data, ncid, model_time)
-         call load_var_MOSAiC("tos", sst_data, ncid, model_time)
+         call load_var_MDF("so", sss_data, ncid, model_time)
+         call load_var_MDF("mlotst", hmix_data, ncid, model_time)
+         call load_var_MDF("hfsot", qdp_data, ncid, model_time)
+         call load_var_MDF("tos", sst_data, ncid, model_time)
 
 #else
          call icedrv_system_abort(string=subname//&
@@ -1618,7 +1622,7 @@
 #endif
       endif
 
-      end subroutine ocn_MOSAiC
+      end subroutine ocn_MDF
 
 !=======================================================================
 
