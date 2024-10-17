@@ -77,6 +77,11 @@
          dhsn       , & ! depth difference for snow on sea ice and pond ice
          ffracn         ! fraction of fsurfn used to melt ipond
 
+      ! icepack_meltpond_sealvl.F90
+      real (kind=dbl_kind), public, &
+         dimension (nx, ncat) :: &
+         pndasp         ! pond aspect for sea level ponds
+
       ! icepack_shortwave.F90
       ! category albedos
       real (kind=dbl_kind), &

@@ -221,7 +221,7 @@
       if (tr_lvl)       call write_restart_lvl(dims)       ! level ice tracer
       if (tr_pond_lvl)  call write_restart_pond_lvl(dims)  ! level-ice melt ponds
       if (tr_pond_topo) call write_restart_pond_topo(dims) ! topographic melt ponds
-      if (tr_pond_sealvl) call write_restart_pond_lvl(dims) ! same restart fields as lvl
+      if (tr_pond_sealvl) call write_restart_pond_sealvl(dims) ! same restart fields as lvl
       if (tr_snow)      call write_restart_snow(dims)      ! snow metamorphosis tracers
       if (tr_iso)       call write_restart_iso(dims)       ! ice isotopes
       if (tr_aero)      call write_restart_aero(dims)      ! ice aerosols
@@ -398,7 +398,7 @@
       if (tr_FY)        call read_restart_FY()        ! first-year area tracer
       if (tr_lvl)       call read_restart_lvl()       ! level ice tracer
       if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
-      if (tr_pond_sealvl) call read_restart_pond_lvl() ! sealvl ponds same as lvl
+      if (tr_pond_sealvl) call read_restart_pond_sealvl() ! sealvl ponds same as lvl
       if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
       if (tr_snow)      call read_restart_snow()      ! snow metamorphosis tracers
       if (tr_iso)       call read_restart_iso()       ! ice isotopes
@@ -997,6 +997,70 @@
       call read_restart_field(nu_restart,ffracn(:,:),ncat,'ffracn')
 
       end subroutine read_restart_pond_lvl
+
+!=======================================================================
+
+! Dumps all values needed for restarting
+!
+      subroutine write_restart_pond_sealvl(dims)
+
+      use icedrv_arrays_column, only: dhsn, ffracn, pndasp
+      use icedrv_flux, only: fsnow
+      use icedrv_state, only: trcrn
+      use icedrv_domain_size, only: ncat
+
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
+
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
+      character(len=*), parameter :: subname='(write_restart_pond_sealvl)'
+
+      call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+           nt_ipnd_out=nt_ipnd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
+      call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat,'apnd',dims)
+      call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat,'hpnd',dims)
+      call write_restart_field(nu_dump,trcrn(:,nt_ipnd,:),ncat,'ipnd',dims)
+      call write_restart_field(nu_dump,fsnow(:),1,'fsnow',dims)
+      call write_restart_field(nu_dump,dhsn(:,:),ncat,'dhsn',dims)
+      call write_restart_field(nu_dump,ffracn(:,:),ncat,'ffracn',dims)
+      call write_restart_field(nu_dump,pndasp(:,:),ncat,'ffracn',dims)
+
+      end subroutine write_restart_pond_sealvl
+
+!=======================================================================
+
+! Reads all values needed for a sea level pond restart
+!
+      subroutine read_restart_pond_sealvl()
+
+      use icedrv_arrays_column, only: dhsn, ffracn, pndasp
+      use icedrv_flux, only: fsnow
+      use icedrv_state, only: trcrn
+      use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
+      character(len=*), parameter :: subname='(write_restart_pond_sealvl)'
+
+      call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+           nt_ipnd_out=nt_ipnd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
+      write(nu_diag,*) 'min/max level-ice ponds'
+
+      call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat,'apnd')
+      call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat,'hpnd')
+      call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat,'ipnd')
+      call read_restart_field(nu_restart,fsnow(:),1,'fsnow')
+      call read_restart_field(nu_restart,dhsn(:,:),ncat,'dhsn')
+      call read_restart_field(nu_restart,ffracn(:,:),ncat,'ffracn')
+      call read_restart_field(nu_restart,pndasp(:,:),ncat,'pndasp')
+
+      end subroutine read_restart_pond_sealvl
 
 !=======================================================================
 

@@ -101,7 +101,7 @@
 
       subroutine step_therm1 (dt)
 
-      use icedrv_arrays_column, only: ffracn, dhsn
+      use icedrv_arrays_column, only: ffracn, dhsn, pndasp
       use icedrv_arrays_column, only: Cdn_ocn, Cdn_ocn_skin, Cdn_ocn_floe
       use icedrv_arrays_column, only: Cdn_ocn_keel, Cdn_atm_ratio
       use icedrv_arrays_column, only: Cdn_atm, Cdn_atm_skin, Cdn_atm_floe
@@ -365,6 +365,7 @@
             Sswabsn  = Sswabsn(i,:,:),Iswabsn   = Iswabsn(i,:,:), &
             evap = evap(i), evaps = evaps(i), evapi = evapi(i),   &
             dhsn     = dhsn(i,:),     ffracn    = ffracn(i,:),    &
+            pndasp_in = pndasp(i,:),                              &
             meltt    = meltt(i),      melttn    = melttn(i,:),    &
             meltb    = meltb(i),      meltbn    = meltbn(i,:),    &
             melts    = melts(i),      meltsn    = meltsn(i,:),    &
