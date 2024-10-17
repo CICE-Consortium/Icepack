@@ -25,7 +25,7 @@
       use icepack_parameters, only: viscosity_dyn, rhoi, rhos, rhow 
       use icepack_parameters, only: Timelt, Tffresh, Lfresh, rhofresh
       use icepack_parameters, only: gravit, depressT, rhofresh, kice
-      use icepack_parameters, only: rhosi, pndaspect, use_smliq_pnd
+      use icepack_parameters, only: rhosi, use_smliq_pnd
       use icepack_parameters, only: ktherm, frzpnd, dpscale, hi_min
       use icepack_parameters, only: pndhyps, pndfrbd, pndhead, apnd_sl
       use icepack_tracers,    only: nilyr
@@ -40,6 +40,8 @@
                   compute_ponds_sealvl,   &
                   pond_hypsometry,        &
                   pond_height
+
+      real (kind=dbl_kind), public :: pndasp
 
 !=======================================================================
 
@@ -389,11 +391,11 @@
          hpnd = c0
       else
          call calc_pndaspect(hin)
-         apnd = sqrt(vp/pndaspect)
+         apnd = sqrt(vp/pndasp)
          ! preserve pond volume if pond fills all available area
          hpnd = c0
          if (apnd < c1) then
-            hpnd = apnd * pndaspect
+            hpnd = apnd * pndasp
          else
             apnd = 1 ! ponds fill entire category
             hpnd = vp ! conserve volume
@@ -429,7 +431,7 @@
                ! If ponds occupy lowest elevations first. 
                call calc_pndaspect(hin)
                if (apond < c1) then
-                  hpsurf = hin - pndaspect + c2*pndaspect*apond
+                  hpsurf = hin - pndasp + c2*pndasp*apond
                else ! ponds cover all available area
                   hpsurf = hin + hpnd
                endif
@@ -465,7 +467,7 @@
                   " hin needed for sealevel ponds")
                return
             endif
-            pndaspect = hin*(rhow - rhosi) / &
+            pndasp = hin*(rhow - rhosi) / &
                (rhofresh*apnd_sl**c2 - c2*rhow*apnd_sl + rhow)
          endif ! Otherwise do nothing to pond aspect
 

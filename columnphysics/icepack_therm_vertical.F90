@@ -57,7 +57,7 @@
       use icepack_flux, only: set_sfcflux, merge_fluxes
       use icepack_meltpond_lvl, only: compute_ponds_lvl
       use icepack_meltpond_topo, only: compute_ponds_topo
-      use icepack_meltpond_sealvl, only: compute_ponds_sealvl
+      use icepack_meltpond_sealvl, only: compute_ponds_sealvl, pndasp
       use icepack_snow, only: drain_snow
 
       implicit none
@@ -2135,6 +2135,7 @@
                                     HDO_ocn     , H2_16O_ocn  , &
                                     H2_18O_ocn  ,  &
                                     dhsn        , ffracn      , &
+                                    pndasp_in   , &
                                     meltt       , melttn      , &
                                     meltb       , meltbn      , &
                                     melts       , meltsn      , &
@@ -2269,6 +2270,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          meltsliqn       ! mass of snow melt                 (kg/m^2)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         pndasp_in       ! pond aspect for sealevel ponds
 
       real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
          rsnwn       , & ! snow grain radius                (10^-6 m)
@@ -2447,6 +2451,13 @@
          if (tr_fsd) then
             if (.not.(present(wlat))) then
                call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            endif
+         endif
+         if (tr_pond_sealvl) then
+            if (.not.(present(pndasp_in))) then
+               call icepack_warnings_add(subname//' error in sealvl pond arguments, tr_pond_sealvl=T')
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                return
             endif
@@ -2786,6 +2797,9 @@
                if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_pond_sealvl) then
+
+               pndasp = pndasp_in(n)
+
                call compute_ponds_sealvl(dt=dt,           &
                                        meltt=melttn (n), &
                                        melts=meltsn (n), &
