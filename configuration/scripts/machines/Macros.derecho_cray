@@ -14,7 +14,8 @@ FFLAGS_NOOPT:= -O0
 ifeq ($(ICE_BLDDEBUG), true)
   FFLAGS     += -O0 -hfp0 -g -Rbcdps -Ktrap=fp
 else
-  FFLAGS     += -O2 -hfp0   # -eo
+  # -Rp is needed to work around SAME_TBS compiler bug in cce/16, cce/17
+  FFLAGS     += -O2 -hfp0 -Rp # -eo
 endif
 
 SCC   := cc

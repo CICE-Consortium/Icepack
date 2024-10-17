@@ -249,7 +249,7 @@ section :ref:`tabnamelist`.
    "kappav", "visible extinction coefficient in ice, wavelength\ :math:`<`\ 700nm", "1.4 m\ :math:`^{-1}`"
    "kcatbound", ":math:`\bullet` category boundary formula", ""
    "kg_to_g", "kg to g conversion factor", "1000."
-   "kice", "thermal conductivity of fresh ice (:cite:`Bitz99`)", "2.03 W/m/deg"
+   "kice", "thermal conductivity of fresh ice with BL99+MU71 (:cite:`Bitz99`)", "2.03 W/m/deg"
    "kitd", ":math:`\bullet` type of itd conversions (0 = delta function, 1 = linear remap)", "1"
    "krdg_partic", ":math:`\bullet` ridging participation function", "1"
    "krdg_redist", ":math:`\bullet` ridging redistribution function", "1"

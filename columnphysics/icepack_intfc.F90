@@ -112,9 +112,12 @@
       use icepack_therm_shared  , only: icepack_snow_temperature
       use icepack_therm_shared  , only: icepack_liquidus_temperature
       use icepack_therm_shared  , only: icepack_sea_freezing_temperature
-      use icepack_therm_shared  , only: icepack_init_thermo
+      use icepack_therm_shared  , only: icepack_init_salinity
       use icepack_therm_shared  , only: icepack_salinity_profile
-      use icepack_therm_shared  , only: icepack_init_trcr
+      use icepack_therm_shared  , only: icepack_init_enthalpy
+      ! for backwards compatibilty, remove in the future
+      use icepack_therm_shared  , only: icepack_init_thermo => icepack_init_salinity
+      use icepack_therm_shared  , only: icepack_init_trcr => icepack_init_enthalpy
 
       use icepack_mushy_physics , only: icepack_enthalpy_snow
       use icepack_mushy_physics , only: icepack_enthalpy_mush
