@@ -739,7 +739,11 @@ cases.  Current filenames can be found in the options scripts in
    d) **Multidisciplinary Drifting Observatory for the Study of Arctic Climate (MOSAiC)**
 
     Atmospheric and oceanic forcing are available from the 2019-2020 Multidisciplinary Drifting Observatory 
-    for the Study of Arctic Climate (MOSAiC) expedition :cite:`Clemens-Sewall24`.
+    for the Study of Arctic Climate (MOSAiC) expedition :cite:`Clemens-Sewall24`. The atmospheric forcing is
+    available minutely and the oceanic forcing is available daily. These data are based on observations from
+    a collection of drifting ice floes in the Arctic Ocean. MOSAiC
+
+    
 
 3) **Climatological** - Maykut and Untersteiner 1971 :cite:`Maykut71`
 
