@@ -15,7 +15,7 @@
       use icepack_intfc, only: icepack_init_tracer_flags
       use icepack_intfc, only: icepack_init_tracer_sizes
       use icepack_intfc, only: icepack_init_tracer_indices
-      use icepack_intfc, only: icepack_init_trcr
+      use icepack_intfc, only: icepack_init_enthalpy
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_sizes
@@ -1311,27 +1311,24 @@
       integer (kind=int_kind), intent(in) :: &
          nx          ! number of grid cells
 
-      real (kind=dbl_kind), dimension (nx), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          Tair       ! air temperature  (K)
 
       ! ocean values may be redefined here, unlike in CICE
-      real (kind=dbl_kind), dimension (nx), intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          Tf     , & ! freezing temperature (C)
          sst        ! sea surface temperature (C)
 
-      real (kind=dbl_kind), dimension (nx,nilyr), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (:,:), intent(in) :: &
          salinz , & ! initial salinity profile
          Tmltz      ! initial melting temperature profile
 
-      real (kind=dbl_kind), dimension (nx,ncat), &
-         intent(out) :: &
+      real (kind=dbl_kind), dimension (:,:), intent(out) :: &
          aicen , & ! concentration of ice
          vicen , & ! volume per unit area of ice          (m)
          vsnon     ! volume per unit area of snow         (m)
 
-      real (kind=dbl_kind), dimension (nx,max_ntrcr,ncat), &
-         intent(out) :: &
+      real (kind=dbl_kind), dimension (:,:,:), intent(out) :: &
          trcrn     ! ice tracers
                    ! 1: surface temperature of ice/snow (C)
 
@@ -1441,7 +1438,7 @@
          vicen(i,n) = hinit(n) * ainit(n) ! m
          vsnon(i,n) = c0
          ! tracers
-         call icepack_init_trcr(Tair     = Tair(i),     &
+         call icepack_init_enthalpy(Tair = Tair(i),     &
                                 Tf       = Tf(i),       &
                                 Sprofile = salinz(i,:), &
                                 Tprofile = Tmltz(i,:),  &
@@ -1512,7 +1509,7 @@
          vicen(i,n) = hinit(n) * ainit(n) ! m
          vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
          ! tracers
-         call icepack_init_trcr(Tair     = Tair(i),     &
+         call icepack_init_enthalpy(Tair = Tair(i),     &
                                 Tf       = Tf(i),       &
                                 Sprofile = salinz(i,:), &
                                 Tprofile = Tmltz(i,:),  &
