@@ -497,7 +497,9 @@ icepack_step_ridge
                                       araftn,       vraftn,        &
                                       aice,         fsalt,         &
                                       first_ice,    fzsal,         &
-                                      flux_bio,     closing, Tf )
+                                      flux_bio,     closing,       &
+                                      Tf,                          &
+                                      docleanup,    dorebin)
   
         real (kind=dbl_kind), intent(in) :: &
            dt           ! time step
@@ -571,6 +573,10 @@ icepack_step_ridge
   
         logical (kind=log_kind), dimension(:), intent(inout) :: &
            first_ice    ! true until ice forms
+  
+       logical (kind=log_kind), intent(in), optional ::   &
+           docleanup, & ! if false, do not call cleanup_itd (default true)
+           dorebin      ! if false, do not call rebin in cleanup_itd (default true)
   
  
 
