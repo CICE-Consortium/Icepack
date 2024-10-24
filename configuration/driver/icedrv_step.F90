@@ -112,8 +112,8 @@
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: meltsliqn, meltsliq
       use icedrv_calendar, only: yday
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nx
-      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fside, wlat, &
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nfsd, nx
+      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rsiden, wlat, &
                              fbot, Tbot, Tsnice
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
       use icedrv_flux, only: wind, rhoa, potT, Qa, Qa_iso, zlvl, strax, stray, flatn
@@ -151,7 +151,7 @@
 
       integer (kind=int_kind) :: &
          ntrcr, nt_apnd, nt_hpnd, nt_ipnd, nt_alvl, nt_vlvl, nt_Tsfc, &
-         nt_iage, nt_FY, nt_qice, nt_sice, nt_qsno, &
+         nt_iage, nt_FY, nt_qice, nt_sice, nt_qsno, nt_fsd, &
          nt_aero, nt_isosno, nt_isoice, nt_rsnw, nt_smice, nt_smliq
 
       logical (kind=log_kind) :: &
@@ -202,7 +202,7 @@
          nt_qice_out=nt_qice, nt_sice_out=nt_sice, &
          nt_aero_out=nt_aero, nt_qsno_out=nt_qsno, &
          nt_rsnw_out=nt_rsnw, nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, &
-         nt_isosno_out=nt_isosno, nt_isoice_out=nt_isoice)
+         nt_isosno_out=nt_isosno, nt_isoice_out=nt_isoice, nt_fsd_out=nt_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -325,7 +325,7 @@
             strocnxT = strocnxT(i),   strocnyT  = strocnyT(i),    &
             fbot     = fbot(i),       frzmlt    = frzmlt(i),      &
             Tbot     = Tbot(i),       Tsnice    = Tsnice(i),      &
-            rside    = rside(i),      fside     = fside(i),       &
+            rsiden   = rsiden(i,:),                               &
             wlat     = wlat(i),                                   &
             fsnow    = fsnow(i),      frain     = frain(i),       &
             fpond    = fpond(i),      fsloss    = fsloss(i),      &
@@ -370,6 +370,7 @@
             snoice   = snoice(i),     snoicen   = snoicen(i,:),   &
             dsnow    = dsnow(i),      dsnown    = dsnown(i,:),    &
             meltsliqn= meltsliqn(i,:), &
+            afsdn         = trcrn       (i,nt_fsd:nt_fsd+nfsd-1,:), &
             lmask_n  = lmask_n(i),    lmask_s   = lmask_s(i),     &
             mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
             yday = yday,  prescribed_ice = prescribed_ice)
@@ -429,14 +430,13 @@
       use icedrv_arrays_column, only: hin_max, ocean_bio, &
                                       wave_sig_ht, wave_spectrum, &
                                       wavefreq, dwavefreq,        &
-                                      floe_rad_c, floe_binwidth,  &
                                d_afsd_latg, d_afsd_newi, d_afsd_latm, d_afsd_weld
       use icedrv_arrays_column, only: first_ice
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, &
-                                    nx, nfsd
+                                    nx
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
-      use icedrv_flux, only: fsalt, Tf, sss, salinz, fhocn, rside, fside, wlat
+      use icedrv_flux, only: fsalt, Tf, sss, salinz, fhocn, rsiden, wlat
       use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
       use icedrv_init, only: tmask
@@ -497,9 +497,9 @@
                          n_trcr_strata=n_trcr_strata(1:ntrcr),        &
                          nt_strata=nt_strata(1:ntrcr,:),              &
                          Tf=Tf(i), sss=sss(i),                        &
-                         salinz=salinz(i,:), fside=fside(i),          &
+                         salinz=salinz(i,:),                          &
                          wlat=wlat(i),                                &
-                         rside=rside(i),   meltl=meltl(i),            &
+                         rsiden=rsiden(i,:), meltl=meltl(i),          &
                          frzmlt=frzmlt(i), frazil=frazil(i),          &
                          frain=frain(i),   fpond=fpond(i),            &
                          fresh=fresh(i),   fsalt=fsalt(i),            &
@@ -522,9 +522,7 @@
                          d_afsd_latg=d_afsd_latg(i,:),                &
                          d_afsd_newi=d_afsd_newi(i,:),                &
                          d_afsd_latm=d_afsd_latm(i,:),                &
-                         d_afsd_weld=d_afsd_weld(i,:),                &
-                         floe_rad_c=floe_rad_c(:),                    &
-                         floe_binwidth=floe_binwidth(:))
+                         d_afsd_weld=d_afsd_weld(i,:))
 
          endif ! tmask
 
@@ -654,8 +652,8 @@
       subroutine step_dyn_wave (dt)
 
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
-          d_afsd_wave, floe_rad_l, floe_rad_c, wavefreq, dwavefreq
-      use icedrv_domain_size, only: ncat, nfsd, nfreq, nx
+          d_afsd_wave, wavefreq, dwavefreq
+      use icedrv_domain_size, only: ncat, nfreq, nx
       use icedrv_state, only: trcrn, aicen, aice, vice
       use icepack_intfc, only: icepack_step_wavefracture
 
@@ -685,11 +683,9 @@
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &
                         aicen         = aicen        (i,:),    &
-                        floe_rad_l    = floe_rad_l     (:),    &
-                        floe_rad_c    = floe_rad_c     (:),    &
                         wave_spectrum = wave_spectrum(i,:),    &
-                        wavefreq      = wavefreq       (:),    &
-                        dwavefreq     = dwavefreq      (:),    &
+                        wavefreq      = wavefreq     (:),      &
+                        dwavefreq     = dwavefreq    (:),      &
                         trcrn         = trcrn        (i,:,:),  &
                         d_afsd_wave   = d_afsd_wave  (i,:))
       end do ! i
