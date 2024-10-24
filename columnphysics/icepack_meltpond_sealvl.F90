@@ -28,6 +28,7 @@
       use icepack_parameters, only: rhosi, use_smliq_pnd
       use icepack_parameters, only: ktherm, frzpnd, dpscale, hi_min
       use icepack_parameters, only: pndhyps, pndfrbd, pndhead, apnd_sl
+      use icepack_parameters, only: pndaspect
       use icepack_tracers,    only: nilyr
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort
@@ -40,8 +41,6 @@
                   compute_ponds_sealvl,   &
                   pond_hypsometry,        &
                   pond_height
-
-      real (kind=dbl_kind), public :: pndasp
 
 !=======================================================================
 
@@ -350,8 +349,9 @@
       
       real (kind=dbl_kind) :: &
          dv, &     ! local variable for change in pond volume
-         vp        ! local variable for pond volume per category area
-      
+         vp, &     ! local variable for pond volume per category area
+         pndasp    ! pond aspect ratio
+
       character(len=*),parameter :: subname='(pond_hypsometry)'
 
       ! Behavior is undefined if dhpond and dvpond are both present
@@ -390,7 +390,7 @@
          apnd = c0
          hpnd = c0
       else
-         call calc_pndaspect(hin)
+         pndasp = calc_pndasp(hin)
          apnd = sqrt(vp/pndasp)
          ! preserve pond volume if pond fills all available area
          hpnd = c0
@@ -417,6 +417,10 @@
    
          real (kind=dbl_kind), intent(out) :: &
             hpsurf   ! height of pond surface above base of the ice (m)
+
+         ! local variables
+         real (kind=dbl_kind) :: &
+            pndasp   ! pond aspect ratio
          
          character(len=*),parameter :: subname='(pond_height)'
    
@@ -429,7 +433,11 @@
                ! assumes that the hypsometric curve has a constant slope
                ! of double the aspect ratio.
                ! If ponds occupy lowest elevations first. 
-               call calc_pndaspect(hin)
+               if (trim(pndhyps) == 'sealevel') then
+                  pndasp = calc_pndasp(hin)
+               else
+                  pndasp = pndaspect
+               endif
                if (apond < c1) then
                   hpsurf = hin - pndasp + c2*pndasp*apond
                else ! ponds cover all available area
@@ -452,26 +460,22 @@
 
 !=======================================================================
 
-      subroutine calc_pndaspect(hin)
+      function calc_pndasp(hin) &
+                           result(pndasp)
 
-         real (kind=dbl_kind), intent(in), optional :: &
+         real (kind=dbl_kind), intent(in) :: &
             hin   ! category mean ice thickness (m)
 
-         character(len=*),parameter :: subname='(sealevel_pndaspect)'
+         real (kind=dbl_kind) :: &
+            pndasp ! pond aspect ratio
+
+         character(len=*),parameter :: subname='(calc_pndasp)'
 
          ! Compute the pond aspect ratio for sea level ponds
-         if (trim(pndhyps) == 'sealevel') then
-            if (.not. present(hin)) then
-               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-               call icepack_warnings_add(subname// &
-                  " hin needed for sealevel ponds")
-               return
-            endif
-            pndasp = hin*(rhow - rhosi) / &
-               (rhofresh*apnd_sl**c2 - c2*rhow*apnd_sl + rhow)
-         endif ! Otherwise do nothing to pond aspect
+         pndasp = hin*(rhow - rhosi) / &
+            (rhofresh*apnd_sl**c2 - c2*rhow*apnd_sl + rhow)
 
-      end subroutine calc_pndaspect
+      end function calc_pndasp
 
    end module icepack_meltpond_sealvl
 !=======================================================================

@@ -1004,7 +1004,7 @@
 !
       subroutine write_restart_pond_sealvl(dims)
 
-      use icedrv_arrays_column, only: dhsn, ffracn, pndasp
+      use icedrv_arrays_column, only: dhsn, ffracn
       use icedrv_flux, only: fsnow
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
@@ -1027,7 +1027,6 @@
       call write_restart_field(nu_dump,fsnow(:),1,'fsnow',dims)
       call write_restart_field(nu_dump,dhsn(:,:),ncat,'dhsn',dims)
       call write_restart_field(nu_dump,ffracn(:,:),ncat,'ffracn',dims)
-      call write_restart_field(nu_dump,pndasp(:,:),ncat,'ffracn',dims)
 
       end subroutine write_restart_pond_sealvl
 
@@ -1037,7 +1036,7 @@
 !
       subroutine read_restart_pond_sealvl()
 
-      use icedrv_arrays_column, only: dhsn, ffracn, pndasp
+      use icedrv_arrays_column, only: dhsn, ffracn
       use icedrv_flux, only: fsnow
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
@@ -1058,7 +1057,6 @@
       call read_restart_field(nu_restart,fsnow(:),1,'fsnow')
       call read_restart_field(nu_restart,dhsn(:,:),ncat,'dhsn')
       call read_restart_field(nu_restart,ffracn(:,:),ncat,'ffracn')
-      call read_restart_field(nu_restart,pndasp(:,:),ncat,'pndasp')
 
       end subroutine read_restart_pond_sealvl
 
