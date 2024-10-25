@@ -90,11 +90,23 @@
 !
 !  authors: Lettie Roach, NIWA/VUW and C. M. Bitz, UW
 
-      subroutine icepack_init_fsd_bounds( write_diags )  ! flag for writing diagnostics
+      subroutine icepack_init_fsd_bounds( &
+         floe_rad_l_out,    &  ! fsd size lower bound in m (radius)
+         floe_rad_c_out,    &  ! fsd size bin centre in m (radius)
+         floe_binwidth_out, &  ! fsd size bin width in m (radius)
+         c_fsd_range_out,   &  ! string for history output
+         write_diags)          ! flag for writing diagnostics
 
+      real(kind=dbl_kind), dimension(:), intent(out), optional ::  &
+         floe_rad_l_out,    &  ! fsd size lower bound in m (radius)
+         floe_rad_c_out,    &  ! fsd size bin centre in m (radius)
+         floe_binwidth_out     ! fsd size bin width in m (radius)
+
+      character (len=35), dimension(:), intent(out), optional :: &
+         c_fsd_range_out       ! string for history output
 
       logical (kind=log_kind), intent(in), optional :: &
-         write_diags       ! write diags flag
+         write_diags           ! write diags flag
 
 !autodocument_end
 
@@ -216,20 +228,56 @@
       enddo
 
       if (present(write_diags)) then
-      if (write_diags) then
-         write(warnstr,*) ' '
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) 'floe_rad(n-1) < fsd Cat n < floe_rad(n)'
-         call icepack_warnings_add(warnstr)
-         do n = 1, nfsd
-            write(warnstr,*) floe_rad(n-1),' < fsd Cat ',n, ' < ',floe_rad(n)
+         if (write_diags) then
+            write(warnstr,*) ' '
             call icepack_warnings_add(warnstr)
-         enddo
-         write(warnstr,*) ' '
-         call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) 'floe_rad(n-1) < fsd Cat n < floe_rad(n)'
+            call icepack_warnings_add(warnstr)
+            do n = 1, nfsd
+               write(warnstr,*) floe_rad(n-1),' < fsd Cat ',n, ' < ',floe_rad(n)
+               call icepack_warnings_add(warnstr)
+            enddo
+            write(warnstr,*) ' '
+            call icepack_warnings_add(warnstr)
+         endif
       endif
+
+      if (present(floe_rad_l_out)) then
+         if (size(floe_rad_l_out) /= size(floe_rad_l)) then
+            call icepack_warnings_add(subname//' floe_rad_l_out incorrect size')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         floe_rad_l_out(:) = floe_rad_l(:)
+      endif
+
+      if (present(floe_rad_c_out)) then
+         if (size(floe_rad_c_out) /= size(floe_rad_c)) then
+            call icepack_warnings_add(subname//' floe_rad_c_out incorrect size')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         floe_rad_c_out(:) = floe_rad_c(:)
+      endif
+
+      if (present(floe_binwidth_out)) then
+         if (size(floe_binwidth_out) /= size(floe_binwidth)) then
+            call icepack_warnings_add(subname//' floe_binwidth_out incorrect size')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         floe_binwidth_out(:) = floe_binwidth(:)
+      endif
+
+      if (present(c_fsd_range_out)) then
+         if (size(c_fsd_range_out) /= size(c_fsd_range)) then
+            call icepack_warnings_add(subname//' c_fsd_range_out incorrect size')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         c_fsd_range_out(:) = c_fsd_range(:)
       endif
 
       end subroutine icepack_init_fsd_bounds
@@ -311,7 +359,6 @@
          n                  ! thickness category index
 
       character(len=*), parameter :: subname='(icepack_cleanup_fsd)'
-
 
       if (tr_fsd) then
 

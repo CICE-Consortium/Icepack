@@ -29,7 +29,6 @@
       module icepack_wavefracspec
 
       use icepack_kinds
-
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd, ncat, nfsd

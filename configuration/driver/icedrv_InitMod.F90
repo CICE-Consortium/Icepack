@@ -31,7 +31,7 @@
 
       subroutine icedrv_initialize
 
-      use icedrv_arrays_column, only: hin_max, c_hi_range
+      use icedrv_arrays_column, only: hin_max, c_hi_range, floe_rad_c
       use icedrv_calendar, only: dt, time, istep, istep1, &
           init_calendar, calendar
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
@@ -96,7 +96,7 @@
       endif
 
       if (tr_fsd) then
-         call icepack_init_fsd_bounds( write_diags=.true. )
+         call icepack_init_fsd_bounds(floe_rad_c_out=floe_rad_c,  write_diags=.true. )
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted(subname)) then
             call icedrv_system_abort(file=__FILE__,line=__LINE__)

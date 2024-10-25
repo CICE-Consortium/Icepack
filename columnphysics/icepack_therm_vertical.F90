@@ -624,40 +624,40 @@
 
          if (tr_fsd) then ! alter rsiden now since floes are not of size floediam
 
-         do n = 1, ncat
+            do n = 1, ncat
+               G_radialn(n) = -wlat_loc ! negative
 
-            G_radialn(n) = -wlat_loc ! negative
+               ! afsdn present check up the calling tree
+               if (any(afsdn(:,n) < c0)) then
+                  write(warnstr,*) subname, 'lateral_melt B afsd < 0 ',n
+                  call icepack_warnings_add(warnstr)
+               endif
 
-            if (any(afsdn(:,n) < c0)) then
-               write(warnstr,*) subname, 'lateral_melt B afsd < 0 ',n
-               call icepack_warnings_add(warnstr)
-            endif
+               bin1_arealoss = -afsdn(1,n)  / floe_binwidth(1) ! when scaled by *G_radialn(n)*dt*aicen(n)
 
-            bin1_arealoss = -afsdn(1,n)  / floe_binwidth(1) ! when scaled by *G_radialn(n)*dt*aicen(n)
+               delta_an(n) = c0
+               do k = 1, nfsd
+                  ! this is delta_an(n) when scaled by *G_radialn(n)*dt*aicen(n)
+                  delta_an(n) = delta_an(n) + ((c2/floe_rad_c(k)) * afsdn(k,n)) ! delta_an < 0
+               end do
 
-            delta_an(n) = c0
-            do k = 1, nfsd
-               ! this is delta_an(n) when scaled by *G_radialn(n)*dt*aicen(n)
-               delta_an(n) = delta_an(n) + ((c2/floe_rad_c(k)) * afsdn(k,n)) ! delta_an < 0
-            end do
+               ! add negative area loss from fsd
+               delta_an(n) = (delta_an(n) - bin1_arealoss)*G_radialn(n)*dt
 
-            ! add negative area loss from fsd
-            delta_an(n) = (delta_an(n) - bin1_arealoss)*G_radialn(n)*dt
+               if (delta_an(n) > c0) then
+                  write(warnstr,*) subname, 'ERROR delta_an > 0 ',delta_an(n)
+                  call icepack_warnings_add(warnstr)
+               endif
 
-            if (delta_an(n) > c0) then
-               write(warnstr,*) subname, 'ERROR delta_an > 0 ',delta_an(n)
-               call icepack_warnings_add(warnstr)
-            endif
+               ! following original code, not necessary for fsd
+               if (aicen(n) > c0) rsiden(n) = MIN(-delta_an(n),c1)
 
-            ! following original code, not necessary for fsd
-            if (aicen(n) > c0) rsiden(n) = MIN(-delta_an(n),c1)
+               if (rsiden(n) < c0) then
+                  write(warnstr,*) subname, 'ERROR rsiden < 0 ',rsiden(n)
+                  call icepack_warnings_add(warnstr)
+               endif
+            enddo ! ncat
 
-            if (rsiden(n) < c0) then
-               write(warnstr,*) subname, 'ERROR rsiden < 0 ',rsiden(n)
-               call icepack_warnings_add(warnstr)
-            endif
-
-         enddo ! ncat
          endif ! if tr_fsd
 
       !-----------------------------------------------------------------
@@ -2439,9 +2439,6 @@
       real (kind=dbl_kind), dimension(ncat) :: &
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
-      real (kind=dbl_kind), dimension(:,:), allocatable :: &
-         l_afsdn         ! (kg/m^2)
-
       real (kind=dbl_kind) :: &
          l_fswthrun_vdr, & ! vis dir SW local n ice to ocean  (W/m^2)
          l_fswthrun_vdf, & ! vis dif SW local n ice to ocean  (W/m^2)
@@ -2492,7 +2489,12 @@
          endif
          if (tr_fsd) then
             if (.not.present(afsdn)) then
-               call icepack_warnings_add(subname//' error in fsd arguments, tr_fsd=T')
+               call icepack_warnings_add(subname//' error missing afsdn argument, tr_fsd=T')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            endif
+            if (size(afsdn,dim=1) /= nfsd .or. size(afsdn,dim=2) /= ncat) then
+               call icepack_warnings_add(subname//' error size of afsdn argument, tr_fsd=T')
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                return
             endif
@@ -2509,14 +2511,6 @@
 
       l_meltsliq  = c0
       l_meltsliqn = c0
-
-      if (tr_fsd) then
-         allocate(l_afsdn(nfsd,ncat))
-         l_afsdn(:,:) = afsdn(:,:)
-      else
-         allocate(l_afsdn(1,1))
-         l_afsdn = c0
-      endif
 
       ! solid and liquid components of snow mass
       massicen(:,:) = c0
@@ -2584,10 +2578,10 @@
                                   ustar_min,            &
                                   fbot_xfer_type,       &
                                   strocnxT,  strocnyT,  &
-                                  Tbot,       fbot,     &
-                                  rsiden,     Cdn_ocn,   &
-                                  wlat,       aicen,  &
-                                  afsdn = l_afsdn)
+                                  Tbot,      fbot,      &
+                                  rsiden,    Cdn_ocn,   &
+                                  wlat,      aicen,     &
+                                  afsdn)
 
       if (icepack_warnings_aborted(subname)) return
 

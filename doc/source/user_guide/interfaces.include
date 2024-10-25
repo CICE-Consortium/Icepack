@@ -142,22 +142,22 @@ icepack_init_fsd_bounds
   !  authors: Lettie Roach, NIWA/VUW and C. M. Bitz, UW
   
         subroutine icepack_init_fsd_bounds( &
-           floe_rad_l,    &  ! fsd size lower bound in m (radius)
-           floe_rad_c,    &  ! fsd size bin centre in m (radius)
-           floe_binwidth, &  ! fsd size bin width in m (radius)
-           c_fsd_range,   &  ! string for history output
-           write_diags    )  ! flag for writing diagnostics
+           floe_rad_l_out,    &  ! fsd size lower bound in m (radius)
+           floe_rad_c_out,    &  ! fsd size bin centre in m (radius)
+           floe_binwidth_out, &  ! fsd size bin width in m (radius)
+           c_fsd_range_out,   &  ! string for history output
+           write_diags)          ! flag for writing diagnostics
   
-        real(kind=dbl_kind), dimension(:), intent(inout) ::  &
-           floe_rad_l,    &  ! fsd size lower bound in m (radius)
-           floe_rad_c,    &  ! fsd size bin centre in m (radius)
-           floe_binwidth     ! fsd size bin width in m (radius)
+        real(kind=dbl_kind), dimension(:), intent(out), optional ::  &
+           floe_rad_l_out,    &  ! fsd size lower bound in m (radius)
+           floe_rad_c_out,    &  ! fsd size bin centre in m (radius)
+           floe_binwidth_out     ! fsd size bin width in m (radius)
   
-        character (len=35), intent(out) :: &
-           c_fsd_range(nfsd) ! string for history output
+        character (len=35), dimension(:), intent(out), optional :: &
+           c_fsd_range_out       ! string for history output
   
         logical (kind=log_kind), intent(in), optional :: &
-           write_diags       ! write diags flag
+           write_diags           ! write diags flag
   
  
 
@@ -172,17 +172,10 @@ icepack_init_fsd
   !
   !  authors: Lettie Roach, NIWA/VUW
   
-        subroutine icepack_init_fsd(ice_ic, &
-           floe_rad_c,    &  ! fsd size bin centre in m (radius)
-           floe_binwidth, &  ! fsd size bin width in m (radius)
-           afsd)             ! floe size distribution tracer
+        subroutine icepack_init_fsd(ice_ic, afsd)             ! floe size distribution tracer
   
         character(len=char_len_long), intent(in) :: &
            ice_ic            ! method of ice cover initialization
-  
-        real(kind=dbl_kind), dimension(:), intent(inout) ::  &
-           floe_rad_c,    &  ! fsd size bin centre in m (radius)
-           floe_binwidth     ! fsd size bin width in m (radius)
   
         real (kind=dbl_kind), dimension (:), intent(inout) :: &
            afsd              ! floe size tracer: fraction distribution of floes
@@ -2253,8 +2246,8 @@ icepack_step_therm2
                                        nt_strata,                   &
                                        Tf,           sss,           &
                                        salinz,                      &
-                                       rside,        meltl,         &
-                                       fside,        wlat,          &
+                                       rsiden,       meltl,         &
+                                       wlat,                        &
                                        frzmlt,       frazil,        &
                                        frain,        fpond,         &
                                        fresh,        fsalt,         &
@@ -2271,8 +2264,7 @@ icepack_step_therm2
                                        wavefreq,                    &
                                        dwavefreq,                   &
                                        d_afsd_latg,  d_afsd_newi,   &
-                                       d_afsd_latm,  d_afsd_weld,   &
-                                       floe_rad_c,   floe_binwidth)
+                                       d_afsd_latm,  d_afsd_weld)
   
         use icepack_parameters, only: icepack_init_parameters
   
@@ -2286,7 +2278,6 @@ icepack_step_therm2
            dt       , & ! time step
            Tf       , & ! freezing temperature (C)
            sss      , & ! sea surface salinity (ppt)
-           rside    , & ! fraction of ice that melts laterally
            frzmlt       ! freezing/melting potential (W/m^2)
   
         integer (kind=int_kind), dimension (:), intent(in) :: &
@@ -2301,13 +2292,13 @@ icepack_step_therm2
            nt_strata    ! indices of underlying tracer layers
   
         real (kind=dbl_kind), dimension(:), intent(in) :: &
+           rsiden   , & ! fraction of ice that melts laterally
            salinz   , & ! initial salinity profile
            ocean_bio    ! ocean concentration of biological tracer
   
         real (kind=dbl_kind), intent(inout) :: &
            aice     , & ! sea ice concentration
            aice0    , & ! concentration of open water
-           fside    , & ! lateral heat flux (W/m^2)
            frain    , & ! rainfall rate (kg/m^2 s)
            fpond    , & ! fresh water flux to ponds (kg/m^2/s)
            fresh    , & ! fresh water flux to ocean (kg/m^2/s)
@@ -2369,10 +2360,6 @@ icepack_step_therm2
            d_afsd_newi, & ! new ice formation
            d_afsd_latm, & ! lateral melt
            d_afsd_weld    ! welding
-  
-        real (kind=dbl_kind), dimension (:), intent(in), optional :: &
-           floe_rad_c, &  ! fsd size bin centre in m (radius)
-           floe_binwidth  ! fsd size bin width in m (radius)
   
  
 
@@ -2563,8 +2550,8 @@ icepack_step_therm1
                                       strocnxT    , strocnyT    , &
                                       fbot        ,               &
                                       Tbot        , Tsnice      , &
-                                      frzmlt      , rside       , &
-                                      fside       , wlat        , &
+                                      frzmlt      , rsiden      , &
+                                      wlat        ,               &
                                       fsnow       , frain       , &
                                       fpond       , fsloss      , &
                                       fsurf       , fsurfn      , &
@@ -2611,7 +2598,7 @@ icepack_step_therm1
                                       lmask_n     , lmask_s     , &
                                       mlt_onset   , frz_onset   , &
                                       yday        , prescribed_ice, &
-                                      zlvs)
+                                      zlvs        , afsdn)
   
         real (kind=dbl_kind), intent(in) :: &
            dt          , & ! time step
@@ -2687,8 +2674,6 @@ icepack_step_therm1
            strocnyT    , & ! ice-ocean stress, y-direction
            fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
            frzmlt      , & ! freezing/melting potential         (W/m^2)
-           rside       , & ! fraction of ice that melts laterally
-           fside       , & ! lateral heat flux                  (W/m^2)
            sst         , & ! sea surface temperature                (C)
            Tf          , & ! freezing temperature                   (C)
            Tbot        , & ! ice bottom surface temperature     (deg C)
@@ -2701,7 +2686,7 @@ icepack_step_therm1
            frz_onset       ! day of year that freezing begins (congel or frazil)
   
         real (kind=dbl_kind), intent(out), optional :: &
-           wlat            ! lateral melt rate                    (m/s)
+           wlat            ! lateral melt rate (m/s)
   
         real (kind=dbl_kind), intent(inout), optional :: &
            fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
@@ -2735,6 +2720,9 @@ icepack_step_therm1
            H2_18O_ocn  , & ! ocean concentration of H2_18O      (kg/kg)
            zlvs            ! atm level height for scalars (if different than zlvl) (m)
   
+        real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
+           afsdn        ! afsd tracer
+  
         real (kind=dbl_kind), dimension(:), intent(inout) :: &
            aicen_init  , & ! fractional area of ice
            vicen_init  , & ! volume per unit area of ice            (m)
@@ -2750,6 +2738,7 @@ icepack_step_therm1
            ipnd        , & ! melt pond refrozen lid thickness       (m)
            iage        , & ! volume-weighted ice age
            FY          , & ! area-weighted first-year ice area
+           rsiden      , & ! fraction of ice that melts laterally
            fsurfn      , & ! net flux to top surface, excluding fcondtop
            fcondtopn   , & ! downward cond flux at top surface  (W m-2)
            fcondbotn   , & ! downward cond flux at bottom surface (W m-2)
@@ -3380,7 +3369,6 @@ icepack_step_wavefracture
         subroutine icepack_step_wavefracture(wave_spec_type,   &
                     dt,            nfreq,                      &
                     aice,          vice,            aicen,     &
-                    floe_rad_l,    floe_rad_c,                 &
                     wave_spectrum, wavefreq,        dwavefreq, &
                     trcrn,         d_afsd_wave)
   
@@ -3398,10 +3386,6 @@ icepack_step_wavefracture
   
         real (kind=dbl_kind), dimension(ncat), intent(in) :: &
            aicen           ! ice area fraction (categories)
-  
-        real(kind=dbl_kind), dimension(:), intent(in) ::  &
-           floe_rad_l,   & ! fsd size lower bound in m (radius)
-           floe_rad_c      ! fsd size bin centre in m (radius)
   
         real (kind=dbl_kind), dimension (:), intent(in) :: &
            wavefreq,     & ! wave frequencies (s^-1)
