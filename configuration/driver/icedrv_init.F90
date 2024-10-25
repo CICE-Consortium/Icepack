@@ -1296,7 +1296,6 @@
 
       use icedrv_arrays_column, only: hin_max
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, nfsd
-      use icepack_fsd, only: floe_rad_c, floe_binwidth
 
       integer (kind=int_kind), intent(in) :: &
          nx          ! number of grid cells
