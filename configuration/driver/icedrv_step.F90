@@ -598,19 +598,21 @@
       ! Aggregate the updated state variables (includes ghost cells).
       !-----------------------------------------------------------------
 
-         if (tmask(i)) then
-            call icepack_aggregate (                               &
-                         aicen=aicen(i,:), trcrn=trcrn(i,1:ntrcr,:), &
-                         vicen=vicen(i,:), vsnon=vsnon(i,:),       &
-                         aice =aice (i),   trcr =trcr (i,1:ntrcr), &
-                         vice =vice (i),   vsno =vsno (i),         &
-                         aice0=aice0(i),                           &
-                         trcr_depend=trcr_depend    (1:ntrcr),     &
-                         trcr_base=trcr_base        (1:ntrcr,:),   &
-                         n_trcr_strata=n_trcr_strata(1:ntrcr),     &
-                         nt_strata=nt_strata        (1:ntrcr,:),   &
-                         Tf=Tf(i))
-         endif
+         if (tmask(i)) &
+         call icepack_aggregate(trcrn=trcrn(i,1:ntrcr,:),     &
+                                aicen=aicen(i,:),             &
+                                vicen=vicen(i,:),             &
+                                vsnon=vsnon(i,:),             &
+                                trcr=trcr (i,1:ntrcr),        &
+                                aice=aice (i),                &
+                                vice=vice (i),                &
+                                vsno=vsno (i),                &
+                                aice0=aice0(i),               &
+                                trcr_depend=trcr_depend(1:ntrcr),     &
+                                trcr_base=trcr_base    (1:ntrcr,:),   &
+                                n_trcr_strata=n_trcr_strata(1:ntrcr), &
+                                nt_strata=nt_strata    (1:ntrcr,:), &
+                                Tf = Tf(i))
 
          if (present(offset)) then
 

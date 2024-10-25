@@ -11,6 +11,7 @@
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_write_tracer_flags, icepack_write_tracer_indices
       use icepack_intfc, only: icepack_write_tracer_sizes, icepack_write_parameters
       use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
@@ -180,12 +181,13 @@
       use icedrv_state ! almost everything
 
       integer(kind=int_kind) :: &
-         i                            ! horizontal indices
+         i,          & ! horizontal indices
+         ntrcr         ! tracer count
 
       logical (kind=log_kind) :: &
-         skl_bgc, &    ! from icepack
-         z_tracers, &  ! from icepack
-         tr_brine, &   ! from icepack
+         skl_bgc,    & ! from icepack
+         z_tracers,  & ! from icepack
+         tr_brine,   & ! from icepack
          tr_fsd        ! from icepack
 
       character(len=*), parameter :: subname='(init_restart)'
@@ -197,6 +199,7 @@
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_fsd_out=tr_fsd)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -228,20 +231,20 @@
       !-----------------------------------------------------------------
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate(aicen=aicen(i,:),   &
-                                vicen=vicen(i,:),   &
-                                vsnon=vsnon(i,:),   &
-                                trcrn=trcrn(i,:,:), &
-                                aice=aice (i),      &
-                                vice=vice (i),      &
-                                vsno=vsno (i),      &
-                                trcr=trcr (i,:),    &
-                                aice0=aice0(i),     &
-                                trcr_depend=trcr_depend, &
-                                trcr_base=trcr_base,     &
-                                n_trcr_strata=n_trcr_strata, &
-                                nt_strata=nt_strata, &
-                                Tf=Tf(i))
+         call icepack_aggregate(trcrn=trcrn(i,1:ntrcr,:),     &
+                                aicen=aicen(i,:),             &
+                                vicen=vicen(i,:),             &
+                                vsnon=vsnon(i,:),             &
+                                trcr=trcr (i,1:ntrcr),        &
+                                aice=aice (i),                &
+                                vice=vice (i),                &
+                                vsno=vsno (i),                &
+                                aice0=aice0(i),               &
+                                trcr_depend=trcr_depend(1:ntrcr),     &
+                                trcr_base=trcr_base    (1:ntrcr,:),   &
+                                n_trcr_strata=n_trcr_strata(1:ntrcr), &
+                                nt_strata=nt_strata    (1:ntrcr,:), &
+                                Tf = Tf(i))
       enddo
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
