@@ -194,8 +194,11 @@
       floe_rad_c = (floe_rad_h+floe_rad_l)/c2
 
       floe_area_l = c4*floeshape*floe_rad_l**2
-      floe_area_c = c4*floeshape*floe_rad_c**2
       floe_area_h = c4*floeshape*floe_rad_h**2
+!     floe_area_c = c4*floeshape*floe_rad_c**2
+!     This is exactly in the middle of floe_area_h and floe_area_l
+!     Whereas the above calculation is closer to floe_area_l.
+      floe_area_c = (floe_area_h+floe_area_l)/c2
 
       floe_binwidth = floe_rad_h - floe_rad_l
 
