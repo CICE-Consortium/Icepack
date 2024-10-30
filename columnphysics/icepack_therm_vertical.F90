@@ -696,8 +696,6 @@
             rsiden(n) = rsiden(n) * xtmp  ! xtmp is almost always 1 so usually nothing happens here
          enddo ! ncat
 
-!         write(warnstr,*) 'FBM ',rsiden(1), xtmp
-!         call icepack_warnings_add(warnstr)
       endif
 
       if (present(wlat)) wlat=wlat_loc

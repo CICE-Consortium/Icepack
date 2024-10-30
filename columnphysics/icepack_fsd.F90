@@ -592,7 +592,6 @@
       endif ! vi0new_lat > 0
 
       ! Use remaining ice volume as in standard model,
-      ! but ice cannot grow into the area that has grown laterally
       tot_latg = SUM(d_an_latg(:))
 
       end subroutine fsd_lateral_growth

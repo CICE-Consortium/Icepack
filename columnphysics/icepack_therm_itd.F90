@@ -959,9 +959,6 @@
 
       if (.not. any(rsiden(:) > c0)) return  ! no lateral melt, get out now
 
-!      write(warnstr,*) 'LM ',rsiden(1)
-!      call icepack_warnings_add(warnstr)
-
       dfhocn   = c0
       dfpond   = c0
       dfresh   = c0
@@ -1027,7 +1024,7 @@
          ! floe size distribution
          if (tr_fsd) then
             if (rsiden(n) > puny) then
-               if (aicen(n) > puny) then    ! not sure if this should be aicen or aicen_init
+               if (aicen(n) > puny) then
 
                   ! adaptive subtimestep
                   elapsed_t = c0
