@@ -55,12 +55,18 @@
       public :: icepack_init_fsd_bounds, icepack_init_fsd, icepack_cleanup_fsd, &
          fsd_lateral_growth, fsd_add_new_ice, fsd_weld_thermo, get_subdt_fsd
 
-      real(kind=dbl_kind), dimension(:), allocatable ::  &
+      real(kind=dbl_kind), dimension(:), allocatable, public ::  &
          floe_rad_h,         & ! fsd size higher bound in m (radius)
+         floe_rad_c,         & ! fsd size center in m (radius)
+         floe_rad_l,         & ! fsd size lower bound in m (radius)
+         floe_binwidth,      & ! fsd size binwidth in m (radius)
          floe_area_l,        & ! fsd area at lower bound (m^2)
          floe_area_h,        & ! fsd area at higher bound (m^2)
          floe_area_c,        & ! fsd area at bin centre (m^2)
          floe_area_binwidth    ! floe area bin width (m^2)
+
+      character (len=35), dimension(:), allocatable, public :: &
+         c_fsd_range           ! string for history output
 
       integer(kind=int_kind), dimension(:,:), allocatable, public ::  &
          iweld                 ! floe size categories that can combine
@@ -85,22 +91,22 @@
 !  authors: Lettie Roach, NIWA/VUW and C. M. Bitz, UW
 
       subroutine icepack_init_fsd_bounds( &
-         floe_rad_l,    &  ! fsd size lower bound in m (radius)
-         floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_binwidth, &  ! fsd size bin width in m (radius)
-         c_fsd_range,   &  ! string for history output
-         write_diags    )  ! flag for writing diagnostics
+         floe_rad_l_out,    &  ! fsd size lower bound in m (radius)
+         floe_rad_c_out,    &  ! fsd size bin centre in m (radius)
+         floe_binwidth_out, &  ! fsd size bin width in m (radius)
+         c_fsd_range_out,   &  ! string for history output
+         write_diags)          ! flag for writing diagnostics
 
-      real(kind=dbl_kind), dimension(:), intent(inout) ::  &
-         floe_rad_l,    &  ! fsd size lower bound in m (radius)
-         floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_binwidth     ! fsd size bin width in m (radius)
+      real(kind=dbl_kind), dimension(:), intent(out), optional ::  &
+         floe_rad_l_out,    &  ! fsd size lower bound in m (radius)
+         floe_rad_c_out,    &  ! fsd size bin centre in m (radius)
+         floe_binwidth_out     ! fsd size bin width in m (radius)
 
-      character (len=35), intent(out) :: &
-         c_fsd_range(nfsd) ! string for history output
+      character (len=35), dimension(:), intent(out), optional :: &
+         c_fsd_range_out       ! string for history output
 
       logical (kind=log_kind), intent(in), optional :: &
-         write_diags       ! write diags flag
+         write_diags           ! write diags flag
 
 !autodocument_end
 
@@ -111,11 +117,8 @@
 
       real (kind=dbl_kind) :: test
 
-      real (kind=dbl_kind), dimension (0:nfsd) :: &
-         floe_rad
-
       real (kind=dbl_kind), dimension(:), allocatable :: &
-         lims
+         lims, floe_rad
 
       character(len=8) :: c_fsd1,c_fsd2
       character(len=2) :: c_nf
@@ -169,10 +172,15 @@
 
       allocate(                                                   &
          floe_rad_h          (nfsd), & ! fsd size higher bound in m (radius)
+         floe_rad_l          (nfsd), & ! fsd size lower bound in m (radius)
+         floe_rad_c          (nfsd), & ! fsd size center in m (radius)
+         floe_rad            (0:nfsd), & ! fsd bounds in m (radius)
          floe_area_l         (nfsd), & ! fsd area at lower bound (m^2)
          floe_area_h         (nfsd), & ! fsd area at higher bound (m^2)
          floe_area_c         (nfsd), & ! fsd area at bin centre (m^2)
          floe_area_binwidth  (nfsd), & ! floe area bin width (m^2)
+         floe_binwidth       (nfsd), & ! floe bin width (m)
+         c_fsd_range         (nfsd), & ! 
          iweld         (nfsd, nfsd), & ! fsd categories that can weld
          stat=ierr)
       if (ierr/=0) then
@@ -186,8 +194,11 @@
       floe_rad_c = (floe_rad_h+floe_rad_l)/c2
 
       floe_area_l = c4*floeshape*floe_rad_l**2
-      floe_area_c = c4*floeshape*floe_rad_c**2
       floe_area_h = c4*floeshape*floe_rad_h**2
+!     floe_area_c = c4*floeshape*floe_rad_c**2
+!     This is exactly in the middle of floe_area_h and floe_area_l
+!     Whereas the above calculation is closer to floe_area_l.
+      floe_area_c = (floe_area_h+floe_area_l)/c2
 
       floe_binwidth = floe_rad_h - floe_rad_l
 
@@ -220,20 +231,56 @@
       enddo
 
       if (present(write_diags)) then
-      if (write_diags) then
-         write(warnstr,*) ' '
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) 'floe_rad(n-1) < fsd Cat n < floe_rad(n)'
-         call icepack_warnings_add(warnstr)
-         do n = 1, nfsd
-            write(warnstr,*) floe_rad(n-1),' < fsd Cat ',n, ' < ',floe_rad(n)
+         if (write_diags) then
+            write(warnstr,*) ' '
             call icepack_warnings_add(warnstr)
-         enddo
-         write(warnstr,*) ' '
-         call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) 'floe_rad(n-1) < fsd Cat n < floe_rad(n)'
+            call icepack_warnings_add(warnstr)
+            do n = 1, nfsd
+               write(warnstr,*) floe_rad(n-1),' < fsd Cat ',n, ' < ',floe_rad(n)
+               call icepack_warnings_add(warnstr)
+            enddo
+            write(warnstr,*) ' '
+            call icepack_warnings_add(warnstr)
+         endif
       endif
+
+      if (present(floe_rad_l_out)) then
+         if (size(floe_rad_l_out) /= size(floe_rad_l)) then
+            call icepack_warnings_add(subname//' floe_rad_l_out incorrect size')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         floe_rad_l_out(:) = floe_rad_l(:)
+      endif
+
+      if (present(floe_rad_c_out)) then
+         if (size(floe_rad_c_out) /= size(floe_rad_c)) then
+            call icepack_warnings_add(subname//' floe_rad_c_out incorrect size')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         floe_rad_c_out(:) = floe_rad_c(:)
+      endif
+
+      if (present(floe_binwidth_out)) then
+         if (size(floe_binwidth_out) /= size(floe_binwidth)) then
+            call icepack_warnings_add(subname//' floe_binwidth_out incorrect size')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         floe_binwidth_out(:) = floe_binwidth(:)
+      endif
+
+      if (present(c_fsd_range_out)) then
+         if (size(c_fsd_range_out) /= size(c_fsd_range)) then
+            call icepack_warnings_add(subname//' c_fsd_range_out incorrect size')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+         c_fsd_range_out(:) = c_fsd_range(:)
       endif
 
       end subroutine icepack_init_fsd_bounds
@@ -256,17 +303,10 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 
-      subroutine icepack_init_fsd(ice_ic, &
-         floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_binwidth, &  ! fsd size bin width in m (radius)
-         afsd)             ! floe size distribution tracer
+      subroutine icepack_init_fsd(ice_ic, afsd)             ! floe size distribution tracer
 
       character(len=char_len_long), intent(in) :: &
          ice_ic            ! method of ice cover initialization
-
-      real(kind=dbl_kind), dimension(:), intent(inout) ::  &
-         floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_binwidth     ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          afsd              ! floe size tracer: fraction distribution of floes
@@ -323,7 +363,6 @@
 
       character(len=*), parameter :: subname='(icepack_cleanup_fsd)'
 
-
       if (tr_fsd) then
 
          do n = 1, ncat
@@ -378,13 +417,10 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 
-      subroutine partition_area (floe_rad_c, aice,      &
+      subroutine partition_area (aice,                  &
                                  aicen,      vicen,     &
                                  afsdn,      lead_area, &
                                  latsurf_area)
-
-      real (kind=dbl_kind), dimension(:), intent(in) ::  &
-         floe_rad_c         ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), intent(in) :: &
          aice               ! ice concentration
@@ -476,7 +512,7 @@
       subroutine fsd_lateral_growth (dt,        aice,         &
                                      aicen,     vicen,        &
                                      vi0new,                  &
-                                     frazil,    floe_rad_c,   &
+                                     frazil,                  &
                                      afsdn,                   &
                                      lead_area, latsurf_area, &
                                      G_radial,  d_an_latg,    &
@@ -496,10 +532,6 @@
       real (kind=dbl_kind), intent(inout) :: &
          vi0new         , & ! volume of new ice added to cat 1 (m)
          frazil             ! frazil ice growth        (m/step-->cm/day)
-
-      ! floe size distribution
-      real (kind=dbl_kind), dimension (:), intent(in) :: &
-         floe_rad_c         ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension(ncat), intent(out) :: &
          d_an_latg          ! change in aicen occuring due to lateral growth
@@ -529,7 +561,7 @@
       d_an_latg    = c0
 
       ! partition volume into lateral growth and frazil
-      call partition_area (floe_rad_c, aice,      &
+      call partition_area (aice,                  &
                            aicen,      vicen,     &
                            afsdn,      lead_area, &
                            latsurf_area)
@@ -539,9 +571,6 @@
       if (latsurf_area > puny) then
          vi0new_lat = vi0new * lead_area / (c1 + aice/latsurf_area)
       end if
-
-      ! for history/diagnostics
-      frazil = vi0new - vi0new_lat
 
       ! lateral growth increment
       if (vi0new_lat > puny) then
@@ -563,8 +592,6 @@
       endif ! vi0new_lat > 0
 
       ! Use remaining ice volume as in standard model,
-      ! but ice cannot grow into the area that has grown laterally
-      vi0new = vi0new - vi0new_lat
       tot_latg = SUM(d_an_latg(:))
 
       end subroutine fsd_lateral_growth
@@ -589,7 +616,6 @@
       subroutine fsd_add_new_ice (n, &
                                   dt,         ai0new,        &
                                   d_an_latg,  d_an_newi,     &
-                                  floe_rad_c, floe_binwidth, &
                                   G_radial,   area2,         &
                                   wave_sig_ht,               &
                                   wave_spectrum,             &
@@ -623,9 +649,7 @@
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen_init , & ! fractional area of ice
-         aicen      , & ! after update
-         floe_rad_c , & ! fsd size bin centre in m (radius)
-         floe_binwidth  ! fsd size bin width in m (radius)
+         aicen          ! after update
 
       real (kind=dbl_kind), dimension (:,:), intent(in) :: &
          afsdn          ! floe size distribution tracer
