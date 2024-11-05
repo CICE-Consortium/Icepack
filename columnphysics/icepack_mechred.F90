@@ -1751,7 +1751,8 @@
                                     aice,         fsalt,         &
                                     first_ice,    fzsal,         &
                                     flux_bio,     closing,       &
-                                    Tf,           rdpnd )
+                                    Tf,           rdpnd,         &
+                                    docleanup,    dorebin)
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1829,12 +1830,20 @@
       real (kind=dbl_kind), intent(inout), optional :: &
          rdpnd        ! pond drainage due to ridging (m w.e. avg. over cell)
 
+     logical (kind=log_kind), intent(in), optional ::   &
+         docleanup, & ! if false, do not call cleanup_itd (default true)
+         dorebin      ! if false, do not call rebin in cleanup_itd (default true)
+
 !autodocument_end
 
       ! local variables
 
       real (kind=dbl_kind) :: &
          dtt          ! thermo time step
+
+      logical (kind=log_kind) ::   &
+         ldocleanup, &! if true, call cleanup_itd
+         ldorebin     ! if true, call rebin in cleanup_itd
 
       logical (kind=log_kind), save :: &
          first_call = .true.   ! first call flag
@@ -1855,6 +1864,17 @@
          endif
       endif
 
+      if (present(docleanup)) then
+         ldocleanup = docleanup
+      else
+         ldocleanup = .true.
+      endif
+
+      if (present(dorebin)) then
+         ldorebin = dorebin
+      else
+         ldorebin = .true.
+      endif
 
       !-----------------------------------------------------------------
       ! Identify ice-ocean cells.
@@ -1894,8 +1914,9 @@
       !  categories with very small areas.
       !-----------------------------------------------------------------
 
-      dtt = dt * ndtd  ! for proper averaging over thermo timestep
-      call cleanup_itd (dtt,                  hin_max,          &
+      if (ldocleanup) then
+         dtt = dt * ndtd  ! for proper averaging over thermo timestep
+         call cleanup_itd(dtt,                hin_max,          &
                         aicen,                trcrn,            &
                         vicen,                vsnon,            &
                         aice0,                aice,             &
@@ -1907,8 +1928,10 @@
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
                         faero_ocn,            fiso_ocn,         &
-                        flux_bio,             Tf)
-      if (icepack_warnings_aborted(subname)) return
+                        flux_bio,             Tf,               &
+                        dorebin = ldorebin)
+         if (icepack_warnings_aborted(subname)) return
+      endif
 
       first_call = .false.
 

@@ -1306,7 +1306,6 @@
 
       use icedrv_arrays_column, only: hin_max
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, nfsd
-      use icedrv_arrays_column, only: floe_rad_c, floe_binwidth
 
       integer (kind=int_kind), intent(in) :: &
          nx          ! number of grid cells
@@ -1447,8 +1446,6 @@
 
          ! floe size distribution
          if (tr_fsd) call icepack_init_fsd(ice_ic=ice_ic, &
-                                  floe_rad_c=floe_rad_c,             &
-                                  floe_binwidth=floe_binwidth,       &
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
          ! surface temperature
          trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
@@ -1517,8 +1514,6 @@
                                 qin=qin(:), qsn=qsn(:))
          ! floe size distribution
          if (tr_fsd) call icepack_init_fsd(ice_ic=ice_ic, &
-                                  floe_rad_c=floe_rad_c,             &
-                                  floe_binwidth=floe_binwidth,       &
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
 
          ! surface temperature

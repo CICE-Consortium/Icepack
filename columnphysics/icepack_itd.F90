@@ -756,8 +756,8 @@
 !=======================================================================
 
 ! Cleanup subroutine that rebins thickness categories if necessary,
-!  eliminates very small ice areas while conserving mass and energy,
-!  aggregates state variables, and does a boundary call.
+!  eliminates very small ice areas while conserving mass and energy
+!  and aggregates state variables.
 ! It is a good idea to call this subroutine after the thermodynamics
 !  (thermo_vertical/thermo_itd) and again after the dynamics
 !  (evp/transport/ridging).
@@ -776,7 +776,8 @@
                               fpond,       fresh,      &
                               fsalt,       fhocn,      &
                               faero_ocn,   fiso_ocn,   &
-                              flux_bio,    Tf, limit_aice_in)
+                              flux_bio,    Tf,         &
+                              limit_aice,  dorebin)
 
       real (kind=dbl_kind), intent(in) :: &
          dt        ! time step
@@ -835,8 +836,9 @@
          fiso_ocn     ! isotope flux to ocean     (kg/m^2/s)
 
       logical (kind=log_kind), intent(in), optional ::   &
-         limit_aice_in      ! if false, allow aice to be out of bounds
-                            ! may want to allow this for unit tests
+         dorebin, & ! if false, do not call rebin (default true)
+         limit_aice   ! if false, allow aice to be out of bounds
+                      ! may want to allow this for unit tests (default true)
 
       ! local variables
 
@@ -860,7 +862,8 @@
          dflux_bio    ! zapped biology flux  (mmol/m^2/s)
 
       logical (kind=log_kind) ::   &
-         limit_aice         ! if true, check for aice out of bounds
+         ldorebin   , & ! if true, call rebin
+         llimit_aice  ! if true, check for aice out of bounds
 
       character(len=*),parameter :: subname='(cleanup_itd)'
 
@@ -868,10 +871,16 @@
       ! Initialize
       !-----------------------------------------------------------------
 
-      if (present(limit_aice_in)) then
-         limit_aice = limit_aice_in
+      if (present(limit_aice)) then
+         llimit_aice = limit_aice
       else
-         limit_aice = .true.
+         llimit_aice = .true.
+      endif
+
+      if (present(dorebin)) then
+         ldorebin = dorebin
+      else
+         ldorebin = .true.
       endif
 
       dfpond = c0
@@ -889,7 +898,7 @@
       call aggregate_area (aicen, aice, aice0)
       if (icepack_warnings_aborted(subname)) return
 
-      if (limit_aice) then  ! check for aice out of bounds
+      if (llimit_aice) then  ! check for aice out of bounds
          if (aice > c1+puny .or. aice < -puny) then
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             call icepack_warnings_add(subname//' aggregate ice area out of bounds')
@@ -901,13 +910,13 @@
             enddo
             return
          endif
-      endif                     ! limit_aice
+      endif   ! llimit_aice
 
       !-----------------------------------------------------------------
       ! Identify grid cells with ice.
       !-----------------------------------------------------------------
 
-      if (aice > puny) then
+      if (ldorebin .and. aice > puny) then
 
       !-----------------------------------------------------------------
       ! Make sure ice in each category is within its thickness bounds.
@@ -916,7 +925,7 @@
       !       correctly (e.g., very fast ice growth).
       !-----------------------------------------------------------------
 
-         call rebin (trcr_depend, &
+         call rebin (trcr_depend,             &
                      trcr_base,               &
                      n_trcr_strata,           &
                      nt_strata,               &
@@ -931,7 +940,7 @@
       ! Zero out ice categories with very small areas.
       !-----------------------------------------------------------------
 
-      if (limit_aice) then
+      if (llimit_aice) then
          call zap_small_areas (dt,                          &
                                aice,         aice0,         &
                                aicen,        trcrn,         &
@@ -955,7 +964,7 @@
             return
          endif
 
-      endif   ! l_limit_aice
+      endif   ! llimit_aice
 
     !-------------------------------------------------------------------
     ! Zap snow that has out of bounds temperatures

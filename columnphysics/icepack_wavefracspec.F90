@@ -182,7 +182,6 @@
       subroutine icepack_step_wavefracture(wave_spec_type,   &
                   dt,            nfreq,                      &
                   aice,          vice,            aicen,     &
-                  floe_rad_l,    floe_rad_c,                 &
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
@@ -200,10 +199,6 @@
 
       real (kind=dbl_kind), dimension(ncat), intent(in) :: &
          aicen           ! ice area fraction (categories)
-
-      real(kind=dbl_kind), dimension(:), intent(in) ::  &
-         floe_rad_l,   & ! fsd size lower bound in m (radius)
-         floe_rad_c      ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          wavefreq,     & ! wave frequencies (s^-1)
@@ -243,6 +238,9 @@
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
 
+      real (kind=dbl_kind) :: &
+           local_sig_ht
+
       character(len=*),parameter :: &
          subname='(icepack_step_wavefracture)'
 
@@ -256,15 +254,15 @@
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
 
-
+      local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
-      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
+!      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
+      if ((aice > p01).and.(local_sig_ht>0.1_dbl_kind)) then
 
          hbar = vice / aice
 
          ! calculate fracture histogram
          call wave_frac(nfreq, wave_spec_type, &
-                        floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
 
@@ -393,7 +391,6 @@
 !  authors: 2018 Lettie Roach, NIWA/VUW
 
       subroutine wave_frac(nfreq, wave_spec_type, &
-                           floe_rad_l, floe_rad_c, &
                            wavefreq, dwavefreq, &
                            hbar, spec_efreq, frac_local)
 
@@ -405,10 +402,6 @@
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
-
-      real(kind=dbl_kind), dimension(:), intent(in) ::  &
-         floe_rad_l, & ! fsd size lower bound in m (radius)
-         floe_rad_c    ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          wavefreq,   & ! wave frequencies (s^-1)

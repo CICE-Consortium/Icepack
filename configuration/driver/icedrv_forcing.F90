@@ -1150,6 +1150,7 @@
 
       ! wave spectrum and frequencies
       ! get hardwired frequency bin info and a dummy wave spectrum profile
+
       call icepack_init_wave(nfreq=nfreq,                 &
                              wave_spectrum_profile=wave_spectrum_profile, &
                              wavefreq=wavefreq, dwavefreq=dwavefreq)
