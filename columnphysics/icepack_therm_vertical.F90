@@ -80,7 +80,7 @@
                                   vicen,       vsnon,     &
                                   Tsf,         zSin,      &
                                   zqin,        zqsn,      &
-                                  apond,       hpond,     &
+                                  apnd,        hpond,     &
                                   flw,         potT,      &
                                   Qa,          rhoa,      &
                                   fsnow,       fpond,     &
@@ -104,7 +104,7 @@
                                   congel,      snoice,    &
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
-                                  prescribed_ice)
+                                  prescribed_ice, alvl)
 
       real (kind=dbl_kind), intent(in) :: &
          dt      , & ! time step
@@ -119,8 +119,9 @@
       ! tracers
       real (kind=dbl_kind), intent(inout) :: &
          Tsf     , & ! ice/snow top surface temp, same as Tsfcn (deg C)
-         apond   , & ! melt pond area fraction
-         hpond       ! melt pond depth (m)
+         apnd    , & ! melt pond area fraction
+         hpond   , & ! melt pond depth (m)
+         alvl        ! level ice area fraction
 !        iage        ! ice age (s)
 
       logical (kind=log_kind), intent(in), optional :: &
@@ -311,7 +312,7 @@
                                               fswsfc,    fswint,    &
                                               Sswabs,    Iswabs,    &
                                               hilyr,     hslyr,     &
-                                              apond,     hpond,     &
+                                              apnd,      hpond,     &
                                               zqin,      zTin,      &
                                               zqsn,      zTsn,      &
                                               zSin,                 &
@@ -321,7 +322,8 @@
                                               flwoutn,   fsurfn,    &
                                               fcondtopn, fcondbotn, &
                                               fadvocn,   snoice,    &
-                                              smice,     smliq)
+                                              smice,     smliq,     &
+                                              alvl)
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
@@ -448,7 +450,7 @@
       fhocnn = fhocnn + fadvocn ! for ktherm=2
 
       if (hin == c0) then
-         if (tr_pond_topo) fpond = fpond - aicen * apond * hpond
+         if (tr_pond_topo) fpond = fpond - aicen * apnd * hpond
       endif
 
       !-----------------------------------------------------------------
@@ -2620,7 +2622,7 @@
                                  vicen=vicen     (n), vsnon=vsnon         (n), &
                                  Tsf=Tsfc        (n), zSin=zSin         (:,n), &
                                  zqin=zqin     (:,n), zqsn=zqsn         (:,n), &
-                                 apond=apnd      (n), hpond=hpnd          (n), &
+                                 apnd=apnd       (n), hpond=hpnd          (n), &
                                  flw=flw,             potT=potT,               &
                                  Qa=Qa,               rhoa=rhoa,               &
                                  fsnow=fsnow,         fpond=fpond,             &
@@ -2644,7 +2646,7 @@
                                  congel=congeln  (n), snoice=snoicen      (n), &
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,     &
                                  yday=yday,           dsnow=dsnown        (n), &
-                                 prescribed_ice=prescribed_ice)
+                                 prescribed_ice=prescribed_ice, alvl=alvl (n))
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
