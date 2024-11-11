@@ -371,6 +371,7 @@ forcing_nml
    "", "``ISPOL``", "ISPOL experiment data  (see :ref:`force`)", ""
    "", "``NICE``", "N-ICE experiment data  (see :ref:`force`)", ""
    "", "``SHEBA``", "Opening/closing dataset from SHEBA", ""
+   "``precalc_forc``", "logical", "average/interpolate forcing data on initialization", "``.false.``"
    "``precip_units``", "``mks``", "liquid precipitation data units", "``mks``"
    "", "``mm_per_month``", "", ""
    "", "``mm_per_sec``", "(same as MKS units)", ""

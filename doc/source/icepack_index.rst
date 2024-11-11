@@ -357,6 +357,7 @@ section :ref:`tabnamelist`.
    "potT", "atmospheric potential temperature", "K"
    "PP_net", "total primary productivity per grid cell", "mg C/m\ :math:`^2`/s"
    "precip_units", ":math:`\bullet` liquid precipitation data units", ""
+   "precalc_forc", ":math:`\bullet` if true, average/interpolate forcing data on initialization", ""
    "print_points", ":math:`\bullet` if true, print point data", "F"
    "Pstar", "ice strength parameter", "2.75\ :math:`\times`\ 10\ :math:`^4`\ N/m\ :math:`^2`"
    "puny", "a small positive number", "1\ :math:`\times`\ 10\ :math:`^{-11}`" 
