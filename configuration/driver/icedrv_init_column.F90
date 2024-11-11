@@ -24,7 +24,7 @@
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_init_zbgc
-      use icepack_intfc, only: icepack_init_thermo, icepack_init_radiation
+      use icepack_intfc, only: icepack_init_salinity, icepack_init_radiation
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
       use icepack_intfc, only: icepack_init_bgc
       use icepack_intfc, only: icepack_init_ocean_bio, icepack_load_ocean_bio_array
@@ -69,7 +69,7 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(depressT_out=depressT)
-      call icepack_init_thermo(sprofile=sprofile)
+      call icepack_init_salinity(sprofile=sprofile)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
