@@ -118,12 +118,27 @@ will be described in more detail in the :ref:`tabnamelist`.
 
 Two namelist variables control model initialization, ``ice_ic``
 and ``restart``.  Setting ``ice_ic`` = 'default' causes the model to run using
-initial values set in the code.  To start
+initial values set in the code and the namelist.  To start
 from a file **filename**, set 
 ``restart`` = .true. and ``ice_ic`` = **filename**.  When restarting using the Icepack
 driver, for simplicity the tracers are assumed to be set the same way (on/off) as in the
 run that created the restart file; i.e. that the restart file contains exactly the 
 information needed for the new run.  CICE is more flexible in this regard.
+
+When the model is not running from a restart file (i.e., ``ice_ic`` = 'default'
+and ``restart`` = .false.), there are namelist options that control the initial
+snow depth , ice thicknesses and mixed layer temperature (``sst_init``).
+For the slab-initialized grid cell (``nx`` = 2), the run starts with a single
+ice thickness category having 100% ice cover . ``hsno_init_slab`` and 
+``hi_init_slab`` define the initial snow depth and ice thickness for that
+ice thickness category. For the itd-initialized grid cell (``nx`` = 3), the ice
+thickness in each category is set to the midpoint of that category's ice
+thickness range (excluding the last category, which is set to 1 m thicker than
+the lower bound). The area fraction of each category is set according to a
+normalized, downward-facing parabolic function of ice thickness, where the 
+maximum of the parabola is ``hbar_init_itd`` and the area fraction of open 
+water is zero. All thickness categories are initialized with a snow depth of 
+``hsno_init_itd``.
 
 For stand-alone runs,
 routines in **icedrv\_forcing.F90** read and interpolate data from files.
@@ -163,7 +178,14 @@ conventions were developed by the Year of Polar Prediction supersite
 Model Intercomparison Project (`Uttal et al., 2024 
 <https://doi.org/10.5194/gmd-17-5225-2024>`_) and a `python toolbox 
 <https://gitlab.com/mdf-makers/mdf-toolkit>`_ is available to build MDF 
-files from raw data.
+files from raw data. The ``ocn_MDF`` subroutine currently assumes that
+the oceanic heat flux convergence (``qdp``) is equal to the turbulent
+heat flux over the thermocline.
+
+If no ocean forcing is provided, namelist variables provide constant
+values of the ocean mixed layer salinity (``sss_fixed``), thickness 
+(``hmix_fixed``), and oceanic heat flux convergence (``qdp_fixed``). If
+forcing data is provided then these variables are ignored.
 
 .. _parameters:
 
