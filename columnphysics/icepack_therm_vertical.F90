@@ -2932,6 +2932,8 @@
 
          endif
 
+         if (present(dsnown      )) dsnown(n)    = l_dsnown
+
       enddo                  ! ncat
 
       !-----------------------------------------------------------------
@@ -2957,6 +2959,7 @@
 
       if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
       if (present(meltsliq    )) meltsliq     = l_meltsliq
+      if (present(dsnow       )) dsnow        = l_dsnow
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme
