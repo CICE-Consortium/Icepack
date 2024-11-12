@@ -3160,7 +3160,7 @@
        if (tr_pond_lvl) then
           w_down_max = (hpond * apnd * alvl) / dt
        else
-         w_down_max = (hpond * apnd) / dt
+          w_down_max = (hpond * apnd) / dt
        endif
 
        ! limit flow

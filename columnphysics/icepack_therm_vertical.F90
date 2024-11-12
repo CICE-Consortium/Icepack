@@ -84,6 +84,7 @@
                                   Tsf,         zSin,      &
                                   zqin,        zqsn,      &
                                   apnd,        hpond,     &
+                                  alvl,                   &
                                   flw,         potT,      &
                                   Qa,          rhoa,      &
                                   fsnow,       fpond,     &
@@ -107,7 +108,7 @@
                                   congel,      snoice,    &
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
-                                  prescribed_ice, alvl)
+                                  prescribed_ice)
 
       real (kind=dbl_kind), intent(in) :: &
          dt      , & ! time step
@@ -2695,6 +2696,7 @@
                                  Tsf=Tsfc        (n), zSin=zSin         (:,n), &
                                  zqin=zqin     (:,n), zqsn=zqsn         (:,n), &
                                  apnd=apnd       (n), hpond=hpnd          (n), &
+                                 alvl=alvl       (n),                          &
                                  flw=flw,             potT=potT,               &
                                  Qa=Qa,               rhoa=rhoa,               &
                                  fsnow=fsnow,         fpond=fpond,             &
@@ -2718,7 +2720,7 @@
                                  congel=congeln  (n), snoice=snoicen      (n), &
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,     &
                                  yday=yday,           dsnow=dsnown        (n), &
-                                 prescribed_ice=prescribed_ice, alvl=alvl (n))
+                                 prescribed_ice=prescribed_ice)
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
