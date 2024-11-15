@@ -2361,11 +2361,13 @@
          melttn      , & ! top ice melt                           (m)
          meltbn      , & ! bottom ice melt                        (m)
          congeln     , & ! congelation ice growth                 (m)
-         snoicen     , & ! snow-ice growth                        (m)
-         dsnown          ! change in snow thickness (m/step-->cm/day)
+         snoicen         ! snow-ice growth                        (m)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          fswthrun        ! SW through ice to ocean            (W/m^2)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         dsnown          ! change in snow thickness (m/step-->cm/day)
 
       real (kind=dbl_kind), dimension(:), intent(in), optional :: &
          fswthrun_vdr , & ! vis dir SW through ice to ocean   (W/m^2)
@@ -2442,6 +2444,8 @@
          l_fswthrun_vdf, & ! vis dif SW local n ice to ocean  (W/m^2)
          l_fswthrun_idr, & ! nir dir SW local n ice to ocean  (W/m^2)
          l_fswthrun_idf, & ! nir dif SW local n ice to ocean  (W/m^2)
+         l_dsnow,        & ! local snow change
+         l_dsnown,       & ! local snow change category
          l_meltsliq      ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2485,6 +2489,12 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
+         if ((present(dsnow) .and. .not.present(dsnown)) .or. &
+             (present(dsnown) .and. .not.present(dsnow))) then
+            call icepack_warnings_add(subname//' error in dsnow arguments')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
          if (tr_fsd) then
             if (.not.present(afsdn)) then
                call icepack_warnings_add(subname//' error missing afsdn argument, tr_fsd=T')
@@ -2509,6 +2519,8 @@
 
       l_meltsliq  = c0
       l_meltsliqn = c0
+      l_dsnow     = c0
+      if (present(dsnow)) l_dsnow = dsnow
 
       ! solid and liquid components of snow mass
       massicen(:,:) = c0
@@ -2589,7 +2601,8 @@
          meltbn (n) = c0
          congeln(n) = c0
          snoicen(n) = c0
-         dsnown (n) = c0
+         l_dsnown   = c0
+         if (present(dsnown)) dsnown(n) = c0
 
          Trefn  = c0
          Qrefn  = c0
@@ -2714,8 +2727,8 @@
                                  smice=smice,         massice=massicen  (:,n), &
                                  smliq=smliq,         massliq=massliqn  (:,n), &
                                  congel=congeln  (n), snoice=snoicen      (n), &
-                                 mlt_onset=mlt_onset, frz_onset=frz_onset,     &
-                                 yday=yday,           dsnow=dsnown        (n), &
+                                 mlt_onset=mlt_onset, frz_onset=frz_onset    , &
+                                 yday=yday,           dsnow=l_dsnown         , &
                                  prescribed_ice=prescribed_ice)
 
             if (icepack_warnings_aborted(subname)) then
@@ -2903,7 +2916,7 @@
                                meltbn=meltbn (n), congeln=congeln(n),&
                                meltt=meltt,       melts=melts,      &
                                meltb=meltb,       snoicen=snoicen(n),&
-                               dsnow=dsnow,       dsnown=dsnown(n), &
+                               dsnow=l_dsnow,     dsnown=l_dsnown,  &
                                congel=congel,     snoice=snoice,    &
                                meltsliq=l_meltsliq,                 &
                                meltsliqn=l_meltsliqn(n),            &
@@ -2918,6 +2931,8 @@
             if (icepack_warnings_aborted(subname)) return
 
          endif
+
+         if (present(dsnown      )) dsnown(n)    = l_dsnown
 
       enddo                  ! ncat
 
@@ -2944,6 +2959,7 @@
 
       if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
       if (present(meltsliq    )) meltsliq     = l_meltsliq
+      if (present(dsnow       )) dsnow        = l_dsnow
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme
