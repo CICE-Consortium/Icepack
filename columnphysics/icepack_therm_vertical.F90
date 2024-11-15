@@ -2602,7 +2602,7 @@
          congeln(n) = c0
          snoicen(n) = c0
          l_dsnown   = c0
-         if (present(dsnown)) l_dsnown = dsnown (n)
+         if (present(dsnown)) dsnown(n) = c0
 
          Trefn  = c0
          Qrefn  = c0
