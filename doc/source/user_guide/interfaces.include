@@ -2758,11 +2758,13 @@ icepack_step_therm1
            melttn      , & ! top ice melt                           (m)
            meltbn      , & ! bottom ice melt                        (m)
            congeln     , & ! congelation ice growth                 (m)
-           snoicen     , & ! snow-ice growth                        (m)
-           dsnown          ! change in snow thickness (m/step-->cm/day)
+           snoicen         ! snow-ice growth                        (m)
   
         real (kind=dbl_kind), dimension(:), intent(in) :: &
            fswthrun        ! SW through ice to ocean            (W/m^2)
+  
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+           dsnown          ! change in snow thickness (m/step-->cm/day)
   
         real (kind=dbl_kind), dimension(:), intent(in), optional :: &
            fswthrun_vdr , & ! vis dir SW through ice to ocean   (W/m^2)
