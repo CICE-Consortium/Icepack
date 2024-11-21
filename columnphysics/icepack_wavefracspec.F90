@@ -31,7 +31,7 @@
       use icepack_kinds
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
-      use icepack_tracers, only: nt_fsd
+      use icepack_tracers, only: nt_fsd, ncat, nfsd
       use icepack_warnings, only: warnstr, icepack_warnings_add,  icepack_warnings_aborted
       use icepack_fsd
 
@@ -128,11 +128,8 @@
 !
 !  authors: 2017 Lettie Roach, NIWA/VUW
 !
-      function get_dafsd_wave(nfsd, afsd_init, fracture_hist, frac) &
+      function get_dafsd_wave(afsd_init, fracture_hist, frac) &
                               result(d_afsd)
-
-      integer (kind=int_kind), intent(in) :: &
-         nfsd       ! number of floe size categories
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          afsd_init, fracture_hist
@@ -183,21 +180,17 @@
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
       subroutine icepack_step_wavefracture(wave_spec_type,   &
-                  dt,            ncat,            nfsd,      &
-                  nfreq,                                     &
+                  dt,            nfreq,                      &
                   aice,          vice,            aicen,     &
-                  floe_rad_l,    floe_rad_c,                 &
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
 
       character (len=char_len), intent(in) :: &
-         wave_spec_type   ! type of wave spectrum forcing
+         wave_spec_type  ! type of wave spectrum forcing
 
       integer (kind=int_kind), intent(in) :: &
-         nfreq,        & ! number of wave frequency categories
-         ncat,         & ! number of thickness categories
-         nfsd            ! number of floe size categories
+         nfreq           ! number of wave frequency categories
 
       real (kind=dbl_kind), intent(in) :: &
          dt,           & ! time step
@@ -206,10 +199,6 @@
 
       real (kind=dbl_kind), dimension(ncat), intent(in) :: &
          aicen           ! ice area fraction (categories)
-
-      real(kind=dbl_kind), dimension(:), intent(in) ::  &
-         floe_rad_l,   & ! fsd size lower bound in m (radius)
-         floe_rad_c      ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          wavefreq,     & ! wave frequencies (s^-1)
@@ -249,6 +238,9 @@
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
 
+      real (kind=dbl_kind) :: &
+           local_sig_ht
+
       character(len=*),parameter :: &
          subname='(icepack_step_wavefracture)'
 
@@ -262,15 +254,15 @@
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
 
-
+      local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
-      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
+!      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
+      if ((aice > p01).and.(local_sig_ht>0.1_dbl_kind)) then
 
          hbar = vice / aice
 
          ! calculate fracture histogram
-         call wave_frac(nfsd, nfreq, wave_spec_type, &
-                        floe_rad_l, floe_rad_c, &
+         call wave_frac(nfreq, wave_spec_type, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
 
@@ -279,7 +271,7 @@
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
             ! protect against small numerical errors
-            call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+            call icepack_cleanup_fsd (trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
             if (icepack_warnings_aborted(subname)) return
 
             do n = 1, ncat
@@ -312,7 +304,7 @@
                      if (afsd_tmp(1).ge.c1-puny) EXIT
 
                      ! calculate d_afsd using current afstd
-                     d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
+                     d_afsd_tmp = get_dafsd_wave(afsd_tmp, fracture_hist, frac)
 
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
@@ -322,7 +314,7 @@
                      endif
 
                      ! required timestep
-                     subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
+                     subdt = get_subdt_fsd(afsd_tmp, d_afsd_tmp)
                      subdt = MIN(subdt, dt)
 
                      ! update afsd
@@ -367,7 +359,7 @@
 
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
-                  call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+                  call icepack_cleanup_fsd (trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
                   if (icepack_warnings_aborted(subname)) return
 
                   ! for diagnostics
@@ -398,13 +390,11 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 
-      subroutine wave_frac(nfsd, nfreq, wave_spec_type, &
-                           floe_rad_l, floe_rad_c, &
+      subroutine wave_frac(nfreq, wave_spec_type, &
                            wavefreq, dwavefreq, &
                            hbar, spec_efreq, frac_local)
 
       integer (kind=int_kind), intent(in) :: &
-         nfsd, &       ! number of floe size categories
          nfreq         ! number of wave frequency categories
 
       character (len=char_len), intent(in) :: &
@@ -412,10 +402,6 @@
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
-
-      real(kind=dbl_kind), dimension(:), intent(in) ::  &
-         floe_rad_l, & ! fsd size lower bound in m (radius)
-         floe_rad_c    ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          wavefreq,   & ! wave frequencies (s^-1)

@@ -3,7 +3,8 @@ smoke          col     1x1        diag1,run1year
 smoke          col     1x1        debug,run1year
 smoke          col     1x1        debug,bgcispol
 smoke          col     1x1        debug,bgcnice
-smoke          col     1x1        debug,bgcsklnice
+smoke          col     1x1        debug,zaero
+#smoke          col     1x1        debug,bgcsklnice
 smoke          col     1x1        debug,run1year,thermo1
 smoke          col     1x1        debug,run1year,swccsm3
 smoke          col     1x1        debug,run1year,alt01

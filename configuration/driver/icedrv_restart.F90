@@ -13,7 +13,7 @@
       use icedrv_restart_shared, only: restart_format
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
-      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_sizes
       use icedrv_system, only: icedrv_system_abort
 #ifdef USE_NETCDF
       use netcdf
@@ -261,7 +261,6 @@
       use icedrv_restart_shared, only: restart_format
       use icedrv_arrays_column, only: dhsn, ffracn, hin_max
       use icedrv_arrays_column, only: first_ice, first_ice_real
-      use icepack_tracers, only: ntrcr, nbtrcr
 
       character (*), optional :: ice_ic
 
@@ -269,6 +268,9 @@
 
       integer (kind=int_kind) :: &
          i, k              ! counting indices
+
+      integer (kind=int_kind) :: &
+         ntrcr
 
       integer (kind=int_kind) :: &
          nt_Tsfc, nt_sice, nt_qice, nt_qsno
@@ -287,7 +289,7 @@
       ! Query tracers
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
-
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
            tr_brine_out=tr_brine, &
@@ -415,22 +417,20 @@
 
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate (ncat=ncat,          &
-                                 aicen=aicen(i,:),   &
-                                 trcrn=trcrn(i,:,:), &
-                                 vicen=vicen(i,:),   &
-                                 vsnon=vsnon(i,:),   &
-                                 aice=aice (i),      &
-                                 trcr=trcr (i,:),    &
-                                 vice=vice (i),      &
-                                 vsno=vsno (i),      &
-                                 aice0=aice0(i),     &
-                                 ntrcr=max_ntrcr,    &
-                                 trcr_depend=trcr_depend, &
-                                 trcr_base=trcr_base,     &
-                                 n_trcr_strata=n_trcr_strata, &
-                                 nt_strata=nt_strata, &
-                                 Tf = Tf(i))
+         call icepack_aggregate(trcrn=trcrn(i,1:ntrcr,:),     &
+                                aicen=aicen(i,:),             &
+                                vicen=vicen(i,:),             &
+                                vsnon=vsnon(i,:),             &
+                                trcr=trcr (i,1:ntrcr),        &
+                                aice=aice (i),                &
+                                vice=vice (i),                &
+                                vsno=vsno (i),                &
+                                aice0=aice0(i),               &
+                                trcr_depend=trcr_depend(1:ntrcr),     &
+                                trcr_base=trcr_base    (1:ntrcr,:),   &
+                                n_trcr_strata=n_trcr_strata(1:ntrcr), &
+                                nt_strata=nt_strata    (1:ntrcr,:), &
+                                Tf = Tf(i))
 
          aice_init(i) = aice(i)
       enddo

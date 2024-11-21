@@ -15,6 +15,9 @@
          nspint_3bd = 3, & ! number of solar spectral bands
          nspint_5bd = 5    ! number of solar spectral bands (snicar snow)
 
+      character (len=char_len), public :: &
+         rsnw_datatype = 'unknown'
+
       ! dEdd 3-band data
       real (kind=dbl_kind), dimension (nspint_3bd), public :: &
          ! inherent optical properties (iop)
@@ -63,7 +66,9 @@
 
       ! dEdd 5-band data SSP SNICAR
       integer (kind=int_kind), public :: &
-         nmbrad_snicar  , & ! number of snow grain radii in SNICAR SSP tables
+         nmbrad_snicar      ! number of snow grain radii in SNICAR SSP tables
+
+      real (kind=dbl_kind), public :: &
          rsnw_snicar_min, & ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max    ! maximum snow radius - integer value used for indexing
 
@@ -107,6 +112,7 @@
       allocate(gs_tab  (nspint_3bd,nmbrad_snw))
 
       ! snow grain radii (micro-meters) for table
+      rsnw_datatype = 'sorted'
       rsnw_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
           5._dbl_kind,    7._dbl_kind,   10._dbl_kind,   15._dbl_kind, &
          20._dbl_kind,   30._dbl_kind,   40._dbl_kind,   50._dbl_kind, &
@@ -442,14 +448,6 @@
 
       character (len=*),parameter :: subname='(icepack_shortwave_init_dEdd5band)'
 
-      ! 5-bands ice surface scattering layer (ssl) iops to match SNICAR calculations
-      ! note by Cheng Dang:
-      ! for now these data are not needed since the sea ice layer IOPs can be directly
-      ! assigned based on the 3 bands data after adjustment based on tuning parameter R_ice
-      ! In the future, when 5-band sea ice IOPs are available, these data shall be updated
-      ! and the sea ice layer IOPs shall be calculated based on updated 5band iops*
-!echmod - the comment above says these are not needed but they are nevertheless used below
-      !
       ! The 5band data given in this section are based on CICE and SNICAR band choice:
       ! SNICAR band 1 = CICE band 1
       ! SNICAR band 2 + SNICAR band 3 = CICE band 2
@@ -646,6 +644,7 @@
             6._dbl_kind, 37._dbl_kind, 221._dbl_kind, 600._dbl_kind, 1340._dbl_kind/)
          rsnw_snicar_min = rsnw_snicar_tab(1)             ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max = rsnw_snicar_tab(nmbrad_snicar) ! maximum snow radius - integer value used for indexing
+         rsnw_datatype = 'sorted'
 
          allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, direct
          allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, diffuse
@@ -711,11 +710,12 @@
 
       subroutine icepack_shortwave_init_snicar()
 
-! USE_SNICARHC turns on big hardcoded tables but also increases compile time
-#ifndef USE_SNICARHC
+! NO_SNICARHC turns off hardcoded tables to reduce compile time
+#ifdef NO_SNICARHC
       character(len=*),parameter :: subname='(icepack_shortwave_init_snicar)'
+      call icepack_warnings_add(subname//' ERROR: large shortwave snicar tables not compiled')
+      call icepack_warnings_add(subname//' ERROR: NO_SNICARHC CPP should be turned off')
       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-      call icepack_warnings_add(subname//' ERROR: USE_SNICARHC CPP required')
       return
 #else
       integer (kind=int_kind) :: &
@@ -9585,11 +9585,11 @@
 
 ! Copy to local variables
 
-!echmod - this might not be needed
-      rsnw_snicar_min = 30   ! minimum snow grain radius
-      rsnw_snicar_max = 1500 ! maximum snow grain radius
+      rsnw_snicar_min = 30._dbl_kind   ! minimum snow grain radius
+      rsnw_snicar_max = 1500._dbl_kind ! maximum snow grain radius
+      rsnw_datatype = 'sorted_idelta1' ! sorted "integers" with constant delta 1
       allocate(rsnw_snicar_tab(nmbrad_snicar))
-      rsnw_snicar_tab(1) = real(rsnw_snicar_min,dbl_kind)
+      rsnw_snicar_tab(1) = rsnw_snicar_min
       do n = 1, nmbrad_snicar-1
          rsnw_snicar_tab(n+1) = rsnw_snicar_tab(n) + 1.0_dbl_kind
       enddo

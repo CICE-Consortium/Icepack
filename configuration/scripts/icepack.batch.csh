@@ -55,6 +55,21 @@ cat >> ${jobfile} << EOFB
 #PBS -l job_priority=regular
 #PBS -N ${ICE_CASENAME}
 #PBS -A ${acct}
+#PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}:mem=5GB
+#PBS -l walltime=${ICE_RUNLENGTH}
+#PBS -j oe
+#PBS -W umask=022
+#PBS -o ${ICE_CASEDIR}
+###PBS -M username@domain.com
+###PBS -m be
+EOFB
+
+else if (${ICE_MACHINE} =~ casper*) then
+cat >> ${jobfile} << EOFB
+#PBS -q ${ICE_MACHINE_QUEUE}
+#PBS -l job_priority=regular
+#PBS -N ${ICE_CASENAME}
+#PBS -A ${acct}
 #PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
 #PBS -l walltime=${ICE_RUNLENGTH}
 #PBS -j oe
@@ -121,6 +136,23 @@ cat >> ${jobfile} << EOFB
 #SBATCH --time ${ICE_RUNLENGTH}
 #SBATCH --cpus-per-task ${nthrds2}
 #SBATCH --constraint haswell
+###SBATCH -e filename
+###SBATCH -o filename
+###SBATCH --mail-type FAIL
+###SBATCH --mail-user username@domain.com
+EOFB
+
+else if (${ICE_MACHINE} =~ perlmutter*) then
+@ nthrds2 = ${nthrds} * 2
+cat >> ${jobfile} << EOFB
+#SBATCH -J ${ICE_CASENAME}
+#SBATCH -A ${acct}
+#SBATCH --qos ${ICE_MACHINE_QUEUE}
+#SBATCH --time ${ICE_RUNLENGTH}
+#SBATCH --nodes ${nnodes}
+#SBATCH --ntasks ${ncores}
+#SBATCH --cpus-per-task ${nthrds2}
+#SBATCH --constraint cpu
 ###SBATCH -e filename
 ###SBATCH -o filename
 ###SBATCH --mail-type FAIL

@@ -7,7 +7,7 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, puny, rhos, rsnw_fall, rhosnew, Tocnfrz, tfrz_option
+      use icepack_parameters, only: c0, c1, puny, rhos, rsnw_fall, rhosnew
       use icepack_parameters, only: snwredist, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -31,15 +31,14 @@
       !-----------------------------------------------------------------
       integer (kind=int_kind), parameter, public :: &
          max_iso    =   3       , & ! maximum number of isotopes
+         nmodal1    =   10      , & ! dimension for modal aerosol radiation parameters
+         nmodal2    =   8       , & ! dimension for modal aerosol radiation parameters
          max_algae  =   3       , & ! maximum number of algal types
          max_dic    =   1       , & ! maximum number of dissolved inorganic carbon types
          max_doc    =   3       , & ! maximum number of dissolved organic carbon types
          max_don    =   1       , & ! maximum number of dissolved organic nitrogen types
          max_fe     =   2       , & ! maximum number of iron types
-         nmodal1    =   10      , & ! dimension for modal aerosol radiation parameters
-         nmodal2    =   8       , & ! dimension for modal aerosol radiation parameters
          max_aero   =   6       , & ! maximum number of aerosols
-
          max_nbtrcr = max_algae*2 & ! algal nitrogen and chlorophyll
                     + max_dic     & ! dissolved inorganic carbon
                     + max_doc     & ! dissolved organic carbon
@@ -1198,14 +1197,11 @@
 ! Compute tracer fields.
 ! Given atrcrn = aicen*trcrn (or vicen*trcrn, vsnon*trcrn), compute trcrn.
 
-      subroutine icepack_compute_tracers (ntrcr,     trcr_depend,    &
+      subroutine icepack_compute_tracers (trcr_depend,               &
                                           atrcrn,    aicen,          &
                                           vicen,     vsnon,          &
                                           trcr_base, n_trcr_strata,  &
                                           nt_strata, trcrn, Tf)
-
-      integer (kind=int_kind), intent(in) :: &
-         ntrcr                 ! number of tracers in use
 
       integer (kind=int_kind), dimension (ntrcr), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
@@ -1265,16 +1261,7 @@
             else
                trcrn(it) = c0
                if (it == nt_Tsfc) then
-! tcraig, these old options should be deprecated
-! exist for bit-for-bit backwards compatibility in testing
-                  if (tfrz_option == "mushy_old" .or. &
-                      tfrz_option == "linear_salt_old" .or. &
-                      tfrz_option == "constant_old" .or. &
-                      tfrz_option == "minus1p8_old") then
-                     trcrn(it) = Tocnfrz  ! surface temperature
-                  else
-                     trcrn(it) = Tf  ! surface temperature
-                  endif
+                  trcrn(it) = Tf  ! surface temperature
                endif
             endif
 

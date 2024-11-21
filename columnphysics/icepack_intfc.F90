@@ -1,8 +1,8 @@
 !=======================================================================
-! Copyright (c) 2023, Triad National Security, LLC
+! Copyright (c) 2024, Triad National Security, LLC
 ! All rights reserved.
 !
-! Copyright 2023. Triad National Security, LLC. This software was
+! Copyright 2024. Triad National Security, LLC. This software was
 ! produced under U.S. Government contract DE-AC52-06NA25396 for Los
 ! Alamos National Laboratory (LANL), which is operated by Triad
 ! National Security, LLC for the U.S. Department of Energy. The U.S.
@@ -112,9 +112,12 @@
       use icepack_therm_shared  , only: icepack_snow_temperature
       use icepack_therm_shared  , only: icepack_liquidus_temperature
       use icepack_therm_shared  , only: icepack_sea_freezing_temperature
-      use icepack_therm_shared  , only: icepack_init_thermo
+      use icepack_therm_shared  , only: icepack_init_salinity
       use icepack_therm_shared  , only: icepack_salinity_profile
-      use icepack_therm_shared  , only: icepack_init_trcr
+      use icepack_therm_shared  , only: icepack_init_enthalpy
+      ! for backwards compatibilty, remove in the future
+      use icepack_therm_shared  , only: icepack_init_thermo => icepack_init_salinity
+      use icepack_therm_shared  , only: icepack_init_trcr => icepack_init_enthalpy
 
       use icepack_mushy_physics , only: icepack_enthalpy_snow
       use icepack_mushy_physics , only: icepack_enthalpy_mush

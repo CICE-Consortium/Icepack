@@ -5,7 +5,7 @@
     sw_redist         = .true.
     sw_frac           = 0.9d0
     sw_dtemp          = 0.02d0
-    tfrz_option       = 'linear_salt_old'
+    tfrz_option       = 'linear_salt'
     conduct           = 'bubbly'
     conserv_check   = .true.
     restore_ocn     = .true.

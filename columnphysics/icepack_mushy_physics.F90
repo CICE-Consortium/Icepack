@@ -5,6 +5,7 @@ module icepack_mushy_physics
   use icepack_parameters, only: puny
   use icepack_parameters, only: rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh
   use icepack_parameters, only: ksno
+  use icepack_tracers, only: nilyr
   use icepack_warnings, only: warnstr, icepack_warnings_add
   use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -70,10 +71,7 @@ contains
 !=======================================================================
 ! Detemine the conductivity of the mush from enthalpy and salinity
 
-  subroutine conductivity_mush_array(nilyr, zqin, zSin, km)
-
-    integer (kind=int_kind), intent(in) :: &
-         nilyr   ! number of ice layers
+  subroutine conductivity_mush_array(zqin, zSin, km)
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
          zqin, & ! ice layer enthalpy (J m-3)

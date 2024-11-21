@@ -71,9 +71,10 @@ foreach field ($fieldlist:q)
   endif
 
   set output = `echo $fieldname | sed 's/ /_/g'`
-  set casename = `echo $basename | rev | cut -d / -f 1-2 | rev | sed 's/\//, /'`
-  set fname_base = "${casename}_${output}"
+  set logfileonly = `echo $basename | rev | cut -d / -f 1 | rev`
+  set title = "${logfileonly}"
   set output_fname = "${basename}_${output}.png"
+  rm ${output_fname}
 
   echo "Plotting data for '$fieldname' and saving to $output_fname"
 
@@ -85,7 +86,7 @@ set style data points
 set datafile separator ","
 
 # Term type and background color, canvas size
-set terminal png size 1920,960
+set terminal png size 1920,960 font "default,20"
 
 # x-axis 
 set xdata time
@@ -95,9 +96,9 @@ set format x "%Y/%m/%d"
 # Axis tick marks
 set xtics rotate
 
-set title "$fname_base"
-set ylabel "$field"
-set xlabel "Simulation Day"
+set title "$title" noenhanced font "default,30"
+set ylabel "$field" font "default,30"
+set xlabel "Simulation Day" font "default,30"
 
 # Set y-axis limits
 $yrange

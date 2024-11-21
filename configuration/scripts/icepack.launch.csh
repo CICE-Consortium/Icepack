@@ -15,6 +15,13 @@ aprun -n 1 -N 1 -d 1 ./icepack >&! \$ICE_RUNLOG_FILE
 EOFR
 
 #==========================================
+
+else if (${ICE_MACHINE} =~ perlmutter) then
+cat >> ${jobfile} << EOFR
+srun --cpu-bind=cores ./icepack >&! \$ICE_RUNLOG_FILE
+EOFR
+
+#==========================================
 else
 cat >> ${jobfile} << EOFR
 ./icepack >&! \$ICE_RUNLOG_FILE
