@@ -1,0 +1,14 @@
+atm_data_type   = 'MDF'
+atm_data_file   = 'MOSAiC_kazr_snow_MDF_20191005_20201001.nc'
+atm_data_format = 'nc'
+use_leap_years  = .true.
+fyear_init      = 2019
+year_init       = 2019
+istep0          = 7968
+npt             = 6120
+precalc_forc    = .true.
+hi_init_slab    = 0.80
+hsno_init_slab  = 0.09
+qdp_fixed       = -1.0
+sss_fixed       = 32.0
+hmix_fixed      = 45.0
