@@ -2568,9 +2568,7 @@
       !-----------------------------------------------------------------
 
       if (formdrag) then
-         !!!! This should take apond, not apnd, will fix in the next commit
-         call neutral_drag_coeffs (apnd         , &
-                                   hpnd        , ipnd         , &
+         call neutral_drag_coeffs (apond       , &
                                    alvl        , vlvl         , &
                                    aice        , vice,          &
                                    vsno        , aicen        , &
