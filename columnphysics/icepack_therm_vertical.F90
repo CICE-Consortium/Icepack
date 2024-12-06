@@ -83,8 +83,7 @@
                                   vicen,       vsnon,     &
                                   Tsf,         zSin,      &
                                   zqin,        zqsn,      &
-                                  apnd,        hpond,     &
-                                  alvl,                   &
+                                  apond,       hpond,     &
                                   flw,         potT,      &
                                   Qa,          rhoa,      &
                                   fsnow,       fpond,     &
@@ -123,9 +122,8 @@
       ! tracers
       real (kind=dbl_kind), intent(inout) :: &
          Tsf     , & ! ice/snow top surface temp, same as Tsfcn (deg C)
-         apnd    , & ! melt pond area fraction
-         hpond   , & ! melt pond depth (m)
-         alvl        ! level ice area fraction
+         apond   , & ! melt pond area fraction of category
+         hpond       ! melt pond depth (m)
 !        iage        ! ice age (s)
 
       logical (kind=log_kind), intent(in), optional :: &
@@ -316,7 +314,7 @@
                                               fswsfc,    fswint,    &
                                               Sswabs,    Iswabs,    &
                                               hilyr,     hslyr,     &
-                                              apnd,      hpond,     &
+                                              apond,     hpond,     &
                                               zqin,      zTin,      &
                                               zqsn,      zTsn,      &
                                               zSin,                 &
@@ -326,8 +324,7 @@
                                               flwoutn,   fsurfn,    &
                                               fcondtopn, fcondbotn, &
                                               fadvocn,   snoice,    &
-                                              smice,     smliq,     &
-                                              alvl)
+                                              smice,     smliq)
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
@@ -454,7 +451,7 @@
       fhocnn = fhocnn + fadvocn ! for ktherm=2
 
       if (hin == c0) then
-         if (tr_pond_topo) fpond = fpond - aicen * apnd * hpond
+         if (tr_pond_topo) fpond = fpond - aicen * apond * hpond
       endif
 
       !-----------------------------------------------------------------
@@ -2339,7 +2336,7 @@
          Tsfc        , & ! ice/snow surface temperature, Tsfcn
          alvl        , & ! level ice area fraction
          vlvl        , & ! level ice volume fraction
-         apnd        , & ! melt pond area fraction
+         apnd        , & ! melt pond area fraction tracer
          hpnd        , & ! melt pond depth                        (m)
          ipnd        , & ! melt pond refrozen lid thickness       (m)
          iage        , & ! volume-weighted ice age
@@ -2440,6 +2437,7 @@
          smliq           ! tracer for mass of liquid in snow (kg/m^3)
 
       real (kind=dbl_kind), dimension(ncat) :: &
+         apond       , & ! melt pond area fraction of category
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2530,6 +2528,17 @@
       massliqn(:,:) = c0
 
       !-----------------------------------------------------------------
+      ! Initialize pond area fractions
+      !-----------------------------------------------------------------
+      do n= 1, ncat    
+         if (tr_pond_lvl) then
+            apond(n) = apnd(n) * alvl(n)
+         else
+            apond(n) = apnd(n)
+         endif
+      enddo
+
+      !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
       !-----------------------------------------------------------------
 
@@ -2559,6 +2568,7 @@
       !-----------------------------------------------------------------
 
       if (formdrag) then
+         !!!! This should take apond, not apnd, will fix in the next commit
          call neutral_drag_coeffs (apnd         , &
                                    hpnd        , ipnd         , &
                                    alvl        , vlvl         , &
@@ -2707,8 +2717,7 @@
                                  vicen=vicen     (n), vsnon=vsnon         (n), &
                                  Tsf=Tsfc        (n), zSin=zSin         (:,n), &
                                  zqin=zqin     (:,n), zqsn=zqsn         (:,n), &
-                                 apnd=apnd       (n), hpond=hpnd          (n), &
-                                 alvl=alvl       (n),                          &
+                                 apond=apond     (n), hpond=hpnd          (n), &
                                  flw=flw,             potT=potT,               &
                                  Qa=Qa,               rhoa=rhoa,               &
                                  fsnow=fsnow,         fpond=fpond,             &
@@ -2738,6 +2747,13 @@
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
                call icepack_warnings_add(warnstr)
                return
+            endif
+
+            ! Translate changes in apond into apnd tracer
+            if (tr_pond_lvl) then
+               apnd(n) = apond(n) / alvl(n)
+            else
+               apnd(n) = apond(n)
             endif
 
             if (snwgrain) then
