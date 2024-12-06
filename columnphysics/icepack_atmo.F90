@@ -507,8 +507,7 @@
 !
 ! changes: Andrew Roberts, NPS (RASM/CESM coupling and documentation)
 
-      subroutine neutral_drag_coeffs (apnd,     hpnd,     &
-                                      ipnd,               &
+      subroutine neutral_drag_coeffs (apondn,               &
                                       alvl,     vlvl,     &
                                       aice,     vice,     &
                                       vsno,     aicen,    &
@@ -526,9 +525,7 @@
       use icepack_tracers, only: tr_pond
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         apnd     ,& ! melt pond fraction of sea ice
-         hpnd     ,& ! mean melt pond depth over sea ice
-         ipnd     ,& ! mean ice pond depth over sea ice in cat n
+         apondn   ,& ! melt pond fraction of sea ice category
          alvl     ,& ! level ice area fraction (of grid cell ?)
          vlvl        ! level ice mean thickness
 
@@ -666,7 +663,7 @@
          if (tr_pond) then
             do n = 1,ncat
                ! area of pond per unit area of grid cell
-               apond = apond+apnd(n)*aicen(n)
+               apond = apond+apondn(n)*aicen(n)
             enddo
          endif
 
