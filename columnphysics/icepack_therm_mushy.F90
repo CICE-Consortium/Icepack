@@ -72,7 +72,7 @@
          lhcoef      , & ! transfer coefficient for latent heat
          Tbot        , & ! ice bottom surfce temperature (deg C)
          sss             ! sea surface salinity (PSU)
-         
+
     real (kind=dbl_kind), intent(inout) :: &
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
          fswint          ! SW absorbed in ice interior below surface (W m-2)
@@ -3139,7 +3139,7 @@
 
        ! calculate ocean surface height above bottom of ice
        hocn = (ice_mass + hpond * apond * rhofresh + hsn * rhos) / rhow
-       
+
        ! calculate brine height above bottom of ice
        hbrine = hin + hpond
 
@@ -3151,7 +3151,7 @@
 
        ! maximum down flow to drain pond
        w_down_max = (hpond * apond) / dt
-       
+
        ! limit flow
        w = min(w,w_down_max)
 
