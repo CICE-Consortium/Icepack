@@ -15,13 +15,13 @@
       use icepack_intfc, only: icepack_init_tracer_flags
       use icepack_intfc, only: icepack_init_tracer_sizes
       use icepack_intfc, only: icepack_init_tracer_indices
-      use icepack_intfc, only: icepack_init_trcr
+      use icepack_intfc, only: icepack_init_enthalpy
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
       private
@@ -932,6 +932,8 @@
          write(nu_diag,1020) 'nx      = ', nx
          write(nu_diag,*)' '
 
+         call icedrv_system_flush(nu_diag)
+
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
  1005    format (a30,2x,f10.6) ! float
  1010    format (a30,2x,l6)    ! logical
@@ -1263,8 +1265,7 @@
          enddo
 
          if (tmask(i)) &
-         call icepack_aggregate(ncat=ncat,                    &
-                                trcrn=trcrn(i,1:ntrcr,:),     &
+         call icepack_aggregate(trcrn=trcrn(i,1:ntrcr,:),     &
                                 aicen=aicen(i,:),             &
                                 vicen=vicen(i,:),             &
                                 vsnon=vsnon(i,:),             &
@@ -1273,7 +1274,6 @@
                                 vice=vice (i),                &
                                 vsno=vsno (i),                &
                                 aice0=aice0(i),               &
-                                ntrcr=ntrcr,                  &
                                 trcr_depend=trcr_depend(1:ntrcr),     &
                                 trcr_base=trcr_base    (1:ntrcr,:),   &
                                 n_trcr_strata=n_trcr_strata(1:ntrcr), &
@@ -1306,32 +1306,28 @@
 
       use icedrv_arrays_column, only: hin_max
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, nfsd
-      use icedrv_arrays_column, only: floe_rad_c, floe_binwidth
 
       integer (kind=int_kind), intent(in) :: &
          nx          ! number of grid cells
 
-      real (kind=dbl_kind), dimension (nx), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          Tair       ! air temperature  (K)
 
       ! ocean values may be redefined here, unlike in CICE
-      real (kind=dbl_kind), dimension (nx), intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          Tf     , & ! freezing temperature (C)
          sst        ! sea surface temperature (C)
 
-      real (kind=dbl_kind), dimension (nx,nilyr), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (:,:), intent(in) :: &
          salinz , & ! initial salinity profile
          Tmltz      ! initial melting temperature profile
 
-      real (kind=dbl_kind), dimension (nx,ncat), &
-         intent(out) :: &
+      real (kind=dbl_kind), dimension (:,:), intent(out) :: &
          aicen , & ! concentration of ice
          vicen , & ! volume per unit area of ice          (m)
          vsnon     ! volume per unit area of snow         (m)
 
-      real (kind=dbl_kind), dimension (nx,max_ntrcr,ncat), &
-         intent(out) :: &
+      real (kind=dbl_kind), dimension (:,:,:), intent(out) :: &
          trcrn     ! ice tracers
                    ! 1: surface temperature of ice/snow (C)
 
@@ -1441,18 +1437,15 @@
          vicen(i,n) = hinit(n) * ainit(n) ! m
          vsnon(i,n) = c0
          ! tracers
-         call icepack_init_trcr(Tair     = Tair(i),     &
+         call icepack_init_enthalpy(Tair = Tair(i),     &
                                 Tf       = Tf(i),       &
                                 Sprofile = salinz(i,:), &
                                 Tprofile = Tmltz(i,:),  &
                                 Tsfc     = Tsfc,        &
-                                nilyr=nilyr, nslyr=nslyr, &
                                 qin=qin(:), qsn=qsn(:))
 
          ! floe size distribution
-         if (tr_fsd) call icepack_init_fsd(nfsd=nfsd, ice_ic=ice_ic, &
-                                  floe_rad_c=floe_rad_c,             &
-                                  floe_binwidth=floe_binwidth,       &
+         if (tr_fsd) call icepack_init_fsd(ice_ic=ice_ic, &
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
          ! surface temperature
          trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
@@ -1513,17 +1506,14 @@
          vicen(i,n) = hinit(n) * ainit(n) ! m
          vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
          ! tracers
-         call icepack_init_trcr(Tair     = Tair(i),     &
+         call icepack_init_enthalpy(Tair = Tair(i),     &
                                 Tf       = Tf(i),       &
                                 Sprofile = salinz(i,:), &
                                 Tprofile = Tmltz(i,:),  &
                                 Tsfc     = Tsfc,        &
-                                nilyr=nilyr, nslyr=nslyr, &
                                 qin=qin(:), qsn=qsn(:))
          ! floe size distribution
-         if (tr_fsd) call icepack_init_fsd(nfsd=nfsd, ice_ic=ice_ic, &
-                                  floe_rad_c=floe_rad_c,             &
-                                  floe_binwidth=floe_binwidth,       &
+         if (tr_fsd) call icepack_init_fsd(ice_ic=ice_ic, &
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
 
          ! surface temperature

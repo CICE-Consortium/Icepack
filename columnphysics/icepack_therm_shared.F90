@@ -14,6 +14,7 @@
       use icepack_parameters, only: saltmax, min_salin, depressT
       use icepack_parameters, only: ktherm, tfrz_option
       use icepack_parameters, only: calc_Tsfc
+      use icepack_tracers, only: nilyr, nslyr
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -28,9 +29,9 @@
       public :: calculate_Tin_from_qin, &
                 surface_heat_flux, &
                 dsurface_heat_flux_dTsf, &
-                icepack_init_thermo, &
+                icepack_init_salinity, &
                 icepack_salinity_profile, &
-                icepack_init_trcr, &
+                icepack_init_enthalpy, &
                 icepack_ice_temperature, &
                 icepack_snow_temperature, &
                 icepack_liquidus_temperature, &
@@ -64,12 +65,12 @@
          Tmltk                  ! melting temperature at one level
 
       real (kind=dbl_kind) :: &
-         Tin                 ! internal temperature
+         Tin                    ! internal temperature
 
       ! local variables
 
       real (kind=dbl_kind) :: &
-         aa1,bb1,cc1         ! quadratic solvers
+         aa1,bb1,cc1,csqrt      ! quadratic solvers
 
       character(len=*),parameter :: subname='(calculate_Tin_from_qin)'
 
@@ -77,8 +78,13 @@
          aa1 = cp_ice
          bb1 = (cp_ocn-cp_ice)*Tmltk - qin/rhoi - Lfresh
          cc1 = Lfresh * Tmltk
-         Tin =  min((-bb1 - sqrt(bb1*bb1 - c4*aa1*cc1)) /  &
-                         (c2*aa1),Tmltk)
+         csqrt = bb1*bb1 - c4*aa1*cc1
+         if (csqrt < c0) then
+           call icepack_warnings_add(subname//' sqrt error: ')
+           call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           return
+         endif
+         Tin =  min((-bb1 - sqrt(csqrt)) / (c2*aa1),Tmltk)
 
       else                ! fresh ice
          Tin = (Lfresh + qin/rhoi) / cp_ice
@@ -209,16 +215,14 @@
       end subroutine dsurface_heat_flux_dTsf
 
 !=======================================================================
-!autodocument_start icepack_init_thermo
-! Initialize the vertical profile of ice salinity and melting temperature.
+!autodocument_start icepack_init_salinity
+! Initialize the vertical profile of ice salinity.
+! This subroutine was renamed from icepack_init_thermo in Oct 2024
 !
 ! authors: C. M. Bitz, UW
 !          William H. Lipscomb, LANL
 
-      subroutine icepack_init_thermo(nilyr, sprofile)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr                            ! number of ice layers
+      subroutine icepack_init_salinity(sprofile)
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          sprofile                         ! vertical salinity profile
@@ -228,7 +232,7 @@
       integer (kind=int_kind) :: k        ! ice layer index
       real (kind=dbl_kind)    :: zn       ! normalized ice thickness
 
-      character(len=*),parameter :: subname='(icepack_init_thermo)'
+      character(len=*),parameter :: subname='(icepack_init_salinity)'
 
       !-----------------------------------------------------------------
       ! Determine l_brine based on saltmax.
@@ -241,7 +245,7 @@
       if (saltmax > min_salin) l_brine = .true.
 
       !-----------------------------------------------------------------
-      ! Prescibe vertical profile of salinity and melting temperature.
+      ! Prescibe vertical profile of salinity.
       ! Note this profile is only used for BL99 thermodynamics.
       !-----------------------------------------------------------------
 
@@ -261,7 +265,7 @@
          enddo
       endif ! l_brine
 
-      end subroutine icepack_init_thermo
+      end subroutine icepack_init_salinity
 
 !=======================================================================
 !autodocument_start icepack_salinity_profile
@@ -284,24 +288,20 @@
          nsal    = 0.407_dbl_kind, &
          msal    = 0.573_dbl_kind
 
-      character(len=*),parameter :: subname='(icepack_init_thermo)'
+      character(len=*),parameter :: subname='(icepack_salinity_profile)'
 
       salinity = (saltmax/c2)*(c1-cos(pi*zn**(nsal/(msal+zn))))
 
       end function icepack_salinity_profile
 
 !=======================================================================
-!autodocument_start icepack_init_trcr
+!autodocument_start icepack_init_enthalpy
+! This subroutine was renamed from icepack_init_trcr in Oct 2024
 !
-      subroutine icepack_init_trcr(Tair,     Tf,       &
+      subroutine icepack_init_enthalpy(Tair, Tf,      &
                                   Sprofile, Tprofile, &
                                   Tsfc,               &
-                                  nilyr,    nslyr,    &
                                   qin,      qsn)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr, &    ! number of ice layers
-         nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          Tair, &     ! air temperature (K)
@@ -327,7 +327,7 @@
       real (kind=dbl_kind) :: &
          slope, Ti
 
-      character(len=*),parameter :: subname='(icepack_init_trcr)'
+      character(len=*),parameter :: subname='(icepack_init_enthalpy)'
 
       ! surface temperature
       Tsfc = Tf ! default
@@ -353,7 +353,7 @@
           qsn(k) = -rhos*(Lfresh - cp_ice*Ti)
         enddo               ! nslyr
 
-    end subroutine icepack_init_trcr
+    end subroutine icepack_init_enthalpy
 
 !=======================================================================
 !autodocument_start icepack_liquidus_temperature
@@ -413,6 +413,7 @@
 
            call icepack_warnings_add(subname//' tfrz_option unsupported: '//trim(tfrz_option))
            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           return
 
         endif
 

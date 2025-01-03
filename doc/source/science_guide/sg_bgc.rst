@@ -13,7 +13,7 @@ Basic Aerosols
 
 Aerosols may be deposited on the ice and gradually work their way
 through it until the ice melts and they are passed into the ocean. They
-are defined as ice and snow volume tracers (Eq. 15 and 16 in CICE.v5
+are defined as ice and snow volume tracers (see CICE "Tracers"
 documentation), with the snow and ice each having two tracers for each
 aerosol species, one in the surface scattering layer (delta-Eddington
 SSL) and one in the snow or ice interior below the SSL.
@@ -50,7 +50,7 @@ An alternate scheme for aerosols in sea ice is available using
 the brine motion based transport scheme of the biogeochemical tracers.
 All vertically resolved biogeochemical tracers (z-tracers), including
 aerosols, have the potential to be atmospherically deposited onto the
-snow or ice, scavenged during snow melt, and passed into the brine. The
+snow or ice, scavenged during snow melt, and passed into the brine. They can also be picked up from the ocean if there is an ocean source. The
 mobile fraction (discussed in :ref:`mobile-and-stationary`) is
 then transported via brine drainage processes
 (Eq. :eq:`mobile-transport`) while a
@@ -63,7 +63,7 @@ the scavenging parameter ``kscavz`` for z-tracers defined in
 **icepack\_zbgc\_shared.F90**.
 
 Within the snow, z-tracers are defined as concentrations in the snow
-surface layer (:math:`h_{ssl}`) and the snow interior
+surface layer (:math:`h_{ssl}`), equal to half the snow layer thickness, and the snow interior
 (:math:`h_s-h_{ssl}`). The total snow content of z-tracers per ice area
 per grid cell area, :math:`C_{snow}` is
 
@@ -73,13 +73,13 @@ per grid cell area, :math:`C_{snow}` is
 One major difference in how the two schemes model snow aerosol transport
 is that the fraction scavenged from snow melt in the z-tracer scheme is
 not immediately fluxed into the ocean, but rather, enters the ice as a
-source of low salinity but potentially tracer-rich brine. The snow melt
+source of potentially tracer-rich brine. The snow melt
 source is included as a surface flux condition in **icepack\_algae.F90**.
 
 All the z-aerosols are nonreactive with the exception of the dust
-aerosols. We assume that a small fraction of the dust flux into the ice
-has soluble iron (``dustFe_sol`` in **icepack\_in**) and so is
-passed to the dissolved iron tracer. The remaining dust passes through
+aerosols. If biogeochemistry is active, we assume that a small fraction of the dust flux into the ice
+is iron ((``R_dFe2dust`` in **icepack\_in**) and a fraction of that has soluble iron (``dustFe_sol`` in **icepack\_in**). This is
+passed to the dissolved iron tracer if active. The remaining dust passes through
 the ice without reactions.
 
 To use z-aerosols, ``tr_zaero`` must be set to true in **icepack\_in**, and the
@@ -87,7 +87,7 @@ number of z-aerosol species is set in **icepack.settings**, ``TRZAERO``. Note, t
 basic tracers ``tr_aero`` must be false and ``NTRAERO`` in **icepack.settings**
 should be 0. In addition, z-tracers and the brine height tracer must
 also be active. These are set in **icepack\_in** with ``tr_brine`` and
-``z_tracer`` set to true. In addition, to turn on the radiative coupling
+``z_tracer`` set to true. To turn on the radiative coupling
 between the aerosols and the Delta-Eddington radiative scheme, ``shortwave``
 must equal ’dEdd’ and ``dEdd_algae`` must be true in **icepack\_in**.
 
@@ -98,7 +98,7 @@ Water Isotope
 
 Water isotopes may be deposited on the ice from above or below, and gradually work their way
 through it until the ice melts and they are passed into the ocean. They
-are defined as ice and snow volume tracers (Eq. 15 and 16 in CICE.v5
+are defined as ice and snow volume tracers (see CICE "Tracers"
 documentation), with the snow and ice each having one tracer for each
 water isotope species.
 
@@ -264,6 +264,10 @@ where the sums are taken over thickness categories.
 Sea ice ecosystem
 -----------------
 
+**The skeletal layer implementation has been deprecated but not removed as of 
+September, 2024.  If users are interested in this feature, please contact
+the CICE Consortium.  The documentation below has not yet been removed.**
+
 There are two options for modeling biogeochemistry in sea ice: 1) a
 skeletal layer or bottom layer model that assumes biology
 and biological molecules are restricted to a single layer at the base of
@@ -299,8 +303,7 @@ There are also environmental variables in **icepack.settings** that, in part,
 specify the complexity of the ecosystem and are used for both zbgc and
 the skeletal-layer model. These are 1) ``TRALG``, the number of algal species; 2)
 ``TRDOC``, the number of dissolved organic carbon groups, 3) ``TRDIC``, the
-number of dissolved inorganic carbon groups (this is currently not yet
-implemented and should be set to 0); 4) ``TRDON``, the number of dissolved
+number of dissolved inorganic carbon groups (this is set to 1 if conservation of carbon is desired); 4) ``TRDON``, the number of dissolved
 organic nitrogen groups, 5) ``TRFEP``, the number of particulate iron
 groups; and 6) ``TRFED``, the number of dissolved iron groups. The current
 version of **algal\_dyn** biochemistry has parameters for up to 3 algal
@@ -328,6 +331,10 @@ namelist, ``bgc_data_file``.
 
 Skeletal Layer BGC
 ~~~~~~~~~~~~~~~~~~
+
+**The skeletal layer implementation has been deprecated but not removed as of 
+September, 2024.  If users are interested in this feature, please contact
+the CICE Consortium.  The documentation below has not yet been removed.**
 
 In the skeletal layer model, biogeochemical processing is modelled as a
 single layer of reactive tracers attached to the sea ice bottom.
@@ -426,7 +433,7 @@ section :ref:`reactions`.
 
 .. _zbgc:
 
-Vertical BGC (''zbgc'')
+Vertical BGC ("zbgc")
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to solve for the vertically resolved biogeochemistry, several
@@ -439,7 +446,7 @@ flags in **icepack\_in** must be true: a) ``tr_brine``, b) ``z_tracers``, and c)
    volume\ :math:`\times`\ brine height fraction.
 
 -  ``z_tracers`` = true indicates use of vertically resolved
-   biogeochemical and z-aerosol tracers. This flag alone turns on the
+   biogeochemical tracers, z-aerosol tracers, or both. This flag alone turns on the
    vertical transport scheme but not the biochemistry.
 
 -  ``solve_zbgc`` = true turns on the biochemistry for the vertically
@@ -455,17 +462,17 @@ flags in **icepack\_in** must be true: a) ``tr_brine``, b) ``z_tracers``, and c)
 .. the Bitz and Lipscomb thermodynamics ``ktherm`` set to 1 and ``solve_zsal``
 .. true (referred to as "zsalinity").
 
-With the above flags, the default biochemistry is a simple
-algal-nitrate system: ``tr_bgc_N`` and ``tr_bgc_Nit`` are true. Options
+With the above flags and ``tr_bgc_Nit`` set to true, the default biochemistry is a simple
+algal-nitrate system: ``tr_bgc_N`` (turned on by default) and ``tr_bgc_Nit`` (required). Options
 exist in **icepack\_in** to use a more complicated ecosystem which includes up
-to three algal classes, two DOC groups, one DON pool, limitation by
-nitrate, silicate and dissolved iron, sulfur chemistry plus refractory
+to three algal classes, two DOC groups, one DON pool, one DIC, limitation by
+silicate and dissolved iron, sulfur chemistry plus refractory
 humic material.
 
 The **icepack\_in** namelist options are described in the :ref:`tabnamelist`.
 
 
-Vertically resolved z-tracers are brine- volume conserved and thus depend
+Vertically resolved z-tracers are brine volume conserved and thus depend
 on both the ice volume and the brine height fraction tracer
 (:math:`v_{in}f_b`). These tracers follow the conservation equations for
 multiply dependent tracers (see, for example Equation :eq:`transport-apnd-lvl` where :math:`a_{pnd}` is a tracer on :math:`a_{lvl}a_{i}`)  
@@ -482,12 +489,12 @@ The vertical bio-grid is described in the :ref:`grids` section.
 Purely mobile tracers are tracers which move with the brine and thus, in
 the absence of biochemical reactions, evolve like salinity. For vertical
 tracer transport of purely mobile tracers, the flux conserved quantity
-is the bulk tracer concentration multiplied by the ice thickness, i.e.
-:math:`C = h\phi
-[c]`, where :math:`h` is the ice thickness, :math:`\phi` is the
+is the bulk tracer concentration multiplied by the brine thickness, i.e.
+:math:`C = h_{b}\phi
+[c]`, where :math:`h_{b}` is the brine thickness, :math:`\phi` is the
 porosity, and :math:`[c]` is the tracer concentration in the brine.
 :math:`\phi`, :math:`[c]` and :math:`C` are defined on the interface bio
-grid (igrid):
+grid (igrid) with ``NBGCLYR`` equal to :math:`n_{b}` in what follows:
 
 .. math::
    \mbox{igrid}(k) = \Delta (k-1) \ \ \ \mbox{for }k = 1:n_b+1 \ \ \mbox{and }\Delta = 1/n_b.
@@ -497,13 +504,13 @@ The biogeochemical module solves the following equation:
 .. math::
    \begin{aligned}
    \frac{\partial C}{\partial t} & =& \frac{\partial }{\partial x}\left\{
-   \left( \frac{v}{h} + \frac{w_f}{h\phi} -
-     \frac{\tilde{D}}{h^2\phi^2}\frac{\partial \phi}{\partial x} \right) C
-   + \frac{\tilde{D}}{h^2\phi}\frac{\partial C}{\partial x} 
-   \right\} + h\phi R([c])\end{aligned}
+   \left( \frac{v}{h_{b}} + \frac{w_f}{h_{b}\phi} -
+     \frac{\tilde{D}}{h_{b}^2\phi^2}\frac{\partial \phi}{\partial x} \right) C
+   + \frac{\tilde{D}}{h_{b}^2\phi}\frac{\partial C}{\partial x} 
+   \right\} + h_{b}\phi R([c])\end{aligned}
    :label: mobile-transport
 
-where :math:`D_{in} = \tilde{D}/h^2 =  (D + \phi D_m)/h^2` and
+where :math:`D_{in} = \tilde{D}/h_{b}^2 =  (D + \phi D_m)/h_{b}^2` and
 :math:`R([c])` is the nonlinear biogeochemical interaction term (see
 :cite:`Jeffery11`).
 
@@ -516,12 +523,7 @@ otherwise adhere to the ice crystals. These tracers exist in both the
 mobile and stationary phases. In this case, their total brine
 concentration is a sum :math:`c_m + c_s` where :math:`c_m` is the mobile
 fraction transported by equation :eq:`mobile-transport` and :math:`c_s`
-is fixed vertically in the ice matrix. The algae are an exception,
-however. We assume that algae in the stationary phase resist brine
-motion, but rather than being fixed vertically, these tracers maintain
-their relative position in the ice. Algae that adhere to the ice
-interior (bottom, surface), remain in the ice interior (bottom, surface)
-until release to the mobile phase.
+is fixed vertically in the ice matrix.  Nitrate and Diatoms are special cases discussed below.
 
 In order to model the transfer between these fractions, we assume that
 tracers adhere (are retained) to the crystals with a time-constant of
@@ -545,8 +547,8 @@ We use the exponential form of these equations:
    c_s^{t+dt} & = & c_s^t\exp\left(-\frac{dt}{\tau_{rel}}\right) +
    c_m^t\left(1-\exp\left[-\frac{dt}{\tau_{ret}}\right]\right) \end{aligned}
 
-The time constants are functions of the ice growth and melt rates
-(:math:`dh/dt`). All tracers except algal nitrogen diatoms follow the
+The time constants are step-functions of the ice growth and melt rates
+(:math:`dh/dt`). All tracers except algal nitrogen diatoms and nitrate follow the
 simple case: when :math:`dh/dt \geq 0`, then
 :math:`\tau_{rel} \rightarrow \infty` and :math:`\tau_{ret}` is finite.
 For :math:`dh/dt < 0`, then :math:`\tau_{ret} \rightarrow \infty` and
@@ -554,7 +556,9 @@ For :math:`dh/dt < 0`, then :math:`\tau_{ret} \rightarrow \infty` and
 transitions to the stationary phase and ice melt enables transitions to
 the mobile phase.
 
-The exception is the diatom pool. We assume that diatoms, the first
+Nitrate is a special case.  This tracer is generally treated as purely mobile. However this is not the case if nitrate arises from in situ nitrification (i.e. ammonium to nitrate).  In this case, we model the nitrate as associated with a implicit biofilm which adheres to the ice matrix.  This ice in situ production is assigned to the stationary phase.
+
+As with nitrate, diatoms are a special case. We assume that diatoms, the first
 algal nitrogen group, can actively maintain their relative position
 within the ice, i.e. bottom (interior, upper) algae remain in the bottom
 (interior, upper) ice, unless melt rates exceed a threshold. The
@@ -562,18 +566,19 @@ namelist parameter ``algal_vel`` sets this threshold.
 
 The variable ``bgc_tracer_type`` determines the mobile to stationary
 transition timescales for each z-tracer. It is multi-dimensional with a
-value for each z-tracer. For ``bgc_tracer_type``(k) equal to -1, the kth
+value for each z-tracer. For ``bgc_tracer_type`` equal to -1, the
 tracer remains solely in the mobile phase. For ``bgc_tracer_type``
 equal to 1, the tracer has maximal rates in the retention phase and
 minimal in the release. For ``bgc_tracer_type`` equal to 0, the tracer
 has maximal rates in the release phase and minimal in the retention.
-Finally for ``bgc_tracer_type`` equal to 0.5, minimum timescales are
+Finally, for ``bgc_tracer_type`` equal to 0.5, minimum timescales are
 used for both transitions. Table :ref:`tab-phases` summarizes the
-transition types. The tracer types are: ``algaltype_diatoms``,
+transition types. The distinct tracer types are specified by the parameters: ``algaltype_diatoms``,
 ``algaltype_sp`` (small plankton), ``algaltype_phaeo`` (*phaeocystis*),
 ``nitratetype``, ``ammoniumtype``, ``silicatetype``, ``dmspptype``, 
 ``dmspdtype``, ``humtype``,
 ``doctype_s`` (saccharids), ``doctype_l`` (lipids), ``dontype_protein``,
+``dictype``
 ``fedtype_1``, ``feptype_1``, ``zaerotype_bc1`` (black carbon class 1),
 ``zaerotype_bc2`` (black carbon class 2), and four dust classes,
 ``zaerotype_dustj``, where j takes values 1 to 4. These may be modified to
@@ -606,13 +611,20 @@ dependent on two tracers: brine height fraction (:math:`f_b`) and ice
 volume (:math:`v_{in}`). The conservation equations are given by
 
 .. math::
-   {\partial\over\partial t} (f_{b}v_{in}) + \nabla \cdot (f_{b}v_{in} {\bf u}) = 0.
+   {\partial\over\partial t} (f_{b}v_{in}) + \nabla \cdot (f_{b}v_{in} {\bf u}) = 0 .
 
 The tracer, ``zbgc_frac``, is initialized to 1 during new ice formation,
 because all z-tracers are initially in the purely mobile phase.
-Similarly, as the ice melts, z-tracers return to the mobile phase. Very
-large release timescales will prevent this transition and could result
-in an unphysically large accumulation during the melt season.
+Similarly, as the ice melts, z-tracers gradually return to the mobile phase.
+
+Maximum accumulation of tracers (based on diatoms) on ice crystals (i.e. collectors) is ultimately limited by their saturation concentration based on :cite:`Johnson95`'s model of bacterial detachment in porous media.  This is modeled simply using a single saturation concentration for all tracers. This could be modified to be tracer dependent in future versions if warranted. Several local parameters defined in **z\_biogeochemistry** are used in the calculation: 1) mean ice crystal radius :math:`r_c` ; 2) large diatom radius :math:`r_{bac}` ; 3) small diatom radius :math:`r_{alg}` ; 4) two parameters in a conversion from algal nitrogen quota to cell volume :math:`Nquota_{A}` and :math:`Nquota_I` :cite:`Edwards2012` ; 5) fraction of sites available for saturation :math:`f_s` ; 6) fraction of the collector (ice crystal) available for attachment :math:`f_a` ; 6) fraction of algal coverage by area available for attachment :math:`f_v`.  These are used to compute the volume and surface area of a diatom cell (assumed to be a prolate spheriod) :math:`V_alg = \frac{\pi}{6} r_{bac}r_{alg}^{2}` and :math:`P_b = \pi r_{bac}^{2}`, respectively; and the volume and surface area of the collector (assumed to be spherical)  :math:`V_c = \frac{4 \pi}{3} r_{c}^{3}` and   :math:`S_{col} = 4 \pi r_{c}^{2}`, respectively.
+
+The saturation concentration ``Sat_conc`` is approximated as:
+
+.. math::
+   Sat_{conc} = \frac{f_{s}f_{a}f_{v} S_{col}Nquota_{I}}{V_{c} P_{b}}(c1-phi_{max})V_{alg}^{Nquota_{A}}
+
+where  :math:`phi_{max}` is the maximum porosity in the ice column.
 
 .. _tracer-numerics:
 
@@ -997,9 +1009,10 @@ are true).
    "N (3)", "Nin(3)", "`tr_bgc_N`", "*Phaeocystis sp*", ":math:`mmol` :math:`N/m^3`"
    "DOC (1)", "DOCin(1)", "`tr_bgc_DOC`", "polysaccharids", ":math:`mmol` :math:`C/m^3`"
    "DOC (2)", "DOCin(2)", "`tr_bgc_DOC`", "lipids", ":math:`mmol` :math:`C/m^3`"
-   "DON", "DONin(1)", "`tr_bgc_DON`", "proteins", ":math:`mmol` :math:`C/m^3`"
-   "fed", "Fedin(1)", "`tr_bgc_Fe`", "dissolved iron", ":math:`\mu` :math:`Fe/m^3`"
-   "fep", "Fepin(1)", "`tr_bgc_Fe`", "particulate iron", ":math:`\mu` :math:`Fe/m^3`"
+   "DIC", "DICin(1)", "`tr_bgc_DIC`", "dissolved inorganic carbon", ":math:`mmol` :math:`C/m^3`"
+   "DON", "DONin(1)", "`tr_bgc_DON`", "proteins", ":math:`mmol` :math:`N/m^3`"
+   "fed", "Fedin(1)", "`tr_bgc_Fe`", "dissolved iron", ":math:`\mu mol` :math:`Fe/m^3`"
+   "fep", "Fepin(1)", "`tr_bgc_Fe`", "particulate iron", ":math:`\mu mol` :math:`Fe/m^3`"
    ":math:`{\mbox{NO$_3$}}`", "Nitin", "`tr_bgc_Nit`", ":math:`{\mbox{NO$_3$}}`", ":math:`mmol` :math:`N/m^3`"
    ":math:`{\mbox{NH$_4$}}`", "Amin", "`tr_bgc_Am`", ":math:`{\mbox{NH$_4$}}`", ":math:`mmol` :math:`N/m^3`"
    ":math:`{\mbox{SiO$_3$}}`", "Silin", "`tr_bgc_Sil`", ":math:`{\mbox{SiO$_2$}}`", ":math:`mmol` :math:`Si/m^3`"
@@ -1007,7 +1020,7 @@ are true).
    "DMSPd", "DMSPdin", "`tr_bgc_DMS`", "dissolved DMSP", ":math:`mmol` :math:`S/m^3`"
    "DMS", "DMSin", "`tr_bgc_DMS`", "DMS", ":math:`mmol` :math:`S/m^3`"
    "PON", "PON :math:`^a`", "`tr_bgc_PON`", "passive mobile tracer", ":math:`mmol` :math:`N/m^3`"
-   "hum", "hum :math:`^{ab}`", "`tr_bgc_hum`", "passive sticky tracer", ":math:`mmol` :math:`/m^3`"
+   "hum", "hum :math:`^{a}`", "`tr_bgc_hum`", "refractory dissolved organic carbon", ":math:`mmol C` :math:`/m^3`"
    "BC (1)", "zaero(1) :math:`^a`", "`tr_zaero`", "black carbon species 1", ":math:`kg` :math:`/m^3`"
    "BC (2)", "zaero(2) :math:`^a`", "`tr_zaero`", "black carbon species 2", ":math:`kg` :math:`/m^3`"
    "dust (1)", "zaero(3) :math:`^a`", "`tr_zaero`", "dust species 1", ":math:`kg` :math:`/m^3`"
@@ -1017,33 +1030,31 @@ are true).
 
 :math:`^a` not modified in *algal_dyn*
 
-:math:`^b` may be in C or N units depending on the ocean concentration
-
 The biochemical reaction term for each algal species has the form:
 
 .. math::
-   \Delta {\mbox{N}}/dt = R_{{\mbox{N}}} = \mu (1- f_{graze} - f_{res}) - M_{ort}
+   \Delta {\mbox{N}}/dt = R_{{\mbox{N}}} = \mu (1 - f_{res}) - M_{ort} - G_{raze}
 
 where :math:`\mu` is the algal growth rate, :math:`M_{ort}` is a
-mortality loss, :math:`f_{graze}` is the fraction of algal growth that
-is lost to predatory grazing, and :math:`f_{res}` is the fraction of
-algal growth lost to respiration. Algal mortality is temperature
-dependent and limited by a maximum loss rate fraction (:math:`l_{max}`):
+mortality loss, :math:`G_{raze}` is a loss term from implicit predatory grazing, and :math:`f_{res}` is the fraction of algal growth lost to respiration. Algal mortality is temperature
+dependent. Both are limited by a maximum loss rate fraction (:math:`l_{max}`).  For each algal type, we have:
+
+.. math::
+   G_{raze} = \min( l_{max} * {\mbox{N}}/dt, \mu * fr_{graze}(k) * ({\mbox{N}}/graze_{conc})^{graze_{exponent}})
+
+Note, :math:`[\cdot]` denotes brine concentration.
 
 .. math::
    M_{ort} = \min( l_{max}[{\mbox{N}}], m_{pre} \exp\{m_{T}(T-T_{max})\}[{\mbox{N}}])
-
-Note, :math:`[\cdot]` denotes brine concentration.
 
 Nitrate and ammonium reaction terms are given by
 
 .. math::
 
    \begin{aligned}
-   \Delta{\mbox{NO$_3$}}/dt & = & R_{{\mbox{NO$_3$}}} =  [{\mbox{NH$_4$}}] k_{nitr}- U^{tot}_{{\mbox{NO$_3$}}} \nonumber \\
-   \Delta{\mbox{NH$_4$}}/dt & = & R_{{\mbox{NH$_4$}}} = -[{\mbox{NH$_4$}}] k_{nitr} -U^{tot}_{{\mbox{NH$_4$}}} +
-   (f_{ng}f_{graze}(1-f_{gs})+f_{res})\mu^{tot} \nonumber \\
-    &  +  & f_{nm} M_{ort}
+   \frac{\Delta{\mbox{NO$_3$}}}{dt}  =  R_{{\mbox{NO$_3$}}} & = & [{\mbox{NH$_4$}}] k_{nitr}- U^{tot}_{{\mbox{NO$_3$}}} \nonumber \\
+   \frac{\Delta{\mbox{NH$_4$}}}{dt}  = R_{{\mbox{NH$_4$}}} & = & -[{\mbox{NH$_4$}}] k_{nitr} -U^{tot}_{{\mbox{NH$_4$}}} +
+   (f_{ng}f_{graze}(1-f_{gs})+f_{res})\mu^{tot} +  f_{nm} M_{ort}
    \nonumber \\
                         & = &  -[{\mbox{NH$_4$}}]k_{nitr} -U^{tot}_{{\mbox{NH$_4$}}} + N_{remin}\end{aligned}
 
@@ -1055,15 +1066,19 @@ ammonium and :math:`f_{gs}` is the fraction of grazing spilled or lost.
 Algal growth and nutrient uptake terms are described in more detail in
 :ref:`growth-uptake`.
 
-Dissolved organic nitrogen satisfies the equation
+
+Dissolved organic nitrogen depends on the sum of all grazing :math:`graze^{tot}` and mortality :math:`M_{ort}^{tot}` and satisfies the equation
 
 .. math::
 
    \begin{aligned}
-   \Delta {\mbox{DON}}/dt & = & R_{{\mbox{DON}}} = f_{dg}f_{gs}f_{graze}\mu^{tot} - [{\mbox{DON}}]k_{nb}\end{aligned}
+   \frac{\Delta {\mbox{DON}}}{dt} & = & R_{{\mbox{DON}}} \nonumber \\
+   & = & graze^{tot} - graze^{tot}(1-fr_{graze_s})*fr_{graze_e} + M_{ort}^{tot}(1 - fr_{mort2min}) - [{\mbox{DON}}]k_{nb} \\
+   & = & DON_{source} -  [{\mbox{DON}}]k_{nb}
+   \end{aligned}
 
 With a loss from bacterial degration (rate :math:`k_{nb}`) and a gain
-from spilled grazing that does not enter the :math:`{\mbox{NH$_4$}}`
+from spilled grazing and mortality that does not enter the :math:`{\mbox{NH$_4$}}`
 pool.
 
 A term Z\ :math:`_{oo}` closes the nitrogen cycle by summing all the
@@ -1077,8 +1092,8 @@ cycle at each timestep.
 .. math::
 
    \begin{aligned}
-   \mbox{Z}_{oo} & = & [(1-f_{ng}(1-f_{gs}) - f_{dg}f_{gs}]f_{graze}\mu^{tot}dt + (1-f_{nm})M_{ort}dt  +
-   [{\mbox{DON}}]k_{nb}dt \nonumber\end{aligned}
+   \mbox{Z}_{oo} & = & (1-fr_{graze_e})(1-fr_{graze_s})graze^{tot} + fr_{graze_s} graze^{tot} + M_{ort}^{tot}(1 -  fr_{mort2min})
+ \nonumber\end{aligned}
 
 Dissolved organic carbon may be divided into polysaccharids and lipids.
 Parameters are two dimensional (indicated by superscript :math:`i`) with
@@ -1088,15 +1103,16 @@ lipids. The :math:`{\mbox{DOC}}^i` equation is:
 .. math::
 
    \begin{aligned}
-   \Delta {\mbox{DOC}}^i/dt & = & R_{{\mbox{DOC}}} = f^i_{cg}f_{ng}\mu^{tot} + R^i_{c:n}M_{ort}-[{\mbox{DOC}}]k^i_{cb}\end{aligned}
-
+   \frac{\Delta {\mbox{DOC}}^i}{dt} & = & R_{{\mbox{DOC}}} = f^i_{cg}(graze^{tot} + M_{ort}^{tot} - f_{ng}\mu^{tot} - \frac{DON_{source}}{dt}) R^i_{c:n}-[{\mbox{DOC}}]k^i_{cb} \\
+   & = & R_{{\mbox{DOC}}} = f^i_{cg}(graze^{tot} + M_{ort}^{tot} - f_{ng}\mu^{tot} - \frac{DON_{source}}{dt}) R^i_{c:n} - \frac{DOC_{loss}}{dt}\end{aligned}
+   
 Silicate has no biochemical source terms within the ice and is lost only
 through algal uptake:
 
 .. math::
 
    \begin{aligned}
-   \Delta {\mbox{SiO$_3$}}/dt & = & R_{{\mbox{SiO$_3$}}} = -U_{{\mbox{SiO$_3$}}}^{tot}\end{aligned}
+   \frac{\Delta {\mbox{SiO$_3$}}}{dt} & = & R_{{\mbox{SiO$_3$}}} = -U_{{\mbox{SiO$_3$}}}^{tot}\end{aligned}
 
 Dissolved iron has algal uptake and remineralization pathways. In
 addition, :math:`{\mbox{fed}}` may be converted to or released from the
@@ -1109,16 +1125,16 @@ and particulate iron is
 .. math::
 
    \begin{aligned}
-   \Delta_{fe}{\mbox{fed}}/dt & = & -[{\mbox{fed}}]/\tau_{fe} \nonumber \\
-   \Delta_{fe}{\mbox{fep}}/dt & = & [{\mbox{fed}}]/\tau_{fe}\end{aligned}
+   \frac{\tilde{\Delta} {\mbox{fed}}}{dt} & = & -\frac{[{\mbox{fed}}]}{\tau_{fe}} \nonumber \\
+   \frac{\tilde{\Delta} {\mbox{fep}}}{dt} & = & \frac{[{\mbox{fed}}]}{\tau_{fe}}\end{aligned}
 
-For values less than :math:`r^{max}_{fed:doc}`
+for values less than :math:`r^{max}_{fed:doc}`.
 
 .. math::
 
    \begin{aligned}
-   \Delta_{fe}{\mbox{fed}}/dt & = & [{\mbox{fep}}]/\tau_{fe} \nonumber \\
-   \Delta_{fe}{\mbox{fep}}/dt & = & -[{\mbox{fep}}]/\tau_{fe}\end{aligned}
+   \frac{\tilde{\Delta} {\mbox{fed}}}{dt} & = & \frac{[{\mbox{fep}}]}{\tau_{fe}} \nonumber \\
+   \frac{\tilde{\Delta} {\mbox{fep}}}{dt} & = & -\frac{[{\mbox{fep}}]}{\tau_{fe}}\end{aligned}
 
 Very long timescales :math:`\tau_{fe}` will remove this source/sink
 term. The default value is currently set at 3065 days to turn off this
@@ -1131,8 +1147,8 @@ remineralization is
 .. math::
 
    \begin{aligned}
-   \Delta {\mbox{fed}}/dt & = & R_{{\mbox{fed}}} = -U^{tot}_{{\mbox{fed}}} + f_{fa}R_{fe:n}N_{remin}
-   + \Delta_{fe}{\mbox{fed}}/dt\end{aligned}
+   \frac{\Delta {\mbox{fed}}}{dt} & = & R_{{\mbox{fed}}} = -U^{tot}_{{\mbox{fed}}} + f_{fa}R_{fe:n}N_{remin}
+   + \frac{\tilde{\Delta}{\mbox{fed}}}{dt}\end{aligned}
 
 Particulate iron also includes a source term from algal mortality and
 grazing that is not immediately bioavailable. The full equation for
@@ -1141,8 +1157,8 @@ grazing that is not immediately bioavailable. The full equation for
 .. math::
 
    \begin{aligned}
-   \Delta {\mbox{fep}}/dt & = & R_{{\mbox{fep}}} =  R_{fe:n}[\mbox{Z}_{oo}/dt + (1-f_{fa})]N_{remin}
-   + \Delta_{fe}{\mbox{fep}}/dt\end{aligned}
+   \frac{\Delta {\mbox{fep}}}{dt} & = & R_{{\mbox{fep}}} =  R_{fe:n}[\frac{\mbox{Z}_{oo}}{dt} + (1-f_{fa})]N_{remin}
+   + \frac{\tilde{\Delta}{\mbox{fep}}}{dt}\end{aligned}
 
 The sulfur cycle includes :math:`{\mbox{DMS}}` and dissolved DMSP
 (:math:`{\mbox{DMSPd}}`). Particulate DMSP is assumed to be proportional
@@ -1153,9 +1169,21 @@ to the algal concentration, i.e.
 .. math::
 
    \begin{aligned}
-   \Delta {\mbox{DMSPd}}/dt & = & R_{{\mbox{DMSPd}}} = R_{s:n}[ f_{sr}f_{res}\mu^{tot}
-   +f_{nm}M_{ort} ] - [{\mbox{DMSPd}}]/\tau_{dmsp} \nonumber \\
-   \Delta {\mbox{DMS}}/dt & = & R_{{\mbox{DMS}}} =  y_{dms}[{\mbox{DMSPd}}]/\tau_{dmsp} - [{\mbox{DMS}}]/\tau_{dms}\end{aligned}
+   \frac{\Delta {\mbox{DMSPd}}}{dt} & = & R_{{\mbox{DMSPd}}} = R_{s:n}[ f_{sr}f_{res}\mu^{tot}
+   +f_{nm}M_{ort} ] - \frac{[{\mbox{DMSPd}}]}{\tau_{dmsp}} \nonumber \\
+   \frac{\Delta {\mbox{DMS}}}{dt} & = & R_{{\mbox{DMS}}} =  y_{dms}\frac{[{\mbox{DMSPd}}]}{\tau_{dmsp}} - \frac{[{\mbox{DMS}}]}{\tau_{dms}}\end{aligned}
+
+The dissolved inorganic carbon tracer, :math:`{\mbox{DIC}}`, currently serves to conserve carbon in sea ice.  There is no alkalinity tracer nor precipitated forms of carbonate that would be needed for solving the carbonate chemistry. In addition, :math:`{\mbox{DIC}}` never limits photosynthesis in this formulation and carbon to nitrogen ratios for each algal species are fixed at run-time. In the event that :math:`{\mbox{DIC}}` algal requirements exceed the available in situ concentration at a given timestep, the demand is met by an assumed ocean flux into the sea ice.  :math:`{\mbox{DIC}}` reactive sources are equivalent to the remineralized losses of :math:`{\mbox{DON}}_{loss} = [{\mbox{DON}}] k_{nb}` and :math:`{\mbox{DOC}}^{tot}_{loss} = \sum^{i} [{\mbox{DOC}}]_i (k_{bac})_i`
+
+The :math:`{\mbox{DIC}}` reaction equation is
+
+.. math::
+
+   \begin{aligned}
+   \frac{\Delta {\mbox{DIC}}}{dt} & = & R_{{\mbox{DIC}}} = {\mbox{DON}}_{loss} * R_{C2N:DON} + {\mbox{DOC}}^{tot}_{loss}-\sum^{algae} [(1-fr_{resp})*grow_{N} * R_{C:N}]\end{aligned}
+
+where the summation is over all algal groups,  :math:`R_{C:N}` is the carbon to nitrogen ratio of each algal group  :math:`{\mbox{N}}`, and :math:`R_{C2N:DON}` is the carbon to nitrogen ratio of :math:`{\mbox{DON}}`.
+
 
 See :ref:`tuning` for a more complete list and description of biogeochemical parameters.
 
@@ -1180,13 +1208,12 @@ limitation terms may also be found for :math:`{\mbox{NH$_4$}}`,
 Light limitation :math:`L_{lim}` is defined in the following way:
 :math:`I
 _{sw}(z)` (in :math:`W/m^2`) is the shortwave radiation at the ice level
-and the optical depth is proportional to the chlorophyll concentration,
-:math:`op_{dep} =` ``chlabs`` [Chl*a*]. If ( :math:`op_{dep} > op_{min}`) then
+and the optical depth :math:`op_{dep}` is proportional to the chlorophyll concentration. If ( :math:`op_{dep} > op_{min}`) then
 
 .. math::
-   I_{avg} = I_{sw}(1- \exp(-op_{dep}))/op_{dep}
+   I_{avg} = I_{sw}\frac{(1- \exp(-op_{dep}))}{op_{dep}}
 
-otherwise :math:`I_{avg} = I_{sw}`.
+otherwise :math:`I_{avg} = I_{sw}`. Then,
 
 .. math::
    L_{lim} = (1 - \exp(-\alpha I_{avg}))\exp(-\beta I_{avg})
@@ -1196,7 +1223,7 @@ The maximal algal growth rate before limitation is
 .. math::
    \begin{aligned}
    \mu_o & = & \mu_{max}\exp(\mu_T\Delta T)f_{sal}[{\mbox{N}}] \\ 
-   \mu' & = & min(L_{lim},N_{lim},{\mbox{SiO$_3$}}_{lim},{\mbox{fed}}_{lim}) \mu_o\end{aligned}
+   \mu' & = & min(L_{lim},\ N_{lim},\ {\mbox{SiO$_3$}}_{lim},\ {\mbox{fed}}_{lim}) \mu_o\end{aligned}
 
 where :math:`\mu'` is the initial estimate of algal growth rate for a
 given algal species and :math:`\Delta T` is the difference between the
@@ -1241,8 +1268,13 @@ uptake is
 
 .. math::
    \begin{aligned}
-   fU^i_{{\mbox{NO$_3$}}} & = & \frac{\tilde{U}^i_{{\mbox{NO$_3$}}}}{\tilde{U}^{tot}_{{\mbox{NO$_3$}}}} \nonumber \\
-   U^{tot}_{{\mbox{NO$_3$}}} & = & \min(\tilde{U}^{tot}_{{\mbox{NO$_3$}}}, l_{max}[{\mbox{NO$_3$}}]/dt)\end{aligned}
+   fU^i_{{\mbox{NO$_3$}}} & = & \frac{\tilde{U}^i_{{\mbox{NO$_3$}}}}{\tilde{U}^{tot}_{{\mbox{NO$_3$}}}},\end{aligned}
+
+and the true total update is
+
+.. math::
+   \begin{aligned}
+   U^{tot}_{{\mbox{NO$_3$}}} & = & \min(\tilde{U}^{tot}_{{\mbox{NO$_3$}}}, l_{max}[{\mbox{NO$_3$}}]/dt) .\end{aligned}
 
 Now, for each algal species the nitrate uptake is
 
@@ -1254,7 +1286,7 @@ Then the true growth rate for each algal species :math:`i` is
 
 .. math::
    \begin{aligned}
-   \mu^i & = & \min(U^i_{{\mbox{SiO$_3$}}}/R_{si:n}, U^i_{{\mbox{NO$_3$}}} + U^i_{{\mbox{NH$_4$}}}, U^i_{{\mbox{fed}}}/R_{fe:n})\end{aligned}
+   \mu^i & = & \min(R_{si:n}^{-1}U^i_{{\mbox{SiO$_3$}}}, U^i_{{\mbox{NO$_3$}}} + U^i_{{\mbox{NH$_4$}}}, R_{fe:n}^{-1}U^i_{{\mbox{fed}}})\end{aligned}
 
 Preferential ammonium uptake is assumed once again and the remaining
 nitrogen is taken from the nitrate pool.

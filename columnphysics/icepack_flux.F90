@@ -73,7 +73,9 @@
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in) :: &
-          aicen   , & ! concentration of ice
+          aicen       ! concentration of ice
+
+      real (kind=dbl_kind), optional, intent(in) :: &
           flw     , & ! downward longwave flux          (W/m**2)
           strairxn, & ! air/ice zonal  strss,           (N/m**2)
           strairyn, & ! air/ice merdnl strss,           (N/m**2)
@@ -105,9 +107,7 @@
           expndn  , & ! exponential pond drainage rate (m/step)
           frpndn  , & ! pond drainage rate due to freeboard constraint (m/step)
           rfpndn  , & ! runoff rate due to rfrac (m/step)
-          ilpndn      ! pond loss/gain due to ice lid (m/step)
-
-      real (kind=dbl_kind), optional, intent(in):: &
+          ilpndn  , & ! pond loss/gain due to ice lid (m/step)
           fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
           fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
@@ -115,7 +115,7 @@
           Urefn       ! air speed reference level       (m/s)
 
       ! cumulative fluxes
-      real (kind=dbl_kind), intent(inout) :: &
+      real (kind=dbl_kind), optional, intent(inout) :: &
           strairxT, & ! air/ice zonal  strss,           (N/m**2)
           strairyT, & ! air/ice merdnl strss,           (N/m**2)
           Cdn_atm_ratio, & ! ratio of total drag over neutral drag
@@ -145,27 +145,23 @@
           expnd   , & ! exponential pond drainage rate (m/step)
           frpnd   , & ! pond drainage rate due to freeboard constraint (m/step)
           rfpnd   , & ! runoff rate due to rfrac (m/step)
-          ilpnd     ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
-
-      real (kind=dbl_kind), intent(inout), optional :: &
+          ilpnd   , & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
           fswthru_vdr , & ! vis dir sw radiation through ice bot    (W/m**2)
           fswthru_vdf , & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthru_idr , & ! nir dir sw radiation through ice bot    (W/m**2)
-          fswthru_idf     ! nir dif sw radiation through ice bot    (W/m**2)
-
-      real (kind=dbl_kind), intent(inout), optional :: &
+          fswthru_idf , & ! nir dif sw radiation through ice bot    (W/m**2)
           dsnow,    & ! change in snow depth            (m)
           Uref        ! air speed reference level       (m/s)
-
-      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
-          Qref_iso, & ! isotope air sp hum ref level    (kg/kg)
-          fiso_ocn, & ! isotope fluxes to ocean         (kg/m2/s)
-          fiso_evap   ! isotope evaporation             (kg/m2/s)
 
       real (kind=dbl_kind), dimension(:), intent(in), optional :: &
           Qrefn_iso, & ! isotope air sp hum ref level   (kg/kg)
           fiso_ocnn, & ! isotope fluxes to ocean        (kg/m2/s)
           fiso_evapn   ! isotope evaporation            (kg/m2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+          Qref_iso, & ! isotope air sp hum ref level    (kg/kg)
+          fiso_ocn, & ! isotope fluxes to ocean         (kg/m2/s)
+          fiso_evap   ! isotope evaporation             (kg/m2/s)
 
       character(len=*),parameter :: subname='(merge_fluxes)'
 
@@ -178,23 +174,38 @@
 
       ! atmo fluxes
 
-      strairxT   = strairxT + strairxn  * aicen
-      strairyT   = strairyT + strairyn  * aicen
-      Cdn_atm_ratio = Cdn_atm_ratio + &
-                      Cdn_atm_ratio_n   * aicen
-      fsurf      = fsurf    + fsurfn    * aicen
-      fcondtop   = fcondtop + fcondtopn * aicen
-      fcondbot   = fcondbot + fcondbotn * aicen
-      fsens      = fsens    + fsensn    * aicen
-      flat       = flat     + flatn     * aicen
-      fswabs     = fswabs   + fswabsn   * aicen
-      flwout     = flwout   &
-           + (flwoutn - (c1-emissivity)*flw) * aicen
-      evap       = evap     + evapn     * aicen
-      evaps      = evaps    + evapsn    * aicen
-      evapi      = evapi    + evapin    * aicen
-      Tref       = Tref     + Trefn     * aicen
-      Qref       = Qref     + Qrefn     * aicen
+      if (present(strairxn) .and. present(strairxT)) &
+         strairxT   = strairxT + strairxn  * aicen
+      if (present(strairyn) .and. present(strairyT)) &
+         strairyT   = strairyT + strairyn  * aicen
+      if (present(Cdn_atm_ratio_n) .and. present(Cdn_atm_ratio)) &
+         Cdn_atm_ratio = Cdn_atm_ratio + &
+                         Cdn_atm_ratio_n   * aicen
+      if (present(fsurfn) .and. present(fsurf)) &
+         fsurf      = fsurf    + fsurfn    * aicen
+      if (present(fcondtopn) .and. present(fcondtop)) &
+         fcondtop   = fcondtop + fcondtopn * aicen
+      if (present(fcondbotn) .and. present(fcondbot)) &
+         fcondbot   = fcondbot + fcondbotn * aicen
+      if (present(fsensn) .and. present(fsens)) &
+         fsens      = fsens    + fsensn    * aicen
+      if (present(flatn) .and. present(flat)) &
+         flat       = flat     + flatn     * aicen
+      if (present(fswabsn) .and. present(fswabs)) &
+         fswabs     = fswabs   + fswabsn   * aicen
+      if (present(flwoutn) .and. present(flwout) .and. present(flw)) &
+         flwout     = flwout   &
+              + (flwoutn - (c1-emissivity)*flw) * aicen
+      if (present(evapn) .and. present(evap)) &
+         evap       = evap     + evapn     * aicen
+      if (present(evapsn) .and. present(evaps)) &
+         evaps      = evaps    + evapsn    * aicen
+      if (present(evapin) .and. present(evapi)) &
+         evapi      = evapi    + evapin    * aicen
+      if (present(Trefn) .and. present(Tref)) &
+         Tref       = Tref     + Trefn     * aicen
+      if (present(Qrefn) .and. present(Qref)) &
+         Qref       = Qref     + Qrefn     * aicen
 
       ! Isotopes
       if (tr_iso) then
@@ -211,43 +222,58 @@
 
       ! ocean fluxes
       if (present(Urefn) .and. present(Uref)) then
-         Uref = Uref     + Urefn     * aicen
+         Uref      = Uref      + Urefn     * aicen
       endif
 
-      fresh     = fresh     + freshn    * aicen
-      fsalt     = fsalt     + fsaltn    * aicen
-      fhocn     = fhocn     + fhocnn    * aicen
-      fswthru   = fswthru   + fswthrun  * aicen
-      if (present(fswthru_vdr)) &
-         fswthru_vdr   = fswthru_vdr   + fswthrun_vdr  * aicen
-      if (present(fswthru_vdf)) &
-         fswthru_vdf   = fswthru_vdf   + fswthrun_vdf  * aicen
-      if (present(fswthru_idr)) &
-         fswthru_idr   = fswthru_idr   + fswthrun_idr  * aicen
-      if (present(fswthru_idf)) &
-         fswthru_idf   = fswthru_idf   + fswthrun_idf  * aicen
+      if (present(freshn) .and. present(fresh)) &
+         fresh     = fresh     + freshn    * aicen
+      if (present(fsaltn) .and. present(fsalt)) &
+         fsalt     = fsalt     + fsaltn    * aicen
+      if (present(fhocnn) .and. present(fhocn)) &
+         fhocn     = fhocn     + fhocnn    * aicen
+      if (present(fswthrun) .and. present(fswthru)) &
+         fswthru   = fswthru   + fswthrun  * aicen
+
+      if (present(fswthrun_vdr) .and. present(fswthru_vdr)) &
+         fswthru_vdr = fswthru_vdr + fswthrun_vdr  * aicen
+      if (present(fswthrun_vdf) .and. present(fswthru_vdf)) &
+         fswthru_vdf = fswthru_vdf + fswthrun_vdf  * aicen
+      if (present(fswthrun_idr) .and. present(fswthru_idr)) &
+         fswthru_idr = fswthru_idr + fswthrun_idr  * aicen
+      if (present(fswthrun_idf) .and. present(fswthru_idf)) &
+         fswthru_idf = fswthru_idf + fswthrun_idf  * aicen
 
       ! ice/snow thickness
 
-      meltt     = meltt     + melttn    * aicen
-      meltb     = meltb     + meltbn    * aicen
-      melts     = melts     + meltsn    * aicen
+      if (present(melttn) .and. present(meltt)) &
+         meltt     = meltt     + melttn    * aicen
+      if (present(meltbn) .and. present(meltb)) &
+         meltb     = meltb     + meltbn    * aicen
+      if (present(meltsn) .and. present(melts)) &
+         melts     = melts     + meltsn    * aicen
       if (snwgrain) then
-         meltsliq  = meltsliq  + meltsliqn * aicen
+         if (present(meltsliqn) .and. present(meltsliq)) &
+            meltsliq  = meltsliq  + meltsliqn * aicen
       endif
-      if (present(dsnow)) then
+      if (present(dsnown) .and. present(dsnow)) then
          dsnow     = dsnow     + dsnown    * aicen
       endif
-      congel    = congel    + congeln   * aicen
-      snoice    = snoice    + snoicen   * aicen
-
+      if (present(congeln) .and. present(congel)) &
+         congel    = congel    + congeln   * aicen
+      if (present(snoicen) .and. present(snoice)) &
+         snoice    = snoice    + snoicen   * aicen
       ! Meltwater fluxes
       if (tr_pond) then
-         flpnd     = flpnd     + flpndn    * aicen
-         expnd     = expnd     + expndn    * aicen
-         frpnd     = frpnd     + frpndn    * aicen
-         rfpnd     = rfpnd     + rfpndn    * aicen
-         ilpnd     = ilpnd     + ilpndn    * aicen
+         if (present(flpndn) .and. present(flpnd)) &
+            flpnd     = flpnd     + flpndn    * aicen
+         if (present(expndn) .and. present(expnd)) &
+            expnd     = expnd     + expndn    * aicen
+         if (present(frpndn) .and. present(frpnd)) &
+            frpnd     = frpnd     + frpndn    * aicen
+         if (present(rfpndn) .and. present(rfpnd)) &
+            rfpnd     = rfpnd     + rfpndn    * aicen
+         if (present(ilpndn) .and. present(ilpnd)) &
+            ilpnd     = ilpnd     + ilpndn    * aicen
       endif
 
       end subroutine merge_fluxes

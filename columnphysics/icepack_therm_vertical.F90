@@ -20,7 +20,10 @@
       module icepack_therm_vertical
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, p001, p5, puny
+
+      use icepack_fsd, only: floe_rad_c, floe_binwidth
+
+      use icepack_parameters, only: c0, c1, c2, p001, p5, puny
       use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, calc_Tsfc, rsnw_fall, rsnw_tmax
@@ -30,6 +33,7 @@
       use icepack_parameters, only: saltflux_option, congel_freeze
       use icepack_parameters, only: icepack_chkoptargflag
 
+      use icepack_tracers, only: ncat, nilyr, nslyr, nfsd
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
       use icepack_tracers, only: n_aero, n_iso
@@ -76,8 +80,7 @@
 ! authors: William H. Lipscomb, LANL
 !          C. M. Bitz, UW
 
-      subroutine thermo_vertical (nilyr,       nslyr,     &
-                                  dt,          aicen,     &
+      subroutine thermo_vertical (dt,          aicen,     &
                                   vicen,       vsnon,     &
                                   Tsf,         zSin,      &
                                   zqin,        zqsn,      &
@@ -106,12 +109,7 @@
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
                                   prescribed_ice,         &
-                                  flpnd,       expnd,     &
-                                  alvl)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr   , & ! number of ice layers
-         nslyr       ! number of snow layers
+                                  flpnd,       expnd)
 
       real (kind=dbl_kind), intent(in) :: &
          dt      , & ! time step
@@ -126,9 +124,8 @@
       ! tracers
       real (kind=dbl_kind), intent(inout) :: &
          Tsf     , & ! ice/snow top surface temp, same as Tsfcn (deg C)
-         apond   , & ! melt pond area fraction
-         hpond   , & ! melt pond depth (m)
-         alvl        ! level ice fraction
+         apond   , & ! melt pond area fraction of category
+         hpond       ! melt pond depth (m)
 !        iage        ! ice age (s)
 
       logical (kind=log_kind), intent(in), optional :: &
@@ -287,8 +284,7 @@
       ! Compute variables needed for vertical thermo calculation
       !-----------------------------------------------------------------
 
-      call init_vertical_profile (nilyr,    nslyr,   &
-                                  aicen,             &
+      call init_vertical_profile (aicen,             &
                                   vicen,    vsnon,   &
                                   hin,      hilyr,   &
                                   hsn,      hslyr,   &
@@ -318,7 +314,6 @@
          if (ktherm == 2) then
 
             call temperature_changes_salinity(dt,                   &
-                                              nilyr,     nslyr,     &
                                               rhoa,      flw,       &
                                               potT,      Qa,        &
                                               shcoef,    lhcoef,    &
@@ -336,14 +331,12 @@
                                               fcondtopn, fcondbotn, &
                                               fadvocn,   snoice,    &
                                               smice,     smliq,     &
-                                              flpnd,     expnd,    &
-                                              alvl)
+                                              flpnd,     expnd)
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
 
             call temperature_changes(dt,                   &
-                                     nilyr,     nslyr,     &
                                      rhoa,      flw,       &
                                      potT,      Qa,        &
                                      shcoef,    lhcoef,    &
@@ -395,8 +388,7 @@
       ! Repartition ice into equal-thickness layers, conserving energy.
       !-----------------------------------------------------------------
 
-      call thickness_changes(nilyr,       nslyr,     &
-                             dt,          yday,      &
+      call thickness_changes(dt,          yday,      &
                              efinal,                 &
                              hin,         hilyr,     &
                              hsn,         hslyr,     &
@@ -474,8 +466,7 @@
       !   state variables.
       !-----------------------------------------------------------------
 
-      call update_state_vthermo(nilyr,   nslyr,   &
-                                Tbot,    Tsf,     &
+      call update_state_vthermo(Tbot,    Tsf,     &
                                 hin,     hsn,     &
                                 zqin,    zSin,    &
                                 zqsn,             &
@@ -494,8 +485,7 @@
 !         William H. Lipscomb, LANL
 !         Elizabeth C. Hunke, LANL
 
-      subroutine frzmlt_bottom_lateral (dt,       ncat,     &
-                                        nilyr,    nslyr,    &
+      subroutine frzmlt_bottom_lateral (dt,                 &
                                         aice,     frzmlt,   &
                                         vicen,    vsnon,    &
                                         qicen,    qsnon,    &
@@ -504,13 +494,9 @@
                                         fbot_xfer_type,     &
                                         strocnxT, strocnyT, &
                                         Tbot,     fbot,     &
-                                        rside,    Cdn_ocn,  &
-                                        fside,    wlat)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
+                                        rsiden,    Cdn_ocn,  &
+                                        wlat,      aicen, &
+                                        afsdn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt                  ! time step
@@ -538,14 +524,28 @@
 
       real (kind=dbl_kind), intent(out) :: &
          Tbot    , & ! ice bottom surface temperature (deg C)
-         fbot    , & ! heat flux to ice bottom  (W/m^2)
-         rside   , & ! fraction of ice that melts laterally
-         fside       ! lateral heat flux (W/m^2)
+         fbot        ! heat flux to ice bottom  (W/m^2)
+
+      real (kind=dbl_kind), dimension(:), intent(out) :: &
+         rsiden      ! fraction of ice that melts laterally
 
       real (kind=dbl_kind), intent(out), optional :: &
          wlat        ! lateral melt rate (m/s)
 
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         aicen     ! ice concentration
+
+      real (kind=dbl_kind), dimension (:,:), intent(in), optional :: &
+         afsdn     ! area floe size distribution
+
       ! local variables
+      real (kind=dbl_kind), dimension (ncat) :: &
+         delta_an  , & ! change in the ITD
+         G_radialn     ! lateral melt rate in FSD (m/s)
+
+      real (kind=dbl_kind) :: &
+         rside     , & !
+         fside       ! lateral heat flux (W/m^2)
 
       integer (kind=int_kind) :: &
          n              , & ! thickness category index
@@ -559,6 +559,7 @@
       real (kind=dbl_kind) :: &
          deltaT    , & ! SST - Tbot >= 0
          ustar     , & ! skin friction velocity for fbot (m/s)
+         bin1_arealoss, &
          xtmp          ! temporary variable
 
       ! Parameters for bottom melting
@@ -580,11 +581,11 @@
       ! Identify grid cells where ice can melt.
       !-----------------------------------------------------------------
 
-      rside = c0
-      fside = c0
+      rsiden(:) = c0
       Tbot  = Tf
       fbot  = c0
       wlat_loc = c0
+      if (present(wlat)) wlat=c0
 
       if (aice > puny .and. frzmlt < c0) then ! ice can melt
 
@@ -624,10 +625,52 @@
          rside = wlat_loc*dt*pi/(floeshape*floediam) ! Steele
          rside = max(c0,min(rside,c1))
 
+         if (rside == c0) return ! nothing more to do so get out
+
+         rsiden(:) = rside
+
+         if (tr_fsd) then ! alter rsiden now since floes are not of size floediam
+
+            do n = 1, ncat
+               G_radialn(n) = -wlat_loc ! negative
+
+               ! afsdn present check up the calling tree
+               if (any(afsdn(:,n) < c0)) then
+                  write(warnstr,*) subname, 'lateral_melt B afsd < 0 ',n
+                  call icepack_warnings_add(warnstr)
+               endif
+
+               bin1_arealoss = -afsdn(1,n)  / floe_binwidth(1) ! when scaled by *G_radialn(n)*dt*aicen(n)
+
+               delta_an(n) = c0
+               do k = 1, nfsd
+                  ! this is delta_an(n) when scaled by *G_radialn(n)*dt*aicen(n)
+                  delta_an(n) = delta_an(n) + ((c2/floe_rad_c(k)) * afsdn(k,n)) ! delta_an < 0
+               end do
+
+               ! add negative area loss from fsd
+               delta_an(n) = (delta_an(n) - bin1_arealoss)*G_radialn(n)*dt
+
+               if (delta_an(n) > c0) then
+                  write(warnstr,*) subname, 'ERROR delta_an > 0 ',delta_an(n)
+                  call icepack_warnings_add(warnstr)
+               endif
+
+               ! following original code, not necessary for fsd
+               if (aicen(n) > c0) rsiden(n) = MIN(-delta_an(n),c1)
+
+               if (rsiden(n) < c0) then
+                  write(warnstr,*) subname, 'ERROR rsiden < 0 ',rsiden(n)
+                  call icepack_warnings_add(warnstr)
+               endif
+            enddo ! ncat
+
+         endif ! if tr_fsd
+
       !-----------------------------------------------------------------
       ! Compute heat flux associated with this value of rside.
       !-----------------------------------------------------------------
-
+         fside = c0
          do n = 1, ncat
 
             etot = c0
@@ -642,20 +685,23 @@
             enddo                  ! nilyr
 
             ! lateral heat flux, fside < 0
-            fside = fside + rside*etot/dt
+            fside = fside + rsiden(n)*etot/dt
 
          enddo                     ! n
 
       !-----------------------------------------------------------------
       ! Limit bottom and lateral heat fluxes if necessary.
-      ! FYI: fside is not yet correct for fsd, may need to adjust fbot further
+      ! Limit rside so we don't melt laterally more ice than frzmlt permits
       !-----------------------------------------------------------------
 
          xtmp = frzmlt/(fbot + fside - puny)
          xtmp = min(xtmp, c1)
+         xtmp = max(xtmp, c0)
          fbot  = fbot  * xtmp
-         rside = rside * xtmp
-         fside = fside * xtmp
+
+         do n = 1, ncat
+            rsiden(n) = rsiden(n) * xtmp  ! xtmp is almost always 1 so usually nothing happens here
+         enddo ! ncat
 
       endif
 
@@ -672,8 +718,7 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 
-      subroutine init_vertical_profile(nilyr,    nslyr,    &
-                                       aicen,    vicen,    &
+      subroutine init_vertical_profile(aicen,    vicen,    &
                                        vsnon,              &
                                        hin,      hilyr,    &
                                        hsn,      hslyr,    &
@@ -681,10 +726,6 @@
                                        zqsn,     zTsn,     &
                                        zSin,               &
                                        einit )
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          aicen , & ! concentration of ice
@@ -1006,8 +1047,7 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 
-      subroutine thickness_changes (nilyr,     nslyr,    &
-                                    dt,        yday,     &
+      subroutine thickness_changes (dt,        yday,     &
                                     efinal,              &
                                     hin,       hilyr,    &
                                     hsn,       hslyr,    &
@@ -1028,10 +1068,6 @@
                                     zSin,      sss,      &
                                     sst,                 &
                                     dsnow,     rsnw)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -1276,15 +1312,17 @@
             qbotp = qbotm - qbotw
             dhi = ebot_gro / qbotp     ! dhi > 0
             hstot = dzi(nilyr)*zSin(nilyr) + dhi*sss*phi_i_mushy
+            hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
+            emlt_ocn = emlt_ocn - qbotw * dhi
          else ! two-step
             qbotm = icepack_enthalpy_mush(Tbot, sss)
             qbotp = -Lfresh * rhoi * (c1 - phi_i_mushy)
             qbotw = qbotm - qbotp
             dhi = ebot_gro / qbotp     ! dhi > 0
             hstot = dzi(nilyr)*zSin(nilyr) + dhi*sss
+            hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
+            emlt_ocn = emlt_ocn - qbotw * dhi
          endif
-         hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbotm
-         emlt_ocn = emlt_ocn - qbotw * dhi
 
       else
 
@@ -1543,7 +1581,7 @@
     !-------------------------------------------------------------------
 
       if (ktherm /= 2) &
-         call freeboard (nslyr,    snoice,       &
+         call freeboard (snoice,                 &
                          hin,      hsn,          &
                          zqin,     zqsn,         &
                          dzi,      dzs,          &
@@ -1778,16 +1816,12 @@
 ! authors William H. Lipscomb, LANL
 !         Elizabeth C. Hunke, LANL
 
-      subroutine freeboard (nslyr, &
-                            snoice,             &
+      subroutine freeboard (snoice,             &
                             hin,      hsn,      &
                             zqin,     zqsn,     &
                             dzi,      dzs,      &
                             dsnow,              &
                             massice,  massliq)
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr     ! number of snow layers
 
 !     real (kind=dbl_kind), intent(in) :: &
 !        dt      ! time step
@@ -2021,17 +2055,12 @@
 !         C. M. Bitz, UW
 !         Elizabeth C. Hunke, LANL
 
-      subroutine update_state_vthermo(nilyr,    nslyr,    &
-                                      Tf,       Tsf,      &
+      subroutine update_state_vthermo(Tf,       Tsf,      &
                                       hin,      hsn,      &
                                       zqin,     zSin,     &
                                       zqsn,               &
                                       aicen,    vicen,    &
                                       vsnon)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          Tf              ! freezing temperature (C)
@@ -2092,7 +2121,7 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+      subroutine icepack_step_therm1(dt,                        &
                                     aicen_init  ,               &
                                     vicen_init  , vsnon_init  , &
                                     aice        , aicen       , &
@@ -2131,8 +2160,8 @@
                                     strocnxT    , strocnyT    , &
                                     fbot        ,               &
                                     Tbot        , Tsnice      , &
-                                    frzmlt      , rside       , &
-                                    fside       , wlat        , &
+                                    frzmlt      , rsiden      , &
+                                    wlat        ,               &
                                     fsnow       , frain       , &
                                     fpond       , fsloss      , &
                                     fsurf       , fsurfn      , &
@@ -2179,17 +2208,12 @@
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice, &
-                                    zlvs        , &
+                                    zlvs        , afsdn       ,  &
                                     flpnd       , flpndn      , &
                                     expnd       , expndn      , &
                                     frpnd       , frpndn      , &
                                     rfpnd       , rfpndn      , &
                                     ilpnd       , ilpndn)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat        , & ! number of thickness categories
-         nilyr       , & ! number of ice layers
-         nslyr           ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2265,8 +2289,6 @@
          strocnyT    , & ! ice-ocean stress, y-direction
          fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
          frzmlt      , & ! freezing/melting potential         (W/m^2)
-         rside       , & ! fraction of ice that melts laterally
-         fside       , & ! lateral heat flux                  (W/m^2)
          sst         , & ! sea surface temperature                (C)
          Tf          , & ! freezing temperature                   (C)
          Tbot        , & ! ice bottom surface temperature     (deg C)
@@ -2284,7 +2306,7 @@
          ilpnd           ! pond loss/gain (+/-) to ice lid (m/step)
 
       real (kind=dbl_kind), intent(out), optional :: &
-         wlat            ! lateral melt rate                    (m/s)
+         wlat            ! lateral melt rate (m/s)
 
       real (kind=dbl_kind), intent(inout), optional :: &
          fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
@@ -2318,6 +2340,9 @@
          H2_18O_ocn  , & ! ocean concentration of H2_18O      (kg/kg)
          zlvs            ! atm level height for scalars (if different than zlvl) (m)
 
+      real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
+         afsdn        ! afsd tracer
+
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          aicen_init  , & ! fractional area of ice
          vicen_init  , & ! volume per unit area of ice            (m)
@@ -2328,11 +2353,12 @@
          Tsfc        , & ! ice/snow surface temperature, Tsfcn
          alvl        , & ! level ice area fraction
          vlvl        , & ! level ice volume fraction
-         apnd        , & ! melt pond area fraction
+         apnd        , & ! melt pond area fraction tracer
          hpnd        , & ! melt pond depth                        (m)
          ipnd        , & ! melt pond refrozen lid thickness       (m)
          iage        , & ! volume-weighted ice age
          FY          , & ! area-weighted first-year ice area
+         rsiden      , & ! fraction of ice that melts laterally
          fsurfn      , & ! net flux to top surface, excluding fcondtop
          fcondtopn   , & ! downward cond flux at top surface  (W m-2)
          fcondbotn   , & ! downward cond flux at bottom surface (W m-2)
@@ -2353,7 +2379,6 @@
          meltbn      , & ! bottom ice melt                        (m)
          congeln     , & ! congelation ice growth                 (m)
          snoicen     , & ! snow-ice growth                        (m)
-         dsnown      , & ! change in snow thickness (m/step-->cm/day)
          flpndn      , & ! category pond flushing rate          (m/step)
          expndn      , & ! exponential pond drainage rate       (m/step)
          frpndn      , & ! pond drainage rate due to freeboard  (m/step)
@@ -2362,6 +2387,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          fswthrun        ! SW through ice to ocean            (W/m^2)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         dsnown          ! change in snow thickness (m/step-->cm/day)
 
       real (kind=dbl_kind), dimension(:), intent(in), optional :: &
          fswthrun_vdr , & ! vis dir SW through ice to ocean   (W/m^2)
@@ -2431,6 +2459,7 @@
          smliq           ! tracer for mass of liquid in snow (kg/m^3)
 
       real (kind=dbl_kind), dimension(ncat) :: &
+         apond       , & ! melt pond area fraction of category
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2438,6 +2467,8 @@
          l_fswthrun_vdf, & ! vis dif SW local n ice to ocean  (W/m^2)
          l_fswthrun_idr, & ! nir dir SW local n ice to ocean  (W/m^2)
          l_fswthrun_idf, & ! nir dif SW local n ice to ocean  (W/m^2)
+         l_dsnow,        & ! local snow change
+         l_dsnown,       & ! local snow change category
          l_meltsliq      ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2481,9 +2512,20 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
+         if ((present(dsnow) .and. .not.present(dsnown)) .or. &
+             (present(dsnown) .and. .not.present(dsnow))) then
+            call icepack_warnings_add(subname//' error in dsnow arguments')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
          if (tr_fsd) then
-            if (.not.(present(wlat))) then
-               call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
+            if (.not.present(afsdn)) then
+               call icepack_warnings_add(subname//' error missing afsdn argument, tr_fsd=T')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            endif
+            if (size(afsdn,dim=1) /= nfsd .or. size(afsdn,dim=2) /= ncat) then
+               call icepack_warnings_add(subname//' error size of afsdn argument, tr_fsd=T')
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                return
             endif
@@ -2500,10 +2542,23 @@
 
       l_meltsliq  = c0
       l_meltsliqn = c0
+      l_dsnow     = c0
+      if (present(dsnow)) l_dsnow = dsnow
 
       ! solid and liquid components of snow mass
       massicen(:,:) = c0
       massliqn(:,:) = c0
+
+      !-----------------------------------------------------------------
+      ! Initialize pond area fractions
+      !-----------------------------------------------------------------
+      do n= 1, ncat    
+         if (tr_pond_lvl) then
+            apond(n) = apnd(n) * alvl(n)
+         else
+            apond(n) = apnd(n)
+         endif
+      enddo
 
       !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
@@ -2535,8 +2590,7 @@
       !-----------------------------------------------------------------
 
       if (formdrag) then
-         call neutral_drag_coeffs (apnd         , &
-                                   hpnd        , ipnd         , &
+         call neutral_drag_coeffs (apond       , &
                                    alvl        , vlvl         , &
                                    aice        , vice,          &
                                    vsno        , aicen        , &
@@ -2549,18 +2603,17 @@
                                    hdraft      , hridge      , &
                                    distrdg     , hkeel       , &
                                    dkeel       , lfloe       , &
-                                   dfloe       , ncat)
+                                   dfloe)
          if (icepack_warnings_aborted(subname)) return
       endif
 
       !-----------------------------------------------------------------
-      ! Adjust frzmlt to account for ice-ocean heat fluxes since last
+      ! Use frzmlt to account for ice-ocean heat fluxes since last
       !  call to coupler.
       ! Compute lateral and bottom heat fluxes.
       !-----------------------------------------------------------------
 
-      call frzmlt_bottom_lateral (dt,        ncat,      &
-                                  nilyr,     nslyr,     &
+      call frzmlt_bottom_lateral (dt,                   &
                                   aice,      frzmlt,    &
                                   vicen,     vsnon,     &
                                   zqin,      zqsn,      &
@@ -2569,8 +2622,9 @@
                                   fbot_xfer_type,       &
                                   strocnxT,  strocnyT,  &
                                   Tbot,      fbot,      &
-                                  rside,     Cdn_ocn,   &
-                                  fside,     wlat)
+                                  rsiden,    Cdn_ocn,   &
+                                  wlat,      aicen,     &
+                                  afsdn)
 
       if (icepack_warnings_aborted(subname)) return
 
@@ -2580,7 +2634,7 @@
          meltbn (n) = c0
          congeln(n) = c0
          snoicen(n) = c0
-         dsnown (n) = c0
+         l_dsnown   = c0
          flpndn (n) = c0
          expndn (n) = c0
          frpndn (n) = c0
@@ -2684,12 +2738,11 @@
                smliq(:) = smliqn(:,n)
             endif
 
-            call thermo_vertical(nilyr=nilyr,         nslyr=nslyr,             &
-                                 dt=dt,               aicen=aicen         (n), &
+            call thermo_vertical(dt=dt,               aicen=aicen         (n), &
                                  vicen=vicen     (n), vsnon=vsnon         (n), &
                                  Tsf=Tsfc        (n), zSin=zSin         (:,n), &
                                  zqin=zqin     (:,n), zqsn=zqsn         (:,n), &
-                                 apond=apnd      (n), hpond=hpnd          (n), &
+                                 apond=apond     (n), hpond=hpnd          (n), &
                                  flw=flw,             potT=potT,               &
                                  Qa=Qa,               rhoa=rhoa,               &
                                  fsnow=fsnow,         fpond=fpond,             &
@@ -2711,16 +2764,26 @@
                                  smice=smice,         massice=massicen  (:,n), &
                                  smliq=smliq,         massliq=massliqn  (:,n), &
                                  congel=congeln  (n), snoice=snoicen      (n), &
-                                 mlt_onset=mlt_onset, frz_onset=frz_onset,     &
-                                 yday=yday,           dsnow=dsnown        (n), &
+                                 mlt_onset=mlt_onset, frz_onset=frz_onset    , &
+                                 yday=yday,           dsnow=l_dsnown         , &
                                  prescribed_ice=prescribed_ice,                &
-                                 flpnd=flpndn    (n), expnd=expndn        (n), &
-                                 alvl=alvl       (n))
+                                 flpnd=flpndn    (n), expnd=expndn        (n))
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
                call icepack_warnings_add(warnstr)
                return
+            endif
+
+            ! Translate changes in apond into apnd tracer
+            if (tr_pond_lvl) then
+               if (alvl(n) > puny) then
+                  apnd(n) = max(apond(n) / alvl(n), c1)
+               else
+                  apnd(n) = c0
+               endif
+            else
+               apnd(n) = apond(n)
             endif
 
             if (snwgrain) then
@@ -2741,7 +2804,6 @@
 
             if (tr_aero) then
                call update_aerosol (dt,                             &
-                                    nilyr, nslyr, n_aero,           &
                                     melttn     (n), meltsn     (n), &
                                     meltbn     (n), congeln    (n), &
                                     snoicen    (n), fsnow,          &
@@ -2756,7 +2818,6 @@
 
             if (tr_iso) then
                call update_isotope (dt = dt, &
-                                    nilyr = nilyr, nslyr = nslyr,          &
                                     meltt = melttn(n),melts = meltsn(n),   &
                                     meltb = meltbn(n),congel=congeln(n),   &
                                     snoice=snoicen(n),evap=evapn,          &
@@ -2781,8 +2842,7 @@
          endif   ! aicen_init
 
          if (snwgrain) then
-            call drain_snow (nslyr = nslyr, &
-                             vsnon = vsnon(n), &
+            call drain_snow (vsnon = vsnon(n), &
                              aicen = aicen(n), &
                              massice = massicen(:,n), &
                              massliq = massliqn(:,n), &
@@ -2933,7 +2993,7 @@
                                meltbn=meltbn (n), congeln=congeln(n),&
                                meltt=meltt,       melts=melts,      &
                                meltb=meltb,       snoicen=snoicen(n),&
-                               dsnow=dsnow,       dsnown=dsnown(n), &
+                               dsnow=l_dsnow,     dsnown=l_dsnown,  &
                                congel=congel,     snoice=snoice,    &
                                meltsliq=l_meltsliq,                 &
                                meltsliqn=l_meltsliqn(n),            &
@@ -2953,6 +3013,8 @@
             if (icepack_warnings_aborted(subname)) return
 
          endif
+
+         if (present(dsnown      )) dsnown(n)    = l_dsnown
 
       enddo                  ! ncat
 
@@ -2979,18 +3041,19 @@
 
       if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
       if (present(meltsliq    )) meltsliq     = l_meltsliq
+      if (present(dsnow       )) dsnow        = l_dsnow
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme
       !-----------------------------------------------------------------
       !call ice_timer_start(timer_ponds)
       if (tr_pond_topo) then
-         call compute_ponds_topo(dt,       ncat,      nilyr,     &
+         call compute_ponds_topo(dt,                             &
                                  ktherm,                         &
                                  aice,     aicen,                &
                                  vice,     vicen,                &
                                  vsno,     vsnon,                &
-                                 meltt,                &
+                                 meltt,                          &
                                  fsurf,    fpond,                &
                                  Tsfc,     Tf,                   &
                                  zqin,     zSin,                 &

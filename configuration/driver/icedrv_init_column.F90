@@ -24,12 +24,12 @@
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_init_zbgc
-      use icepack_intfc, only: icepack_init_thermo, icepack_init_radiation
+      use icepack_intfc, only: icepack_init_salinity, icepack_init_radiation
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
       use icepack_intfc, only: icepack_init_bgc
       use icepack_intfc, only: icepack_init_ocean_bio, icepack_load_ocean_bio_array
       use icepack_intfc, only: icepack_init_hbrine
-      use icedrv_system, only: icedrv_system_abort
+      use icedrv_system, only: icedrv_system_abort, icedrv_system_flush
 
       implicit none
 
@@ -69,7 +69,7 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(depressT_out=depressT)
-      call icepack_init_thermo(nilyr=nilyr, sprofile=sprofile)
+      call icepack_init_salinity(sprofile=sprofile)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -99,7 +99,6 @@
       use icedrv_arrays_column, only: fswsfcn, ffracn, snowfracn
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn
-      use icedrv_arrays_column, only: swgrid, igrid
       use icedrv_calendar, only: istep1, dt, yday, sec
       use icedrv_system, only: icedrv_system_abort
       use icedrv_forcing, only: snw_ssp_table
@@ -247,8 +246,6 @@
             if (tmask(i)) then
             call icepack_step_radiation (                      &
                          dt=dt,                                &
-                         swgrid=swgrid(:),                     &
-                         igrid=igrid(:),                       &
                          fbri=fbri(:),                         &
                          aicen=aicen(i,:),                     &
                          vicen=vicen(i,:),                     &
@@ -368,7 +365,7 @@
 
       use icedrv_arrays_column, only: zfswin, trcrn_sw
       use icedrv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
-      use icedrv_arrays_column, only: cgrid, igrid, bphi, iDi, bTiz, iki
+      use icedrv_arrays_column, only: bphi, iDi, bTiz, iki
       use icedrv_calendar,  only: istep1
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
@@ -439,9 +436,7 @@
                       fed=fed(i,:), fep =fep(i,:), hum=hum(i),   &
                       nit=nit(i),   sil =sil(i),                 &
                       zaeros=zaeros(i,:),                        &
-                      algalN=algalN(i,:),                        &
-                      max_dic=max_dic, max_don =max_don,         &
-                      max_fe =max_fe,  max_aero=max_aero)
+                      algalN=algalN(i,:))
       enddo  ! i
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -451,9 +446,7 @@
 
       do i = 1, nx
 
-         call icepack_load_ocean_bio_array(max_nbtrcr=max_nbtrcr,             &
-                      max_algae=max_algae, max_don=max_don,  max_doc=max_doc, &
-                      max_aero =max_aero,  max_dic=max_dic,  max_fe =max_fe,  &
+         call icepack_load_ocean_bio_array(                                   &
                       nit =nit(i),   amm=amm(i),   sil   =sil(i),             &
                       dmsp=dmsp(i),  dms=dms(i),   algalN=algalN(i,:),        &
                       doc =doc(i,:), don=don(i,:), dic   =dic(i,:),           &
@@ -476,10 +469,10 @@
             enddo
          enddo
 
-         call icepack_init_bgc(ncat=ncat, nblyr=nblyr, nilyr=nilyr, ntrcr_o=ntrcr_o, &
-                      cgrid=cgrid, igrid=igrid, ntrcr=ntrcr, nbtrcr=nbtrcr,          &
-                      sicen=sicen(:,:), trcrn=trcrn_bgc(:,:),                        &
+         call icepack_init_bgc( &
+                      sicen=sicen(:,:), trcrn=trcrn_bgc(:,:),        &
                       sss=sss(i), ocean_bio_all=ocean_bio_all(i,:))
+! optional            DOCPoolFractions=DOCPoolFractions)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
              __FILE__, __LINE__)
@@ -493,8 +486,7 @@
 
       subroutine init_hbrine()
 
-      use icedrv_arrays_column, only: first_ice, bgrid, igrid, cgrid
-      use icedrv_arrays_column, only: icgrid, swgrid
+      use icedrv_arrays_column, only: first_ice
       use icedrv_state, only: trcrn
 
       real (kind=dbl_kind) :: phi_snow
@@ -515,8 +507,7 @@
 
       !-----------------------------------------------------------------
 
-      call icepack_init_hbrine(bgrid=bgrid, igrid=igrid, cgrid=cgrid, icgrid=icgrid, &
-           swgrid=swgrid, nblyr=nblyr, nilyr=nilyr, phi_snow=phi_snow)
+      call icepack_init_hbrine(phi_snow=phi_snow)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -618,9 +609,6 @@
           tr_bgc_DON,    tr_bgc_Fe,    tr_zaero,     &
           tr_bgc_hum,    tr_aero
 
-      integer (kind=int_kind) :: &
-          ktherm
-
       logical (kind=log_kind) :: &
           solve_zsal, skl_bgc, z_tracers, scale_bgc, solve_zbgc, dEdd_algae, &
           modal_aero, restore_bgc
@@ -629,7 +617,7 @@
           bgc_flux_type
 
       real (kind=dbl_kind) :: &
-          grid_o, l_sk, initbio_frac, &
+          grid_o, grid_o_t, l_sk, initbio_frac, &
           frazil_scav, grid_oS, l_skS, &
           phi_snow, &
           ratio_Si2N_diatoms , ratio_Si2N_sp      , ratio_Si2N_phaeo   ,  &
@@ -663,6 +651,7 @@
           algaltype_diatoms  , algaltype_sp       , algaltype_phaeo    ,  &
           nitratetype        , ammoniumtype       , silicatetype       ,  &
           dmspptype          , dmspdtype          , humtype            ,  &
+          dictype_1          ,                                            &
           doctype_s          , doctype_l          , dontype_protein    ,  &
           fedtype_1          , feptype_1          , zaerotype_bc1      ,  &
           zaerotype_bc2      , zaerotype_dust1    , zaerotype_dust2    ,  &
@@ -779,10 +768,10 @@
       namelist /zbgc_nml/  &
         tr_brine, tr_zaero, modal_aero, skl_bgc, &
         z_tracers, dEdd_algae, solve_zbgc, bgc_flux_type, &
-        restore_bgc, scale_bgc, solve_zsal, bgc_data_type, &
+        restore_bgc, scale_bgc, solve_zsal, &
         tr_bgc_Nit, tr_bgc_C, tr_bgc_chl, tr_bgc_Am, tr_bgc_Sil, &
         tr_bgc_DMS, tr_bgc_PON, tr_bgc_hum, tr_bgc_DON, tr_bgc_Fe, &
-        grid_o, l_sk, grid_oS, &
+        grid_o, grid_o_t, l_sk, grid_oS, &
         l_skS, phi_snow,  initbio_frac, frazil_scav, &
         ratio_Si2N_diatoms , ratio_Si2N_sp      , ratio_Si2N_phaeo   ,  &
         ratio_S2N_diatoms  , ratio_S2N_sp       , ratio_S2N_phaeo    ,  &
@@ -815,6 +804,7 @@
         algaltype_diatoms  , algaltype_sp       , algaltype_phaeo    ,  &
         nitratetype        , ammoniumtype       , silicatetype       ,  &
         dmspptype          , dmspdtype          , humtype            ,  &
+        dictype_1          ,                                            &
         doctype_s          , doctype_l          , dontype_protein    ,  &
         fedtype_1          , feptype_1          , zaerotype_bc1      ,  &
         zaerotype_bc2      , zaerotype_dust1    , zaerotype_dust2    ,  &
@@ -828,20 +818,138 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
-      call icepack_query_tracer_flags(tr_aero_out=tr_aero)
-      call icepack_query_parameters(ktherm_out=ktherm, shortwave_out=shortwave, &
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
+
+      call icepack_query_parameters(shortwave_out=shortwave, &
            scale_bgc_out=scale_bgc, skl_bgc_out=skl_bgc, z_tracers_out=z_tracers, &
-           dEdd_algae_out=dEdd_algae, solve_zbgc_out=solve_zbgc, phi_snow_out=phi_snow, &
+           dEdd_algae_out=dEdd_algae, solve_zbgc_out=solve_zbgc, grid_o_t_out=grid_o_t, &
            bgc_flux_type_out=bgc_flux_type, grid_o_out=grid_o, l_sk_out=l_sk, &
            initbio_frac_out=initbio_frac, frazil_scav_out=frazil_scav, &
+           grid_oS_out=grid_oS, l_skS_out=l_skS, phi_snow_out=phi_snow, &
            algal_vel_out=algal_vel, R_dFe2dust_out=R_dFe2dust, &
            dustFe_sol_out=dustFe_sol, T_max_out=T_max, fsal_out=fsal, &
            op_dep_min_out=op_dep_min, fr_graze_s_out=fr_graze_s, &
            fr_graze_e_out=fr_graze_e, fr_mort2min_out=fr_mort2min, &
            fr_dFe_out=fr_dFe, k_nitrif_out=k_nitrif, t_iron_conv_out=t_iron_conv, &
-           max_loss_out=max_loss, max_dfe_doc1_out=max_dfe_doc1, &
+           max_loss_out=max_loss, max_dfe_doc1_out=max_dfe_doc1, fr_resp_out=fr_resp, &
            fr_resp_s_out=fr_resp_s, y_sk_DMS_out=y_sk_DMS, t_sk_conv_out=t_sk_conv, &
-           t_sk_ox_out=t_sk_ox)
+           t_sk_ox_out=t_sk_ox, modal_aero_out=modal_aero, solve_zsal_out = solve_zsal)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
+
+      call icepack_query_parameters ( &
+        ratio_Si2N_diatoms_out = ratio_Si2N_diatoms, &
+        ratio_Si2N_sp_out      = ratio_Si2N_sp     , &
+        ratio_Si2N_phaeo_out   = ratio_Si2N_phaeo  , &
+        ratio_S2N_diatoms_out  = ratio_S2N_diatoms , &
+        ratio_S2N_sp_out       = ratio_S2N_sp      , &
+        ratio_S2N_phaeo_out    = ratio_S2N_phaeo   , &
+        ratio_Fe2C_diatoms_out = ratio_Fe2C_diatoms, &
+        ratio_Fe2C_sp_out      = ratio_Fe2C_sp     , &
+        ratio_Fe2C_phaeo_out   = ratio_Fe2C_phaeo  , &
+        ratio_Fe2N_diatoms_out = ratio_Fe2N_diatoms, &
+        ratio_Fe2N_sp_out      = ratio_Fe2N_sp     , &
+        ratio_Fe2N_phaeo_out   = ratio_Fe2N_phaeo  , &
+        ratio_C2N_diatoms_out  = ratio_C2N_diatoms , &
+        ratio_C2N_sp_out       = ratio_C2N_sp      , &
+        ratio_C2N_phaeo_out    = ratio_C2N_phaeo   , &
+        ratio_C2N_proteins_out = ratio_C2N_proteins, &
+        ratio_chl2N_diatoms_out = ratio_chl2N_diatoms, &
+        ratio_chl2N_sp_out     = ratio_chl2N_sp    , &
+        ratio_chl2N_phaeo_out  = ratio_chl2N_phaeo , &
+        ratio_Fe2DON_out       = ratio_Fe2DON      , &
+        ratio_Fe2DOC_s_out     = ratio_Fe2DOC_s    , &
+        ratio_Fe2DOC_l_out     = ratio_Fe2DOC_l    , &
+        F_abs_chl_diatoms_out  = F_abs_chl_diatoms , &
+        F_abs_chl_sp_out       = F_abs_chl_sp      , &
+        F_abs_chl_phaeo_out    = F_abs_chl_phaeo   , &
+        tau_min_out            = tau_min           , &
+        tau_max_out            = tau_max           , &
+        chlabs_diatoms_out     = chlabs_diatoms    , &
+        chlabs_sp_out          = chlabs_sp         , &
+        chlabs_phaeo_out       = chlabs_phaeo      , &
+        alpha2max_low_diatoms_out = alpha2max_low_diatoms, &
+        alpha2max_low_sp_out   = alpha2max_low_sp  , &
+        alpha2max_low_phaeo_out = alpha2max_low_phaeo, &
+        beta2max_diatoms_out   = beta2max_diatoms  , &
+        beta2max_sp_out        = beta2max_sp       , &
+        beta2max_phaeo_out     = beta2max_phaeo    , &
+        mu_max_diatoms_out     = mu_max_diatoms    , &
+        mu_max_sp_out          = mu_max_sp         , &
+        mu_max_phaeo_out       = mu_max_phaeo      , &
+        grow_Tdep_diatoms_out  = grow_Tdep_diatoms , &
+        grow_Tdep_sp_out       = grow_Tdep_sp      , &
+        grow_Tdep_phaeo_out    = grow_Tdep_phaeo   , &
+        fr_graze_diatoms_out   = fr_graze_diatoms  , &
+        fr_graze_sp_out        = fr_graze_sp       , &
+        fr_graze_phaeo_out     = fr_graze_phaeo    , &
+        mort_pre_diatoms_out   = mort_pre_diatoms  , &
+        mort_pre_sp_out        = mort_pre_sp       , &
+        mort_pre_phaeo_out     = mort_pre_phaeo    , &
+        mort_Tdep_diatoms_out  = mort_Tdep_diatoms , &
+        mort_Tdep_sp_out       = mort_Tdep_sp      , &
+        mort_Tdep_phaeo_out    = mort_Tdep_phaeo   , &
+        k_exude_diatoms_out    = k_exude_diatoms   , &
+        k_exude_sp_out         = k_exude_sp        , &
+        k_exude_phaeo_out      = k_exude_phaeo     , &
+        K_Nit_diatoms_out      = K_Nit_diatoms     , &
+        K_Nit_sp_out           = K_Nit_sp          , &
+        K_Nit_phaeo_out        = K_Nit_phaeo       , &
+        K_Am_diatoms_out       = K_Am_diatoms      , &
+        K_Am_sp_out            = K_Am_sp           , &
+        K_Am_phaeo_out         = K_Am_phaeo        , &
+        K_Sil_diatoms_out      = K_Sil_diatoms     , &
+        K_Sil_sp_out           = K_Sil_sp          , &
+        K_Sil_phaeo_out        = K_Sil_phaeo       , &
+        K_Fe_diatoms_out       = K_Fe_diatoms      , &
+        K_Fe_sp_out            = K_Fe_sp           , &
+        K_Fe_phaeo_out         = K_Fe_phaeo        , &
+        f_doc_s_out            = f_doc_s           , &
+        f_doc_l_out            = f_doc_l           , &
+        f_don_protein_out      = f_don_protein     , &
+        kn_bac_protein_out     = kn_bac_protein    , &
+        f_don_Am_protein_out   = f_don_Am_protein  , &
+        f_exude_s_out          = f_exude_s         , &
+        f_exude_l_out          = f_exude_l         , &
+        k_bac_s_out            = k_bac_s           , &
+        k_bac_l_out            = k_bac_l           , &
+        algaltype_diatoms_out  = algaltype_diatoms , &
+        algaltype_sp_out       = algaltype_sp      , &
+        algaltype_phaeo_out    = algaltype_phaeo   , &
+        dictype_1_out          = dictype_1         , &
+        doctype_s_out          = doctype_s         , &
+        doctype_l_out          = doctype_l         , &
+        dontype_protein_out    = dontype_protein   , &
+        fedtype_1_out          = fedtype_1         , &
+        feptype_1_out          = feptype_1         , &
+        nitratetype_out        = nitratetype       , &
+        ammoniumtype_out       = ammoniumtype      , &
+        silicatetype_out       = silicatetype      , &
+        dmspptype_out          = dmspptype         , &
+        dmspdtype_out          = dmspdtype         , &
+        humtype_out            = humtype           , &
+        zaerotype_bc1_out      = zaerotype_bc1     , &
+        zaerotype_bc2_out      = zaerotype_bc2     , &
+        zaerotype_dust1_out    = zaerotype_dust1   , &
+        zaerotype_dust2_out    = zaerotype_dust2   , &
+        zaerotype_dust3_out    = zaerotype_dust3   , &
+        zaerotype_dust4_out    = zaerotype_dust4)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
+
+      call icepack_query_tracer_flags(tr_aero_out = tr_aero,         &
+           tr_zaero_out = tr_zaero,                                  &
+           tr_brine_out   = tr_brine  , tr_bgc_Nit_out = tr_bgc_Nit, &
+           tr_bgc_Am_out  = tr_bgc_Am , tr_bgc_Sil_out = tr_bgc_Sil, &
+           tr_bgc_DMS_out = tr_bgc_DMS, tr_bgc_PON_out = tr_bgc_PON, &
+           tr_bgc_N_out   = tr_bgc_N  , tr_bgc_C_out   = tr_bgc_C  , &
+           tr_bgc_chl_out = tr_bgc_chl,                              &
+           tr_bgc_DON_out = tr_bgc_DON, tr_bgc_Fe_out  = tr_bgc_Fe , &
+           tr_bgc_hum_out = tr_bgc_hum)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -849,120 +957,8 @@
       !-----------------------------------------------------------------
       ! default values
       !-----------------------------------------------------------------
-      tr_brine        = .false.  ! brine height differs from ice height
-      tr_zaero        = .false.  ! z aerosol tracers
-      modal_aero      = .false.  ! use modal aerosol treatment of aerosols
-      restore_bgc     = .false.  ! restore bgc if true
-      solve_zsal      = .false.  ! update salinity tracer profile from solve_S_dt
-      bgc_data_type   = 'default'! source of bgc data
-      tr_bgc_PON      = .false.  !---------------------------------------------
-      tr_bgc_Nit      = .false.  ! biogeochemistry (skl or zbgc)
-      tr_bgc_C        = .false.  ! if skl_bgc = .true. then skl
-      tr_bgc_chl      = .false.  ! if z_tracers = .true. then vertically resolved
-      tr_bgc_Sil      = .false.  ! if z_tracers + solve_zbgc = .true. then
-      tr_bgc_Am       = .false.  ! vertically resolved with reactions
-      tr_bgc_DMS      = .false.  !------------------------------------------------
-      tr_bgc_DON      = .false.  !
-      tr_bgc_hum      = .false.  !
-      tr_bgc_Fe       = .false.  !
-      tr_bgc_N        = .true.   !
 
-      ! z biology parameters
-      ratio_Si2N_diatoms = 1.8_dbl_kind    ! algal Si to N (mol/mol)
-      ratio_Si2N_sp      = c0              ! diatoms, small plankton, phaeocystis
-      ratio_Si2N_phaeo   = c0
-      ratio_S2N_diatoms  = 0.03_dbl_kind   ! algal S  to N (mol/mol)
-      ratio_S2N_sp       = 0.03_dbl_kind
-      ratio_S2N_phaeo    = 0.03_dbl_kind
-      ratio_Fe2C_diatoms = 0.0033_dbl_kind ! algal Fe to C  (umol/mol)
-      ratio_Fe2C_sp      = 0.0033_dbl_kind
-      ratio_Fe2C_phaeo   = p1
-      ratio_Fe2N_diatoms = 0.023_dbl_kind  ! algal Fe to N  (umol/mol)
-      ratio_Fe2N_sp      = 0.023_dbl_kind
-      ratio_Fe2N_phaeo   = 0.7_dbl_kind
-      ratio_Fe2DON       = 0.023_dbl_kind  ! Fe to N of DON (nmol/umol)
-      ratio_Fe2DOC_s     = p1              ! Fe to C of DOC (nmol/umol) saccharids
-      ratio_Fe2DOC_l     = 0.033_dbl_kind  ! Fe to C of DOC (nmol/umol) lipids
-      tau_min            = 5200.0_dbl_kind ! rapid mobile to stationary exchanges (s)
-      tau_max            = 1.73e5_dbl_kind ! long time mobile to stationary exchanges (s)
-      chlabs_diatoms     = 0.03_dbl_kind   ! chl absorption (1/m/(mg/m^3))
-      chlabs_sp          = 0.01_dbl_kind
-      chlabs_phaeo       = 0.05_dbl_kind
-      alpha2max_low_diatoms = 0.8_dbl_kind ! light limitation (1/(W/m^2))
-      alpha2max_low_sp      = 0.67_dbl_kind
-      alpha2max_low_phaeo   = 0.67_dbl_kind
-      beta2max_diatoms   = 0.018_dbl_kind  ! light inhibition (1/(W/m^2))
-      beta2max_sp        = 0.0025_dbl_kind
-      beta2max_phaeo     = 0.01_dbl_kind
-      mu_max_diatoms     = 1.2_dbl_kind    ! maximum growth rate (1/day)
-      mu_max_sp          = 0.851_dbl_kind
-      mu_max_phaeo       = 0.851_dbl_kind
-      grow_Tdep_diatoms  = 0.06_dbl_kind ! Temperature dependence of growth (1/C)
-      grow_Tdep_sp       = 0.06_dbl_kind
-      grow_Tdep_phaeo    = 0.06_dbl_kind
-      fr_graze_diatoms   = 0.01_dbl_kind ! Fraction grazed
-      fr_graze_sp        = p1
-      fr_graze_phaeo     = p1
-      mort_pre_diatoms   = 0.007_dbl_kind! Mortality (1/day)
-      mort_pre_sp        = 0.007_dbl_kind
-      mort_pre_phaeo     = 0.007_dbl_kind
-      mort_Tdep_diatoms  = 0.03_dbl_kind ! T dependence of mortality (1/C)
-      mort_Tdep_sp       = 0.03_dbl_kind
-      mort_Tdep_phaeo    = 0.03_dbl_kind
-      k_exude_diatoms    = c0            ! algal exudation (1/d)
-      k_exude_sp         = c0
-      k_exude_phaeo      = c0
-      K_Nit_diatoms      = c1            ! nitrate half saturation (mmol/m^3)
-      K_Nit_sp           = c1
-      K_Nit_phaeo        = c1
-      K_Am_diatoms       = 0.3_dbl_kind  ! ammonium half saturation (mmol/m^3)
-      K_Am_sp            = 0.3_dbl_kind
-      K_Am_phaeo         = 0.3_dbl_kind
-      K_Sil_diatoms      = 4.0_dbl_kind  ! silicate half saturation (mmol/m^3)
-      K_Sil_sp           = c0
-      K_Sil_phaeo        = c0
-      K_Fe_diatoms       = c1            ! iron half saturation (nM)
-      K_Fe_sp            = 0.2_dbl_kind
-      K_Fe_phaeo         = p1
-      f_don_protein      = 0.6_dbl_kind  ! fraction of spilled grazing to proteins
-      kn_bac_protein     = 0.03_dbl_kind ! Bacterial degredation of DON (1/d)
-      f_don_Am_protein   = 0.25_dbl_kind ! fraction of remineralized DON to ammonium
-      f_doc_s            = 0.4_dbl_kind  ! fraction of mortality to DOC
-      f_doc_l            = 0.4_dbl_kind
-      f_exude_s          = c1            ! fraction of exudation to DOC
-      f_exude_l          = c1
-      k_bac_s            = 0.03_dbl_kind ! Bacterial degredation of DOC (1/d)
-      k_bac_l            = 0.03_dbl_kind
-      algaltype_diatoms  = c0            ! ------------------
-      algaltype_sp       = p5            !
-      algaltype_phaeo    = p5            !
-      nitratetype        = -c1           ! mobility type between
-      ammoniumtype       = c1            ! stationary <-->  mobile
-      silicatetype       = -c1           !
-      dmspptype          = p5            !
-      dmspdtype          = -c1           !
-      humtype            = c1            !
-      doctype_s          = p5            !
-      doctype_l          = p5            !
-      dontype_protein    = p5            !
-      fedtype_1          = p5            !
-      feptype_1          = p5            !
-      zaerotype_bc1      = c1            !
-      zaerotype_bc2      = c1            !
-      zaerotype_dust1    = c1            !
-      zaerotype_dust2    = c1            !
-      zaerotype_dust3    = c1            !
-      zaerotype_dust4    = c1            !--------------------
-      ratio_C2N_diatoms  = 7.0_dbl_kind  ! algal C to N ratio (mol/mol)
-      ratio_C2N_sp       = 7.0_dbl_kind
-      ratio_C2N_phaeo    = 7.0_dbl_kind
-      ratio_chl2N_diatoms= 2.1_dbl_kind  ! algal chlorophyll to N ratio (mg/mmol)
-      ratio_chl2N_sp     = 1.1_dbl_kind
-      ratio_chl2N_phaeo  = 0.84_dbl_kind
-      F_abs_chl_diatoms  = 2.0_dbl_kind  ! scales absorbed radiation for dEdd
-      F_abs_chl_sp       = 4.0_dbl_kind
-      F_abs_chl_phaeo    = 5.0_dbl_kind
-      ratio_C2N_proteins = 7.0_dbl_kind  ! ratio of C to N in proteins (mol/mol)
+      tr_bgc_N        = .true.   ! not a namelist??
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -1022,6 +1018,14 @@
       ! biogeochemistry
       !-----------------------------------------------------------------
 
+      ! deprecate skl bgc (Aug 2024)
+      ! no skl code removed yet
+      if (skl_bgc) then
+         write(nu_diag,*) 'ERROR: skl_bgc is not validate and temporarily DEPRECATED'
+         write(nu_diag,*) 'ERROR: if you would like to use skl_bgc, please contact the Consortium'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
       if (.not. tr_brine) then
          if (solve_zbgc) then
             write(nu_diag,*) 'WARNING: tr_brine = F and solve_zbgc = T'
@@ -1041,7 +1045,7 @@
       endif
 
       if ((skl_bgc .AND. solve_zbgc) .or. (skl_bgc .AND. z_tracers)) then
-         print*, 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
+         write(nu_diag,*) 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
@@ -1073,27 +1077,27 @@
          modal_aero = .false.
       endif
       if (n_algae > icepack_max_algae) then
-         print*, 'error:number of algal types exceeds icepack_max_algae'
+         write(nu_diag,*) 'error:number of algal types exceeds icepack_max_algae'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_doc > icepack_max_doc) then
-         print*, 'error:number of algal types exceeds icepack_max_doc'
+         write(nu_diag,*) 'error:number of algal types exceeds icepack_max_doc'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_dic > icepack_max_dic) then
-         print*, 'error:number of dic types exceeds icepack_max_dic'
+         write(nu_diag,*) 'error:number of dic types exceeds icepack_max_dic'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_don > icepack_max_don) then
-         print*, 'error:number of don types exceeds icepack_max_don'
+         write(nu_diag,*) 'error:number of don types exceeds icepack_max_don'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fed > icepack_max_fe) then
-         print*, 'error:number of dissolved fe types exceeds icepack_max_fe'
+         write(nu_diag,*) 'error:number of dissolved fe types exceeds icepack_max_fe'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fep > icepack_max_fe) then
-         print*, 'error:number of particulate fe types exceeds icepack_max_fe'
+         write(nu_diag,*) 'error:number of particulate fe types exceeds icepack_max_fe'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
@@ -1137,7 +1141,7 @@
       if (tr_zaero .and. .not. z_tracers) z_tracers = .true.
 
       if (n_zaero > icepack_max_aero) then
-         print*, 'error:number of z aerosols exceeds icepack_max_aero'
+         write(nu_diag,*) 'error:number of z aerosols exceeds icepack_max_aero'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
@@ -1169,9 +1173,9 @@
       ! set Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_init_parameters(ktherm_in=ktherm, shortwave_in=shortwave, &
+      call icepack_init_parameters( &
            scale_bgc_in=scale_bgc, skl_bgc_in=skl_bgc, z_tracers_in=z_tracers, &
-           dEdd_algae_in=dEdd_algae, solve_zbgc_in=solve_zbgc, &
+           dEdd_algae_in=dEdd_algae, solve_zbgc_in=solve_zbgc, grid_o_t_in=grid_o_t, &
            bgc_flux_type_in=bgc_flux_type, grid_o_in=grid_o, l_sk_in=l_sk, &
            initbio_frac_in=initbio_frac, frazil_scav_in=frazil_scav, &
            grid_oS_in=grid_oS, l_skS_in=l_skS, phi_snow_in=phi_snow, &
@@ -1182,7 +1186,108 @@
            fr_dFe_in=fr_dFe, k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, &
            max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, fr_resp_in=fr_resp, &
            fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, t_sk_conv_in=t_sk_conv, &
-           t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero)
+           t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero, solve_zsal_in = solve_zsal)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
+
+      call icepack_init_parameters ( &
+        ratio_Si2N_diatoms_in = ratio_Si2N_diatoms, &
+        ratio_Si2N_sp_in      = ratio_Si2N_sp     , &
+        ratio_Si2N_phaeo_in   = ratio_Si2N_phaeo  , &
+        ratio_S2N_diatoms_in  = ratio_S2N_diatoms , &
+        ratio_S2N_sp_in       = ratio_S2N_sp      , &
+        ratio_S2N_phaeo_in    = ratio_S2N_phaeo   , &
+        ratio_Fe2C_diatoms_in = ratio_Fe2C_diatoms, &
+        ratio_Fe2C_sp_in      = ratio_Fe2C_sp     , &
+        ratio_Fe2C_phaeo_in   = ratio_Fe2C_phaeo  , &
+        ratio_Fe2N_diatoms_in = ratio_Fe2N_diatoms, &
+        ratio_Fe2N_sp_in      = ratio_Fe2N_sp     , &
+        ratio_Fe2N_phaeo_in   = ratio_Fe2N_phaeo  , &
+        ratio_C2N_diatoms_in  = ratio_C2N_diatoms , &
+        ratio_C2N_sp_in       = ratio_C2N_sp      , &
+        ratio_C2N_phaeo_in    = ratio_C2N_phaeo   , &
+        ratio_C2N_proteins_in = ratio_C2N_proteins, &
+        ratio_chl2N_diatoms_in = ratio_chl2N_diatoms, &
+        ratio_chl2N_sp_in     = ratio_chl2N_sp    , &
+        ratio_chl2N_phaeo_in  = ratio_chl2N_phaeo , &
+        ratio_Fe2DON_in       = ratio_Fe2DON      , &
+        ratio_Fe2DOC_s_in     = ratio_Fe2DOC_s    , &
+        ratio_Fe2DOC_l_in     = ratio_Fe2DOC_l    , &
+        F_abs_chl_diatoms_in  = F_abs_chl_diatoms , &
+        F_abs_chl_sp_in       = F_abs_chl_sp      , &
+        F_abs_chl_phaeo_in    = F_abs_chl_phaeo   , &
+        tau_min_in            = tau_min           , &
+        tau_max_in            = tau_max           , &
+        chlabs_diatoms_in     = chlabs_diatoms    , &
+        chlabs_sp_in          = chlabs_sp         , &
+        chlabs_phaeo_in       = chlabs_phaeo      , &
+        alpha2max_low_diatoms_in = alpha2max_low_diatoms, &
+        alpha2max_low_sp_in   = alpha2max_low_sp  , &
+        alpha2max_low_phaeo_in = alpha2max_low_phaeo, &
+        beta2max_diatoms_in   = beta2max_diatoms  , &
+        beta2max_sp_in        = beta2max_sp       , &
+        beta2max_phaeo_in     = beta2max_phaeo    , &
+        mu_max_diatoms_in     = mu_max_diatoms    , &
+        mu_max_sp_in          = mu_max_sp         , &
+        mu_max_phaeo_in       = mu_max_phaeo      , &
+        grow_Tdep_diatoms_in  = grow_Tdep_diatoms , &
+        grow_Tdep_sp_in       = grow_Tdep_sp      , &
+        grow_Tdep_phaeo_in    = grow_Tdep_phaeo   , &
+        fr_graze_diatoms_in   = fr_graze_diatoms  , &
+        fr_graze_sp_in        = fr_graze_sp       , &
+        fr_graze_phaeo_in     = fr_graze_phaeo    , &
+        mort_pre_diatoms_in   = mort_pre_diatoms  , &
+        mort_pre_sp_in        = mort_pre_sp       , &
+        mort_pre_phaeo_in     = mort_pre_phaeo    , &
+        mort_Tdep_diatoms_in  = mort_Tdep_diatoms , &
+        mort_Tdep_sp_in       = mort_Tdep_sp      , &
+        mort_Tdep_phaeo_in    = mort_Tdep_phaeo   , &
+        k_exude_diatoms_in    = k_exude_diatoms   , &
+        k_exude_sp_in         = k_exude_sp        , &
+        k_exude_phaeo_in      = k_exude_phaeo     , &
+        K_Nit_diatoms_in      = K_Nit_diatoms     , &
+        K_Nit_sp_in           = K_Nit_sp          , &
+        K_Nit_phaeo_in        = K_Nit_phaeo       , &
+        K_Am_diatoms_in       = K_Am_diatoms      , &
+        K_Am_sp_in            = K_Am_sp           , &
+        K_Am_phaeo_in         = K_Am_phaeo        , &
+        K_Sil_diatoms_in      = K_Sil_diatoms     , &
+        K_Sil_sp_in           = K_Sil_sp          , &
+        K_Sil_phaeo_in        = K_Sil_phaeo       , &
+        K_Fe_diatoms_in       = K_Fe_diatoms      , &
+        K_Fe_sp_in            = K_Fe_sp           , &
+        K_Fe_phaeo_in         = K_Fe_phaeo        , &
+        f_doc_s_in            = f_doc_s           , &
+        f_doc_l_in            = f_doc_l           , &
+        f_don_protein_in      = f_don_protein     , &
+        kn_bac_protein_in     = kn_bac_protein    , &
+        f_don_Am_protein_in   = f_don_Am_protein  , &
+        f_exude_s_in          = f_exude_s         , &
+        f_exude_l_in          = f_exude_l         , &
+        k_bac_s_in            = k_bac_s           , &
+        k_bac_l_in            = k_bac_l           , &
+        algaltype_diatoms_in  = algaltype_diatoms , &
+        algaltype_sp_in       = algaltype_sp      , &
+        algaltype_phaeo_in    = algaltype_phaeo   , &
+        dictype_1_in          = dictype_1         , &
+        doctype_s_in          = doctype_s         , &
+        doctype_l_in          = doctype_l         , &
+        dontype_protein_in    = dontype_protein   , &
+        fedtype_1_in          = fedtype_1         , &
+        feptype_1_in          = feptype_1         , &
+        nitratetype_in        = nitratetype       , &
+        ammoniumtype_in       = ammoniumtype      , &
+        silicatetype_in       = silicatetype      , &
+        dmspptype_in          = dmspptype         , &
+        dmspdtype_in          = dmspdtype         , &
+        humtype_in            = humtype           , &
+        zaerotype_bc1_in      = zaerotype_bc1     , &
+        zaerotype_bc2_in      = zaerotype_bc2     , &
+        zaerotype_dust1_in    = zaerotype_dust1   , &
+        zaerotype_dust2_in    = zaerotype_dust2   , &
+        zaerotype_dust3_in    = zaerotype_dust3   , &
+        zaerotype_dust4_in    = zaerotype_dust4)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -1219,7 +1324,8 @@
       nlt_bgc_N(:) = 0
       nlt_bgc_C(:) = 0
       nlt_bgc_chl(:) = 0
-      nt_bgc_N(:) = 0
+      ! need some valid array indices if unset
+      nt_bgc_N(:) = max_ntrcr - n_algae*(nblyr+3)
       nt_bgc_C(:) = 0
       nt_bgc_chl(:) = 0
 
@@ -1244,7 +1350,8 @@
       ! vectors of size icepack_max_aero
       nlt_zaero(:) = 0
       nlt_zaero_sw(:) = 0
-      nt_zaero(:) = 0
+      ! need some valid array indices if unset
+      nt_zaero(:) = max_ntrcr - n_zaero*(nblyr+3)
       nt_zaero_sw(:) = 0
 
       nlt_bgc_Nit    = 0
@@ -1269,106 +1376,6 @@
       nt_bgc_hum    = 0
       nt_zbgc_frac  = 0
 
-      !-----------------------------------------------------------------
-      ! Define array parameters
-      !-----------------------------------------------------------------
-
-      R_Si2N(1) = ratio_Si2N_diatoms
-      R_Si2N(2) = ratio_Si2N_sp
-      R_Si2N(3) = ratio_Si2N_phaeo
-
-      R_S2N(1) = ratio_S2N_diatoms
-      R_S2N(2) = ratio_S2N_sp
-      R_S2N(3) = ratio_S2N_phaeo
-
-      R_Fe2C(1) = ratio_Fe2C_diatoms
-      R_Fe2C(2) = ratio_Fe2C_sp
-      R_Fe2C(3) = ratio_Fe2C_phaeo
-
-      R_Fe2N(1) = ratio_Fe2N_diatoms
-      R_Fe2N(2) = ratio_Fe2N_sp
-      R_Fe2N(3) = ratio_Fe2N_phaeo
-
-      R_C2N(1) = ratio_C2N_diatoms
-      R_C2N(2) = ratio_C2N_sp
-      R_C2N(3) = ratio_C2N_phaeo
-
-      R_chl2N(1) = ratio_chl2N_diatoms
-      R_chl2N(2) = ratio_chl2N_sp
-      R_chl2N(3) = ratio_chl2N_phaeo
-
-      F_abs_chl(1) = F_abs_chl_diatoms
-      F_abs_chl(2) = F_abs_chl_sp
-      F_abs_chl(3) = F_abs_chl_phaeo
-
-      R_Fe2DON(1) = ratio_Fe2DON
-      R_C2N_DON(1) = ratio_C2N_proteins
-
-      R_Fe2DOC(1) = ratio_Fe2DOC_s
-      R_Fe2DOC(2) = ratio_Fe2DOC_l
-      R_Fe2DOC(3) = c0
-
-      chlabs(1) = chlabs_diatoms
-      chlabs(2) = chlabs_sp
-      chlabs(3) = chlabs_phaeo
-
-      alpha2max_low(1) = alpha2max_low_diatoms
-      alpha2max_low(2) = alpha2max_low_sp
-      alpha2max_low(3) = alpha2max_low_phaeo
-
-      beta2max(1) = beta2max_diatoms
-      beta2max(2) = beta2max_sp
-      beta2max(3) = beta2max_phaeo
-
-      mu_max(1) = mu_max_diatoms
-      mu_max(2) = mu_max_sp
-      mu_max(3) = mu_max_phaeo
-
-      grow_Tdep(1) = grow_Tdep_diatoms
-      grow_Tdep(2) = grow_Tdep_sp
-      grow_Tdep(3) = grow_Tdep_phaeo
-
-      fr_graze(1) = fr_graze_diatoms
-      fr_graze(2) = fr_graze_sp
-      fr_graze(3) = fr_graze_phaeo
-
-      mort_pre(1) = mort_pre_diatoms
-      mort_pre(2) = mort_pre_sp
-      mort_pre(3) = mort_pre_phaeo
-
-      mort_Tdep(1) = mort_Tdep_diatoms
-      mort_Tdep(2) = mort_Tdep_sp
-      mort_Tdep(3) = mort_Tdep_phaeo
-
-      k_exude(1) = k_exude_diatoms
-      k_exude(2) = k_exude_sp
-      k_exude(3) = k_exude_phaeo
-
-      K_Nit(1) = K_Nit_diatoms
-      K_Nit(2) = K_Nit_sp
-      K_Nit(3) = K_Nit_phaeo
-
-      K_Am(1) = K_Am_diatoms
-      K_Am(2) = K_Am_sp
-      K_Am(3) = K_Am_phaeo
-
-      K_Sil(1) = K_Sil_diatoms
-      K_Sil(2) = K_Sil_sp
-      K_Sil(3) = K_Sil_phaeo
-
-      K_Fe(1) = K_Fe_diatoms
-      K_Fe(2) = K_Fe_sp
-      K_Fe(3) = K_Fe_phaeo
-
-      f_don(1) = f_don_protein
-      kn_bac(1) = kn_bac_protein
-      f_don_Am(1) = f_don_Am_protein
-
-      f_exude(1) = f_exude_s
-      f_exude(2) = f_exude_l
-      k_bac(1) = k_bac_s
-      k_bac(2) = k_bac_l
-
       dictype(:) = -c1
 
       algaltype(1) = algaltype_diatoms
@@ -1381,6 +1388,7 @@
       dontype(1) = dontype_protein
 
       fedtype(1) = fedtype_1
+
       feptype(1) = feptype_1
 
       zaerotype(1) = zaerotype_bc1
@@ -1389,31 +1397,6 @@
       zaerotype(4) = zaerotype_dust2
       zaerotype(5) = zaerotype_dust3
       zaerotype(6) = zaerotype_dust4
-
-      call icepack_init_zbgc ( &
-           R_Si2N_in=R_Si2N, &
-           R_S2N_in=R_S2N, R_Fe2C_in=R_Fe2C, R_Fe2N_in=R_Fe2N, R_C2N_in=R_C2N, &
-           R_chl2N_in=R_chl2N, F_abs_chl_in=F_abs_chl, R_Fe2DON_in=R_Fe2DON, &
-           R_C2N_DON_in=R_C2N_DON, &
-           R_Fe2DOC_in=R_Fe2DOC, &
-           chlabs_in=chlabs, alpha2max_low_in=alpha2max_low, beta2max_in=beta2max, &
-           mu_max_in=mu_max, grow_Tdep_in=grow_Tdep, fr_graze_in=fr_graze, &
-           mort_pre_in=mort_pre, &
-           mort_Tdep_in=mort_Tdep, k_exude_in=k_exude, &
-           K_Nit_in=K_Nit, K_Am_in=K_Am, K_sil_in=K_Sil, K_Fe_in=K_Fe, &
-           f_don_in=f_don, kn_bac_in=kn_bac, f_don_Am_in=f_don_Am, f_exude_in=f_exude, &
-           k_bac_in=k_bac, &
-           fr_resp_in=fr_resp, algal_vel_in=algal_vel, R_dFe2dust_in=R_dFe2dust, &
-           dustFe_sol_in=dustFe_sol, T_max_in=T_max, fr_mort2min_in=fr_mort2min, &
-           fr_dFe_in=fr_dFe, op_dep_min_in=op_dep_min, &
-           fr_graze_s_in=fr_graze_s, fr_graze_e_in=fr_graze_e, &
-           k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, &
-           max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, &
-           fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, &
-           t_sk_conv_in=t_sk_conv, t_sk_ox_in=t_sk_ox, fsal_in=fsal)
-      call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-          file=__FILE__, line=__LINE__)
 
       if (skl_bgc) then
 
@@ -1780,7 +1763,6 @@
 
          write(nu_diag,1010) ' skl_bgc                   = ', skl_bgc
          write(nu_diag,1030) ' bgc_flux_type             = ', bgc_flux_type
-         write(nu_diag,1010) ' restore_bgc               = ', restore_bgc
          write(nu_diag,*)    ' bgc_data_type             = ', &
                                trim(bgc_data_type)
          write(nu_diag,1020) ' number of bio tracers     = ', nbtrcr
@@ -1832,11 +1814,14 @@
          write(nu_diag,1010) ' tr_bgc_DON                = ', tr_bgc_DON
          write(nu_diag,1010) ' tr_bgc_Fe                 = ', tr_bgc_Fe
          write(nu_diag,1000) ' grid_o                    = ', grid_o
+         write(nu_diag,1000) ' grid_o_t                  = ', grid_o_t
          write(nu_diag,1005) ' l_sk                      = ', l_sk
          write(nu_diag,1000) ' initbio_frac              = ', initbio_frac
          write(nu_diag,1000) ' frazil_scav               = ', frazil_scav
 
-      endif  ! skl_bgc or solve_bgc
+      endif  ! skl_bgc or z_tracers
+
+      call icedrv_system_flush(nu_diag)
 
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
  1005    format (a30,2x,f9.6)  ! float

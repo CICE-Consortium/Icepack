@@ -122,17 +122,6 @@
 
       ! biogeochemistry components
 
-      real (kind=dbl_kind), dimension (nblyr+2), public :: &
-         bgrid          ! biology nondimensional vertical grid points
-
-      real (kind=dbl_kind), dimension (nblyr+1), public :: &
-         igrid          ! biology vertical interface points
-
-      real (kind=dbl_kind), dimension (nilyr+1), public :: &
-         cgrid     , &  ! CICE vertical coordinate
-         icgrid    , &  ! interface grid for CICE (shortwave variable)
-         swgrid         ! grid for ice tracers used in dEdd scheme
-
       real (kind=dbl_kind), dimension (nx,ncat), public :: &
          first_ice_real ! .true. = c1, .false. = c0
 
@@ -209,10 +198,6 @@
          chl_net    , & ! Total chla (mg chla/m^2) per grid cell
          NO_net         ! Total nitrate per grid cell
 
-      real (kind=dbl_kind), &
-         dimension (nx,ncat), public :: &
-         sice_rho       ! avg sea ice density  (kg/m^3)  ! ech: diagnostic only?
-
       real (kind=dbl_kind), dimension (nx,nblyr+1,ncat), public :: &
          zfswin         ! Shortwave flux into layers interpolated on bio grid  (W/m^2)
 
@@ -236,28 +221,21 @@
 
       ! floe size distribution
       real(kind=dbl_kind), dimension(nfsd), public ::  &
-         floe_rad_l,    &  ! fsd size lower bound in m (radius)
-         floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_binwidth     ! fsd size bin width in m (radius)
+         floe_rad_c     ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (nx), public :: &
-         wave_sig_ht       ! significant height of waves (m)
+         wave_sig_ht    ! significant height of waves (m)
 
       real (kind=dbl_kind), dimension (nfreq), public :: &
-         wavefreq,      &  ! wave frequencies
-         dwavefreq         ! wave frequency bin widths
+         wavefreq,   &  ! wave frequencies
+         dwavefreq      ! wave frequency bin widths
 
       real (kind=dbl_kind), dimension (nx,nfreq), public :: &
-         wave_spectrum     ! wave spectrum
+         wave_spectrum  ! wave spectrum
 
       real (kind=dbl_kind), dimension (nx,nfsd), public :: &
          ! change in floe size distribution due to processes
          d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
-
-      character (len=35), public, dimension(nfsd) :: &
-         c_fsd_range ! fsd floe_rad bounds (m)
-
-
 
 !=======================================================================
 
