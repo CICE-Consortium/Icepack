@@ -112,6 +112,8 @@
       call init_restart         ! initialize restart variables
       call init_history_therm   ! initialize thermo history variables
 
+      if (tr_pond_sealvl) call icepack_init_sealvlpnd   ! sealvl ponds
+
       if (restart) &
          call init_shortwave    ! initialize radiative transfer
 
@@ -156,8 +158,6 @@
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
       if (tr_aero .or. tr_zaero)  call faero_default    ! default values
       if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
-
-      if (tr_pond_sealvl) call icepack_init_sealvlpnd   ! sealvl ponds
 
       if (.not. restart) &
          call init_shortwave    ! initialize radiative transfer using current swdn
