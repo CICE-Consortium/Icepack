@@ -109,8 +109,7 @@
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
                                   prescribed_ice,         &
-                                  flpnd,       expnd,     &
-                                  alvl)
+                                  flpnd,       expnd)
 
       real (kind=dbl_kind), intent(in) :: &
          dt      , & ! time step
@@ -125,9 +124,8 @@
       ! tracers
       real (kind=dbl_kind), intent(inout) :: &
          Tsf     , & ! ice/snow top surface temp, same as Tsfcn (deg C)
-         apond   , & ! melt pond area fraction
-         hpond   , & ! melt pond depth (m)
-         alvl        ! level ice fraction
+         apond   , & ! melt pond area fraction of category
+         hpond       ! melt pond depth (m)
 !        iage        ! ice age (s)
 
       logical (kind=log_kind), intent(in), optional :: &
@@ -333,8 +331,7 @@
                                               fcondtopn, fcondbotn, &
                                               fadvocn,   snoice,    &
                                               smice,     smliq,     &
-                                              flpnd,     expnd,    &
-                                              alvl)
+                                              flpnd,     expnd)
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
@@ -2356,7 +2353,7 @@
          Tsfc        , & ! ice/snow surface temperature, Tsfcn
          alvl        , & ! level ice area fraction
          vlvl        , & ! level ice volume fraction
-         apnd        , & ! melt pond area fraction
+         apnd        , & ! melt pond area fraction tracer
          hpnd        , & ! melt pond depth                        (m)
          ipnd        , & ! melt pond refrozen lid thickness       (m)
          iage        , & ! volume-weighted ice age
@@ -2462,6 +2459,7 @@
          smliq           ! tracer for mass of liquid in snow (kg/m^3)
 
       real (kind=dbl_kind), dimension(ncat) :: &
+         apond       , & ! melt pond area fraction of category
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2552,6 +2550,17 @@
       massliqn(:,:) = c0
 
       !-----------------------------------------------------------------
+      ! Initialize pond area fractions
+      !-----------------------------------------------------------------
+      do n= 1, ncat    
+         if (tr_pond_lvl) then
+            apond(n) = apnd(n) * alvl(n)
+         else
+            apond(n) = apnd(n)
+         endif
+      enddo
+
+      !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
       !-----------------------------------------------------------------
 
@@ -2581,8 +2590,7 @@
       !-----------------------------------------------------------------
 
       if (formdrag) then
-         call neutral_drag_coeffs (apnd         , &
-                                   hpnd        , ipnd         , &
+         call neutral_drag_coeffs (apond       , &
                                    alvl        , vlvl         , &
                                    aice        , vice,          &
                                    vsno        , aicen        , &
@@ -2734,7 +2742,7 @@
                                  vicen=vicen     (n), vsnon=vsnon         (n), &
                                  Tsf=Tsfc        (n), zSin=zSin         (:,n), &
                                  zqin=zqin     (:,n), zqsn=zqsn         (:,n), &
-                                 apond=apnd      (n), hpond=hpnd          (n), &
+                                 apond=apond     (n), hpond=hpnd          (n), &
                                  flw=flw,             potT=potT,               &
                                  Qa=Qa,               rhoa=rhoa,               &
                                  fsnow=fsnow,         fpond=fpond,             &
@@ -2759,13 +2767,23 @@
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,     &
                                  yday=yday,           dsnow=l_dsnown         , &
                                  prescribed_ice=prescribed_ice,                &
-                                 flpnd=flpndn    (n), expnd=expndn        (n), &
-                                 alvl=alvl       (n))
+                                 flpnd=flpndn    (n), expnd=expndn        (n))
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
                call icepack_warnings_add(warnstr)
                return
+            endif
+
+            ! Translate changes in apond into apnd tracer
+            if (tr_pond_lvl) then
+               if (alvl(n) > puny) then
+                  apnd(n) = max(apond(n) / alvl(n), c1)
+               else
+                  apnd(n) = c0
+               endif
+            else
+               apnd(n) = apond(n)
             endif
 
             if (snwgrain) then
@@ -2870,7 +2888,6 @@
                if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_pond_sealvl) then
-
                call compute_ponds_sealvl(dt=dt,           &
                                        meltt=melttn (n), &
                                        melts=meltsn (n), &

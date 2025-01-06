@@ -1025,15 +1025,15 @@
             fpond  = fpond - dfpond
          endif
 
-         if (tr_pond) then
-            if (tr_pond_lvl) then
-               mipnd = mipnd + aicen(n)*trcrn(nt_apnd,n)*trcrn(nt_hpnd,n) &
-                        *rsiden(n)*trcrn(nt_alvl,n)
-            else
-               mipnd = mipnd + aicen(n)*trcrn(nt_apnd,n)*trcrn(nt_hpnd,n) &
-                        *rsiden(n)
+            if (tr_pond) then
+               if (tr_pond_lvl) then
+                  mipnd = mipnd + aicen(n)*trcrn(nt_apnd,n)*trcrn(nt_hpnd,n) &
+                           *rsiden(n)*trcrn(nt_alvl,n)
+               else
+                  mipnd = mipnd + aicen(n)*trcrn(nt_apnd,n)*trcrn(nt_hpnd,n) &
+                           *rsiden(n)
+               endif
             endif
-         endif
 
          ! history diagnostics
          meltl = meltl + vicen_init(n)*rsiden(n)

@@ -103,16 +103,16 @@
           dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
           snoicen , & ! snow-ice growth                 (m)
-          fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
-          fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
-          fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
-          fswthrun_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
-          Urefn   , & ! air speed reference level       (m/s)
           flpndn  , & ! pond flushing rate due to ice permeability (m/step)
           expndn  , & ! exponential pond drainage rate (m/step)
           frpndn  , & ! pond drainage rate due to freeboard constraint (m/step)
           rfpndn  , & ! runoff rate due to rfrac (m/step)
-          ilpndn      ! pond loss/gain due to ice lid (m/step)
+          ilpndn  , & ! pond loss/gain due to ice lid (m/step)
+          fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthrun_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
+          Urefn       ! air speed reference level       (m/s)
 
       ! cumulative fluxes
       real (kind=dbl_kind), optional, intent(inout) :: &
@@ -141,17 +141,17 @@
           meltsliq, & ! mass of snow melt               (kg/m^2)
           congel  , & ! congelation ice growth          (m)
           snoice  , & ! snow-ice growth                 (m)
-          fswthru_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
-          fswthru_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
-          fswthru_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
-          fswthru_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
-          dsnow   , & ! change in snow depth            (m)
-          Uref    , & ! air speed reference level       (m/s)
           flpnd   , & ! pond flushing rate due to ice permeability (m/step)
           expnd   , & ! exponential pond drainage rate (m/step)
           frpnd   , & ! pond drainage rate due to freeboard constraint (m/step)
           rfpnd   , & ! runoff rate due to rfrac (m/step)
-          ilpnd     ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
+          ilpnd   , & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
+          fswthru_vdr , & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthru_vdf , & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthru_idr , & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthru_idf , & ! nir dif sw radiation through ice bot    (W/m**2)
+          dsnow,    & ! change in snow depth            (m)
+          Uref        ! air speed reference level       (m/s)
 
       real (kind=dbl_kind), dimension(:), intent(in), optional :: &
           Qrefn_iso, & ! isotope air sp hum ref level   (kg/kg)
@@ -262,14 +262,18 @@
          congel    = congel    + congeln   * aicen
       if (present(snoicen) .and. present(snoice)) &
          snoice    = snoice    + snoicen   * aicen
-
       ! Meltwater fluxes
       if (tr_pond) then
-         flpnd     = flpnd     + flpndn    * aicen
-         expnd     = expnd     + expndn    * aicen
-         frpnd     = frpnd     + frpndn    * aicen
-         rfpnd     = rfpnd     + rfpndn    * aicen
-         ilpnd     = ilpnd     + ilpndn    * aicen
+         if (present(flpndn) .and. present(flpnd)) &
+            flpnd     = flpnd     + flpndn    * aicen
+         if (present(expndn) .and. present(expnd)) &
+            expnd     = expnd     + expndn    * aicen
+         if (present(frpndn) .and. present(frpnd)) &
+            frpnd     = frpnd     + frpndn    * aicen
+         if (present(rfpndn) .and. present(rfpnd)) &
+            rfpnd     = rfpnd     + rfpndn    * aicen
+         if (present(ilpndn) .and. present(ilpnd)) &
+            ilpnd     = ilpnd     + ilpndn    * aicen
       endif
 
       end subroutine merge_fluxes

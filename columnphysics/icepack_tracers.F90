@@ -1209,7 +1209,7 @@
                                           trcr_base, n_trcr_strata,  &
                                           nt_strata, trcrn, Tf)
 
-      integer (kind=int_kind), dimension (ntrcr), intent(in) :: &
+      integer (kind=int_kind), dimension (:), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
          n_trcr_strata  ! number of underlying tracer layers
 
@@ -1228,7 +1228,7 @@
          vicen , & ! volume per unit area of ice          (m)
          vsnon     ! volume per unit area of snow         (m)
 
-      real (kind=dbl_kind), dimension (ntrcr), intent(out) :: &
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
          trcrn     ! ice tracers
 
       real (kind=dbl_kind), intent(in) :: &

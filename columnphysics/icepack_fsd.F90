@@ -180,7 +180,7 @@
          floe_area_c         (nfsd), & ! fsd area at bin centre (m^2)
          floe_area_binwidth  (nfsd), & ! floe area bin width (m^2)
          floe_binwidth       (nfsd), & ! floe bin width (m)
-         c_fsd_range         (nfsd), & ! 
+         c_fsd_range         (nfsd), & !
          iweld         (nfsd, nfsd), & ! fsd categories that can weld
          stat=ierr)
       if (ierr/=0) then
