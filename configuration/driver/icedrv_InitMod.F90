@@ -112,6 +112,11 @@
       call init_restart         ! initialize restart variables
       call init_history_therm   ! initialize thermo history variables
 
+      call icepack_query_tracer_flags(tr_pond_sealvl_out=tr_pond_sealvl)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted(subname)) then
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
       if (tr_pond_sealvl) call icepack_init_sealvlpnd   ! sealvl ponds
 
       if (restart) &
@@ -134,7 +139,6 @@
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
       call icepack_query_tracer_flags(tr_iso_out=tr_iso)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
-      call icepack_query_tracer_flags(tr_pond_sealvl_out=tr_pond_sealvl)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
