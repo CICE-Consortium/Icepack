@@ -1003,8 +1003,8 @@ EOF0
   if ($coverage == 1) then
     echo "Generating coverage reports"
     ./poll_queue.csh
-    ./report_lcov.csh -parse
-#    ./report_lcov.csh
+#    ./report_lcov.csh -parse
+    ./report_lcov.csh
 #    ./report_codecov.csh
   endif
   cd ${ICE_SANDBOX}

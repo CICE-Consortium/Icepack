@@ -27,9 +27,10 @@ cp -p -r ${lcovhtmldir} ${lcovrepo}/
 cd ${lcovrepo}
 set covp0 = `grep message coverage_icepack.json | cut -d : -f 2 | cut -d \" -f 2 | cut -d % -f 1`
 if ("${useparser}" =~ "true") then
-  set covp  = `grep "**TOTAL**" ${lcovhtmldir}/${lcovhtmldir}.txt | cut -d \% -f 1`
+  set covp = `grep "**TOTAL**" ${lcovhtmldir}/${lcovhtmldir}.txt | cut -d \% -f 1`
 else
-  set covp  = `grep -i headerCovTableEntry ${lcovhtmldir}/index.html | grep % | head -1 | cut -d \> -f 2 | cut -d % -f 1`
+  set covp = `grep -i headerCovTableEntry ${lcovhtmldir}/index.html | grep % | head -1 | cut -d \> -f 2 | cut -d \& -f 1`
+  set covp = "${covp}%"
 endif
 set covpi = `echo $covp | cut -d . -f 1`
 
