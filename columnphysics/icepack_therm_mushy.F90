@@ -12,7 +12,6 @@
   use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
   use icepack_parameters, only: pndmacr
   use icepack_tracers, only: nilyr, nslyr, tr_pond
-  use icepack_parameters, only: pndmacr
   use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, icepack_enthalpy_snow
   use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction
   use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
@@ -192,7 +191,7 @@
     call flushing_velocity(zTin,   phi,   &
                            hin,    hsn,   &
                            hilyr,         &
-                           hpond,  apond,  &
+                           hpond,  apond, &
                            dt,     w)
     if (icepack_warnings_aborted(subname)) return
 
