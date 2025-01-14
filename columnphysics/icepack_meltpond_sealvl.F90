@@ -390,7 +390,16 @@
          apnd = c0
          hpnd = c0
       else
-         pndasp = calc_pndasp(hin)
+         if (trim(pndhyps) == 'sealevel') then
+            pndasp = calc_pndasp(hin)
+         elseif (trim(pndhyps) == 'fixed') then
+            pndasp = pndaspect
+         else
+            call icepack_warnings_add(subname// &
+               " unsupported pndhyps option" )
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            if (icepack_warnings_aborted(subname)) return
+         endif
          apnd = sqrt(vp/pndasp)
          ! preserve pond volume if pond fills all available area
          hpnd = c0
