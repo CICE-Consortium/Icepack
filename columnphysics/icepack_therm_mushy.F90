@@ -3225,6 +3225,7 @@
           else
                hpond = hpond + dhpond
           endif
+          hpond = max(hpond, c0)
 
           !-------------------------------------------------------------          
           ! exponential decay of pond (macro-flaw drainage)
@@ -3252,6 +3253,7 @@
           else
                hpond = hpond + dhpond
           endif
+          hpond = max(hpond, c0)
        endif
     endif
 
