@@ -1,5 +1,5 @@
 ocn_data_type   = 'MDF'
-ocn_data_file   = 'MOSAiC_ocn_MDF_20191006_20200919.nc'
+ocn_data_file   = 'MOSAiC_ocn_drift1_MDF_20191006_20200731.nc'
 ocn_data_format = 'nc'
 ustar_min       = 0.005
 precalc_forc    = .true.
