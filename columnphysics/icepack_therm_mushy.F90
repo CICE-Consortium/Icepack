@@ -11,14 +11,13 @@
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
   use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
   use icepack_parameters, only: pndmacr
-  use icepack_tracers, only: nilyr, nslyr, tr_pond
+  use icepack_tracers, only: nilyr, nslyr, tr_pond, tr_pond_sealvl
   use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, icepack_enthalpy_snow
   use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction
   use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
   use icepack_mushy_physics, only: temperature_snow, temperature_mush_liquid_fraction
   use icepack_mushy_physics, only: liquidus_brine_salinity_mush, liquidus_temperature_mush
   use icepack_mushy_physics, only: conductivity_mush_array, conductivity_snow_array
-  use icepack_tracers, only: tr_pond_lvl, tr_pond_sealvl
   use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
   use icepack_therm_shared, only: ferrmax
   use icepack_meltpond_sealvl, only: pond_hypsometry, pond_height
@@ -3223,7 +3222,7 @@
           if (tr_pond_sealvl) then
                call pond_hypsometry(hpond, apond, dhpond=dhpond, hin=hin)
           else
-               hpond = hpond + dhpond
+               hpond = hpond - w * dt / apond
           endif
           hpond = max(hpond, c0)
 
@@ -3245,13 +3244,19 @@
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                if (icepack_warnings_aborted(subname)) return
           endif
-          ! diagnostic drainag rate
+          ! diagnostic drainage rate
           expnd = -dhpond * apond
           ! update pond depth (and area)
           if (tr_pond_sealvl) then
                call pond_hypsometry(hpond, apond, dhpond=dhpond, hin=hin)
           else
-               hpond = hpond + dhpond
+               if (trim(pndmacr) == 'lambda') then
+                  hpond = hpond - lambda_pond * dt * (hpond + hpond0)
+               else
+                  call icepack_warnings_add(subname//" currently only pondmacr='lambda' supported for not sealvlponds" )
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  if (icepack_warnings_aborted(subname)) return
+               endif
           endif
           hpond = max(hpond, c0)
        endif
