@@ -1936,7 +1936,9 @@
          fhocn    , & ! net heat flux to ocean (W/m^2)
          meltl    , & ! lateral ice melt         (m/step-->cm/day)
          frazil   , & ! frazil ice growth        (m/step-->cm/day)
-         frazil_diag, &  ! frazil ice growth diagnostic (m/step-->cm/day)
+         frazil_diag  ! frazil ice growth diagnostic (m/step-->cm/day)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
          mipnd        ! pond 'drainage' due to ice melting (m / step)
 
       real (kind=dbl_kind), intent(inout), optional :: &
