@@ -692,6 +692,101 @@ same mean pond area in a grid cell after the addition of new ice,
 and solving for the new pond area tracer :math:`a_{pnd}^\prime` given
 the newly formed ice area :math:`\Delta a_i = \Delta a_{lvl}`.
 
+sealvl pond formulation (``tr_pond_sealvl`` = true)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The sealvl meltpond parameterization was developed based on the
+following observations from field studies and high-resolution (<=1 m)
+satellite and airborne imagery:
+
+ - Stage I and II of melt pond formation (initial formation and 
+ drainage to sea level, respectively) last approximately 2 weeks (
+ Eicken et al., 2002; Polashenski et al., 2012, Landy et al., 2015).
+ Therefore melt ponds spend most of their lifespan in Stage III (i.e.,
+ pond-air interfaces are at or near sea level and pond-ice interfaces
+ are below sea level)
+ - On the scale of a CICE grid cell (> 1 km), melt ponds are 
+ simultaneously observed on thicker and thinner ice; and thinner ice
+ does not need to be saturated with ponds for there to be ponds on
+ thicker ice (e.g., Webster et al., 2015; Webster et al., 2022).
+ - For pack ice in the Arctic, Stage III melt pond fraction is rarely
+ observed to be below 15% or above 45% on the scale of a CICE grid cell.
+ (e.g., Fetterer and Untersteiner, 1998; Tschudi et al., 2001;
+ Webster et al., 2015; Wright et al., 2020;)
+ Note, some remote sensing retrievals show higher pond fractions
+ immediately before the ice melts out (e.g., Webster et al., 2015), but
+ it is possible that melted-through ponds (i.e., open water) are being
+ misclassified as ponds.
+ - Ponds are routinely observed on deformed ice (e.g., Eicken et al., 
+ 2004).
+ - When MYI and FYI co-occur, observations do not clearly indicate
+ consistent differences in pond fraction, although there may be 
+ differences in timing (e.g., Webster et al., 2015; Wright et al., 2020).
+ - Ponded ice albedos do not rapidly increase as pond depth decreases
+ below 20 cm (e.g., Light et al., 2022).
+
+The sealvl parameterization assumes that each ice thickness category
+within the grid cell has a subcategory distribution of ice surface
+height relative to sea level (a.k.a. a hypsometric curve). Meltwater
+is assumed to pool at the lowest ice surface height within the category
+and meltwater does not laterally advect between categories on its own
+(it is still handled as a tracer on ice area and hence advects with
+ice thickness changes). The hypsometric curve is assumed to be linear.
+For each category, the slope and intercept of the hypsometric curve are
+parameterized such that when pond surfaces are at sea level and the
+category is snow-free, the pond area fraction is equal to the namelist 
+parameter ``apond_sl``.
+
+*Hypsometry and Pond Depth-Area Relationship.* Because sea ice is floating, the intercept of the hypsometric curve is
+determined by buoyancy. In this construction, the slope of the
+hypsometric curve is equal to double the pond aspect ratio (``pndasp``),
+which is defined as:
+
+pndasp = hpnd / apond
+
+where ``hpnd`` is the mean depth of the ponded area of the category and
+``apond`` is the pond area fraction of the category. Pond meltwater
+volume is apportioned into depth and area according to ``pndasp``, with
+the exception that if the pond area completely fills the category 
+``hpnd`` may exceed ``apond*pndasp`` (``hpnd`` is still subject to a 
+freeboard constraint, see below). Unlike in the level parameterization,
+this use of ``pndasp`` means that when drainage reduces pond volume,
+both pond area and depth decrease (in the level parameterization just
+depth decreases). In the sealvl parameterization, pond aspect is 
+calculated by: 
+
+pndasp = hin*(rhow - rhosi) / (rhofresh*apnd_sl**2 - 2*rhow*apnd_sl + rhow)
+
+where hin is the ice thickness of the category. rhow, rhosi, 
+and rhofresh are the densities of ocean water, sea ice, and pond water
+respectively. Note that for simplicity we use a constant sea ice
+density instead of using the mushy parameterization.
+
+The weight of the snow is omitted from the calculation of ``pndasp``.
+The impact of this omission is that pond area and depth will tend to be
+slightly higher while the category still has snow on it (i.e., in Stage
+I). Since pond fractions are typically highest in Stage I (e.g.,
+Eicken et al., 2002; Polashenski et al., 2012), this was seen as a
+desirable feature, although future work should explicitly parameterize
+how the hypsometry and drainage evolves at different stages of pond
+evolution.
+
+The parameterized hypsometric curve is also used to compute the height
+of the pond surfaces above the mean ice draft (``hpsurf``), which is
+then used in the calculation of hydraulic head for the drainage
+parameterization (below). ``hpsurf`` is calculated by:
+
+hpsurf = hin - pndasp + c2*pndasp*apond
+
+Unlike in the level pond scheme, ponds are not limited to the level ice
+fraction. Currently the parameterization of the hypsometric curve does
+not account for the impacts of deformed ice due to limited data. Future
+research should target this limitation.
+
+*Drainage.*
+
+
+
 .. _sfc-forcing:
 
 Thermodynamic surface forcing balance
