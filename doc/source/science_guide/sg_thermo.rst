@@ -116,7 +116,7 @@ be added to the melt pond liquid volume:
    \Delta V_{melt} = {r\over\rho_w} \left({\rho_{i}}\Delta h_{i} + {\rho_{s}}\Delta h_{s} + F_{rain}{\Delta t}\right) a_i,
    :label: meltvol
 
-For the topo pon parameterization and the level pond parameterization
+For the topo pond parameterization and the level pond parameterization
 
 .. math:: 
    r = r_{min} + \left(r_{max} - r_{min}\right) a_i
@@ -805,60 +805,53 @@ level or topo schemes, the sealvl scheme does not use the 'runoff'
 (``rfrac``) parameterization. Physically, runoff is the same as drainage
 through flaws in the ice. So it is handled by the macro-scale drainage.
 
-*Percolation Drainage.*
+* *Percolation Drainage.* Percolation drainage implemented in the mushy 
+  thermodynamics scheme. The harmonic mean of the permeability of the 
+  ice column is estimated, as is the hydraulic head (the height of the 
+  pond-air interface above sea level, see above). Then the drainage rate
+  is estimated assuming a Darcy flow. Percolation drainage in the sealvl
+  scheme is identical to the level scheme except for the calculation of 
+  the hydraulic head.
 
-Percolation drainage implemented in the mushy thermodynamics scheme.
-The harmonic mean of the permeability of the ice column is estimated,
-as is the hydraulic head (the height of the pond-air interface above
-sea level, see above). Then the drainage rate is estimated assuming a 
-Darcy flow. Percolation drainage in the sealvl scheme is identical to 
-the level scheme except for the calculation of the hydraulic head.
+* *Macro-Flaw Drainage.* Melt water is transported laterally and drains 
+  through macro-flaws: cracks, floe edges, enlarged brine channels, 
+  seal holes, etc... (:cite:`Eicken04`, :cite:`Polashenski12`). In the 
+  real system, the efficiency of this process depends on the 
+  connectivity of lateral flow networks and the frequency of 
+  macro-flaws, both of which evolve with ice conditions. In the sealvl 
+  scheme, macro-flaw drainage is parameterized as an exponential decay 
+  of pond height relative to sea level (a.k.a., the hydraulic head). So 
+  macro-flaw drainage cannot remove pond water that sits below sea 
+  level. The level pond scheme is identical except that the exponential 
+  decay is applied to the entire pond height. The decay constant is 
+  controlled by the ``tscale_pnd_drain`` namelist parameter. Currently, 
+  this decay constant is uniform in time and space, but future work 
+  should consider how changing ice conditions impact macro-flaw 
+  drainage.
 
-*Macro-Flaw Drainage.*
+* *Ice Freeboard Constraint.* For free-floating ice, pond water cannot 
+  depress the mean ice surface below sea level when there are efficient 
+  water transport pathways (i.e., Stage III melt ponds). The buoyancy 
+  force from the ice drives the redistribution of water from above the 
+  ice to below. Below-sea level pond bottoms are sustained by the weight
+  of adjacent ice and snow above sea level. The sealvl scheme assumes 
+  that each ice category is rigid and mechanically uncoupled from the 
+  other categories. If necessary, pond water is drained such that the 
+  mean ice surface of the category is at sea level. I.e., the mean 
+  category ice freeboard is constrained to be greater than or equal to
+  zero. The level pond scheme has the same constraint, except in the 
+  level pond scheme the ponded area of the category is assumed to be 
+  mechanically uncoupled from the surrounding ice. So in the level pond
+  scheme, the freeboard constrains pond depth to be no greater than 10%
+  of the category ice thickness.
 
-Melt water is transported laterally and drains through macro-flaws:
-cracks, floe edges, enlarged brine channels, seal holes, etc... 
-(:cite:`Eicken04`, :cite:`Polashenski12`). In the real system,
-the efficiency of this process depends on the connectivity of lateral
-flow networks and the frequency of macro-flaws, both of which evolve
-with ice conditions. In the sealvl scheme, macro-flaw drainage is 
-parameterized as an exponential decay of pond height relative to
-sea level (a.k.a., the hydraulic head). So macro-flaw drainage cannot
-remove pond water that sits below sea level. The level pond scheme is
-identical except that the exponential decay is applied to the entire
-pond height. The decay constant is controlled by the 
-``tscale_pnd_drain`` namelist parameter. Currently, this decay constant
-is uniform in time and space, but future work should consider how 
-changing ice conditions impact macro-flaw drainage.
+* *Drainage During Ice Deformation.* In all of the pond schemes, it is 
+  assumed that all pond water drains from ice undergoing deformation.
 
-*Ice Freeboard Constraint.*
-
-For free-floating ice, pond water cannot depress the mean ice surface
-below sea level when there are efficient water transport pathways. 
-The buoyancy force from the ice drives the redistribution of water from 
-above the ice to below. Below-sea level pond bottoms are sustained by 
-the weight of adjacent ice and snow above sea level. The sealvl scheme
-assumes that each ice category is rigid and mechanically uncoupled
-from the other categories. If necessary, pond water is drained such that
-the mean ice surface of the category is at sea level. I.e., the mean
-category ice freeboard is constrained to be greater than or equal to
-zero. The level pond scheme has the same constraint, except in the level
-pond scheme the ponded area of the category is assumed to be 
-mechanically uncoupled from the surrounding ice. So in the level pond
-scheme, the freeboard constrains pond depth to be no greater than 10%
-of the category ice thickness.
-
-*Drainage During Ice Deformation.*
-
-In all of the pond schemes, it is assumed that all pond water drains
-from ice undergoing deformation.
-
-*Pond Lid Refreezing.*
-
-Pond lid refreezing and melting in the sealvl scheme is handled in the
-same manner as in the level scheme (above). The only difference is that
-in the sealvl scheme the impact of the removed/added pond water are
-distributed according to hypsometry (above).
+* *Pond Lid Refreezing.* Pond lid refreezing and melting in the sealvl 
+  scheme is handled in the same manner as in the level scheme (above). 
+  The only difference is that in the sealvl scheme the impact of the 
+  removed/added pond water are distributed according to hypsometry.
 
 *Pond Depth and Optical Property Relationship.*
 
