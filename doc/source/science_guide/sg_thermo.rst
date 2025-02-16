@@ -736,10 +736,11 @@ ice thickness changes). The hypsometric curve is assumed to be linear.
 For each category, the slope and intercept of the hypsometric curve are
 parameterized such that when pond surfaces are at sea level and the
 category is snow-free, the pond area fraction is equal to the namelist 
-parameter :math:`a_{p,sl}`. Unless otherwise specified, the sealvl
-parameterization uses the same parameterizations as the level pond
-scheme (e.g., the same approach is used to set the effective surface
-fractions for the Delta-Eddington shortwave calculations).
+parameter ``apnd_sl`` (notated as :math:`a_{p,sl}` in :eq:`pndasp`). 
+Unless otherwise specified, the sealvl parameterization uses the same 
+parameterizations as the level pond scheme (e.g., the same approach is 
+used to set the effective surface fractions for the Delta-Eddington 
+shortwave calculations).
 
 *Hypsometry and Pond Depth-Area Relationship.* 
 
@@ -764,6 +765,7 @@ sealvl parameterization, pond aspect is calculated by:
 
 .. math::
    pndasp = h_{in}*(\rho_w - \rho_{si}) / (\rho_{fresh} * (a_{p,sl})^2 - 2 \rho_w * a_{p,sl} + \rho_w)
+   :label: pndasp
 
 where :math:`h_{in}` is the ice thickness of the category. 
 :math:`\rho_w`, :math:`\rho_{si}`, and :math:`\rho_{fresh}` are the 
