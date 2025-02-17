@@ -1127,10 +1127,33 @@
          call load_var_MDF("vas", vatm_data, ncid, model_time)
          call load_var_MDF("rlds", flw_data, ncid, model_time)
          call load_var_MDF("rsds", fsw_data, ncid, model_time)
-         call load_var_MDF("prsn", fsnow_data, ncid, model_time)
 
-         ! Currently no rainfall data, to do
-         frain_data(:) = c0
+         ! Precipitation data is optional
+         ! Check whether snowfall rate is in the dataset
+         status = nf90_inq_varid(ncid, "prsn", varid)
+         if (status /= nf90_noerr) then
+            write(nu_diag,*) subname
+            write(nu_diag,*) 'WARNING: no snowfall rate in forcing.'// &
+               ' Icepack will assume snowfall rate is zero.'
+            fsnow_data(:) = c0
+         else
+            call load_var_MDF("prsn", fsnow_data, ncid, model_time)
+         endif
+         ! Check whether total precipitation rate is in the dataset
+         status = nf90_inq_varid(ncid, "pr", varid)
+         if (status /= nf90_noerr) then
+            write(nu_diag,*) subname
+            write(nu_diag,*) 'WARNING: no precipitation rate in '// &
+               'forcing. Icepack will assume rainfall rate is zero.'
+            frain_data(:) = c0
+         else
+            call load_var_MDF("pr", frain_data, ncid, model_time)
+         endif
+         ! rainfall is total precipitation minus snowfall
+         ! subject to the constraint that rainfall is non-negative
+         do nt = 1, ntime
+            frain_data(nt) = max(frain_data(nt) - fsnow_data(nt), c0)
+         enddo
 
 #else
          call icedrv_system_abort(string=subname//&
