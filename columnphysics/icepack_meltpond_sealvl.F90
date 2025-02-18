@@ -221,12 +221,14 @@
             !-----------------------------------------------------------
             call pond_hypsometry(hpnd, apnd, dvpond=dvpondn, hin=hi)
 
+            dhpond = c0
             ! limit pond depth to maintain nonnegative freeboard
             if (trim(pndfrbd) == 'floor') then
                dhpond = ((rhow-rhoi)*hi - rhos*hs)/rhofresh - hpnd
             elseif (trim(pndfrbd) == 'category') then
-               dhpond = ((rhow-rhoi)*hi-rhos*hs)/(rhofresh*apnd) &
-                  - hpnd
+               if (apnd .gt. puny) &
+                  dhpond = ((rhow-rhoi)*hi-rhos*hs)/(rhofresh*apnd) &
+                         - hpnd
             else
                call icepack_warnings_add(subname// &
                   " invalid pndfrbd option" )
@@ -239,7 +241,7 @@
             
             ! clean up empty ponds. Note, this implies that if ponds 
             ! fully drain or freeze, the lid ice also ceases to exist
-            if (hpnd <= c0 .or. apnd <= c0) then
+            if (hpnd <= puny .or. apnd <= puny) then
                apnd = c0
                hpnd = c0
                hlid = c0

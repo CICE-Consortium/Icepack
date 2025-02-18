@@ -2531,7 +2531,7 @@
                enddo       ! k
             endif
             ! adjust pond iops if pond depth within specified range
-            if( hpmin <= hp .and. hp <= hp0 ) then
+            if( hpmin <= hp .and. hp < hp0 ) then
                k = kii
                sig_i  = ki_ssl  (ns) * wi_ssl  (ns)
                sig_p  = ki_p_ssl(ns) * wi_p_ssl(ns)
