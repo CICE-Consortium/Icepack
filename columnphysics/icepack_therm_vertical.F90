@@ -2732,8 +2732,8 @@
                ! hadgem routine sets fluxes to default values in ice-only mode
                call set_sfcflux(aicen      (n),                 &
                                 flatn_f    (n), fsensn_f   (n), &
-                                fcondtopn_f(n),                 &
                                 fsurfn_f   (n),                 &
+                                fcondtopn_f(n),                 &
                                 flatn      (n), fsensn     (n), &
                                 fsurfn     (n),                 &
                                 fcondtopn  (n))
