@@ -2475,7 +2475,14 @@
          l_fswthrun_idf, & ! nir dif SW local n ice to ocean  (W/m^2)
          l_dsnow,        & ! local snow change
          l_dsnown,       & ! local snow change category
-         l_meltsliq      ! mass of snow melt local           (kg/m^2)
+         l_meltsliq        ! mass of snow melt local           (kg/m^2)
+
+      real (kind=dbl_kind) :: &
+         l_flpndn      , & ! category pond flushing rate          (m/step)
+         l_expndn      , & ! exponential pond drainage rate       (m/step)
+         l_frpndn      , & ! pond drainage rate due to freeboard  (m/step)
+         l_rfpndn      , & ! runoff rate due to rfrac (m/step)
+         l_ilpndn          ! category pond loss/gain due to ice lid (m/step)
 
       real (kind=dbl_kind) :: &
          pond            ! water retained in ponds                (m)
@@ -2640,12 +2647,18 @@
          meltbn (n) = c0
          congeln(n) = c0
          snoicen(n) = c0
-         if (tr_pond) then
-            flpndn (n) = c0
-            expndn (n) = c0
-            frpndn (n) = c0
-            rfpndn (n) = c0
-            ilpndn (n) = c0
+         l_flpndn = c0
+         l_expndn = c0
+         l_frpndn = c0
+         l_rfpndn = c0
+         l_ilpndn = c0
+         if (tr_pond .and. present(flpndn) .and. present(expndn) .and. &
+             present(frpndn) .and. present(rfpndn) .and. present(ilpndn)) then
+            l_flpndn = flpndn (n)
+            l_expndn = expndn (n) 
+            l_frpndn = frpndn (n)
+            l_rfpndn = rfpndn (n)
+            l_ilpndn = ilpndn (n)
          endif
          l_dsnown   = c0
 
@@ -2775,7 +2788,7 @@
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,     &
                                  yday=yday,           dsnow=l_dsnown         , &
                                  prescribed_ice=prescribed_ice,                &
-                                 flpnd=flpndn    (n), expnd=expndn        (n))
+                                 flpnd=l_flpndn     , expnd=l_expndn )
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
@@ -2889,10 +2902,10 @@
                                        hpnd=hpnd    (n), &
                                        ipnd=ipnd    (n), &
                                        meltsliqn=l_meltsliqn(n), &
-                                       frpndn=frpndn(n), &
-                                       rfpndn=rfpndn(n), &
-                                       ilpndn=ilpndn(n), &
-                                       flpndn=flpndn(n))
+                                       frpndn=l_frpndn, &
+                                       rfpndn=l_rfpndn, &
+                                       ilpndn=l_ilpndn, &
+                                       flpndn=l_flpndn)
                if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_pond_sealvl) then
@@ -2914,9 +2927,9 @@
                                        hpnd=hpnd    (n), &
                                        ipnd=ipnd    (n), &
                                        meltsliqn=l_meltsliqn(n), &
-                                       frpndn=frpndn(n), &
-                                       ilpndn=ilpndn(n), &
-                                       flpndn=flpndn(n))
+                                       frpndn=l_frpndn, &
+                                       ilpndn=l_ilpndn, &
+                                       flpndn=l_flpndn)
                if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_pond_topo) then
@@ -3012,11 +3025,11 @@
                                fiso_ocnn=fiso_ocnn,                 &
                                fiso_evap=fiso_evap,                 &
                                fiso_evapn=fiso_evapn,               &
-                               flpnd=flpnd,       flpndn=flpndn(n), &
-                               expnd=expnd,       expndn=expndn(n), &
-                               frpnd=frpnd,       frpndn=frpndn(n), &
-                               rfpnd=rfpnd,       rfpndn=rfpndn(n), &
-                               ilpnd=ilpnd,       ilpndn=ilpndn(n))
+                               flpnd=flpnd,       flpndn=l_flpndn, &
+                               expnd=expnd,       expndn=l_expndn, &
+                               frpnd=frpnd,       frpndn=l_frpndn, &
+                               rfpnd=rfpnd,       rfpndn=l_rfpndn, &
+                               ilpnd=ilpnd,       ilpndn=l_ilpndn)
 
             if (icepack_warnings_aborted(subname)) return
 

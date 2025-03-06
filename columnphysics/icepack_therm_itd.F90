@@ -133,7 +133,9 @@
       real (kind=dbl_kind), intent(inout) :: &
          aice  , & ! concentration of ice
          aice0 , & ! concentration of open water
-         fpond , & ! fresh water flux to ponds (kg/m^2/s)
+         fpond     ! fresh water flux to ponds (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
          mipnd     ! pond 'drainage' due to ice melting (m / step)
 
       ! local variables
@@ -465,7 +467,7 @@
                   if (tr_pond_topo) &
                      fpond = fpond - (da0 * trcrn(nt_apnd,1) &
                                           * trcrn(nt_hpnd,1))
-                  if (tr_pond) then
+                  if (tr_pond .and. present(mipnd)) then
                      if (tr_pond_lvl) then
                         mipnd = mipnd + da0 * trcrn(nt_apnd,1)  & 
                                  * trcrn(nt_hpnd,1) * trcrn(nt_alvl,1)
@@ -912,7 +914,9 @@
          fresh     , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt     , & ! salt flux to ocean (kg/m^2/s)
          fhocn     , & ! net heat flux to ocean (W/m^2)
-         meltl     , & ! lateral ice melt         (m/step-->cm/day)
+         meltl         ! lateral ice melt         (m/step-->cm/day)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
          mipnd         ! pond 'drainage' due to ice melting (m / step)
 
       real (kind=dbl_kind), dimension(nbtrcr), intent(inout) :: &
@@ -1025,7 +1029,7 @@
             fpond  = fpond - dfpond
          endif
 
-            if (tr_pond) then
+            if (tr_pond .and. present(mipnd)) then
                if (tr_pond_lvl) then
                   mipnd = mipnd + aicen(n)*trcrn(nt_apnd,n)*trcrn(nt_hpnd,n) &
                            *rsiden(n)*trcrn(nt_alvl,n)
