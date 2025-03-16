@@ -43,6 +43,8 @@
                                fhocnn,   fswthrun,   &
                                fswthrun_vdr, fswthrun_vdf,&
                                fswthrun_idr, fswthrun_idf,&
+                               fswthrun_uvrdr, fswthrun_uvrdf,&
+                               fswthrun_pardr, fswthrun_pardf,&
                                strairxT, strairyT,   &
                                Cdn_atm_ratio,        &
                                fsurf,    fcondtop,   &
@@ -56,6 +58,8 @@
                                fhocn,    fswthru,    &
                                fswthru_vdr, fswthru_vdf,&
                                fswthru_idr, fswthru_idf,&
+                               fswthru_uvrdr, fswthru_uvrdf,&
+                               fswthru_pardr, fswthru_pardf,&
                                melttn, meltsn, meltbn, congeln, snoicen, &
                                meltt,  melts,        &
                                meltb,  dsnow, dsnown,&
@@ -102,6 +106,10 @@
           fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
           fswthrun_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
+          fswthrun_uvrdr, & ! vis uvr dir sw radiation through ice bot (GEOS) (W/m**2)
+          fswthrun_uvrdf, & ! vis uvr dif sw radiation through ice bot (GEOS) (W/m**2)
+          fswthrun_pardr, & ! vis par dir sw radiation through ice bot (GEOS) (W/m**2)
+          fswthrun_pardf, & ! vis par dif sw radiation through ice bot (GEOS) (W/m**2)
           Urefn       ! air speed reference level       (m/s)
 
       ! cumulative fluxes
@@ -135,6 +143,10 @@
           fswthru_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthru_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
           fswthru_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
+          fswthru_uvrdr, & ! vis uvr dir sw radiation through ice bot (GEOS) (W/m**2)
+          fswthru_uvrdf, & ! vis uvr dif sw radiation through ice bot (GEOS) (W/m**2)
+          fswthru_pardr, & ! vis par dir sw radiation through ice bot (GEOS) (W/m**2)
+          fswthru_pardf, & ! vis par dif sw radiation through ice bot (GEOS) (W/m**2)
           dsnow,    & ! change in snow depth            (m)
           Uref        ! air speed reference level       (m/s)
 
@@ -227,6 +239,15 @@
          fswthru_idr = fswthru_idr + fswthrun_idr  * aicen
       if (present(fswthrun_idf) .and. present(fswthru_idf)) &
          fswthru_idf = fswthru_idf + fswthrun_idf  * aicen
+
+      if (present(fswthrun_uvrdr) .and. present(fswthru_uvrdr)) &
+         fswthru_uvrdr   = fswthru_uvrdr   + fswthrun_uvrdr  * aicen
+      if (present(fswthrun_uvrdf) .and. present(fswthru_uvrdf)) &
+         fswthru_uvrdf   = fswthru_uvrdf   + fswthrun_uvrdf  * aicen
+      if (present(fswthrun_pardr) .and. present(fswthru_pardr)) &
+         fswthru_pardr   = fswthru_pardr   + fswthrun_pardr  * aicen
+      if (present(fswthrun_pardf) .and. present(fswthru_pardf)) &
+         fswthru_pardf   = fswthru_pardf   + fswthrun_pardf  * aicen
 
       ! ice/snow thickness
 

@@ -88,7 +88,16 @@ stable and accurate procedure would be to compute the temperature
 profiles for both the atmosphere and ice, together with the surface	
 fluxes, in a single implicit calculation. This was judged impractical,	
 however, given that the atmosphere and sea ice models generally exist on	
-different grids and/or processor sets.
+different grids and/or processor sets. In NASA GMAO GEOS-ESM coupled model, 
+a semi-implicit thermodynamic coupling scheme is introduced. Similar to the explicit
+case, the fields ``fsurfn`` are provided by the coupler, along with their derivatives
+with respect to surface temperature ``dfsurfn_dTs``. In this case, ``calc_Tsfc``
+is still set to true, allowing ice surface and internal temperature to be updated
+implicitly. The resultant surface temperature change is passed back to the
+atmosphere model via coupler to complete the full update of its temperature profiles.
+This middle-ground approach, enabled by ``enforcing_heatflux=true``, does not sacrifice accuracy because it does not need limiting effective conductivity as in the explicit case.
+
+      
 
 .. _atmo:
 

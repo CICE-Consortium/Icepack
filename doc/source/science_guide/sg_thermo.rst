@@ -1802,7 +1802,12 @@ ice), and :math:`L_v = 2.501 \times 10^6 \ \mathrm{J/kg}` is the latent
 heat of vaporization of liquid water at :math:`0^{\circ}C`. Note that :math:`\rho L_v` is
 nearly an order of magnitude larger than typical values of :math:`q`.
 For positive latent heat fluxes, the deposited snow or ice is assumed to
-have the same enthalpy as the existing surface layer.
+have the same enthalpy as the existing surface layer. Some climate models (for 
+example, GEOS-ESM) compute mass flux (sublimation or deposition) in the atmsophere 
+model which assumes vapor deposits or sublimates at 0 degC. In this case, mass
+conservation is enforced and the resulting discrepancy in energy is resolved by
+another term ``sblx`` and passed to ocean. This option is only on when 
+``enforcing_massflux = true``.      
 
 After growth and melting, the various ice layers no longer have equal
 thicknesses. We therefore adjust the layer interfaces, conserving
