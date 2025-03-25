@@ -1794,11 +1794,13 @@
          fswint, & ! SW interior absorption (below surface, above ocean,W m-2)
          fswthru   ! SW through snow/bare ice/ponded ice into ocean (W m-2)
 
-      real (kind=dbl_kind), intent(out) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          fswthru_vdr, & ! vis dir SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthru_vdf, & ! vis dif SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthru_idr, & ! nir dir SW through snow/bare ice/ponded ice into ocean (W m-2)
-         fswthru_idf, & ! nir dif SW through snow/bare ice/ponded ice into ocean (W m-2)
+         fswthru_idf    ! nir dif SW through snow/bare ice/ponded ice into ocean (W m-2)
+
+      real (kind=dbl_kind), intent(inout) :: &
          fswthru_uvrdr,&! vis uvr dir sw radiation through ice bot (GEOS) (W/m**2)
          fswthru_uvrdf,&! vis uvr dif sw radiation through ice bot (GEOS) (W/m**2)
          fswthru_pardr,&! vis par dir sw radiation through ice bot (GEOS) (W/m**2)
