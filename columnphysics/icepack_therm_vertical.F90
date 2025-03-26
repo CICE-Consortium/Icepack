@@ -2612,12 +2612,6 @@
       massicen(:,:) = c0
       massliqn(:,:) = c0
 
-      if(geos_heatflux) then
-         fswthru_uvrdr = c0
-         fswthru_uvrdf = c0
-         fswthru_pardr = c0
-         fswthru_pardf = c0
-      endif
 
       !-----------------------------------------------------------------
       ! Initialize pond area fractions
