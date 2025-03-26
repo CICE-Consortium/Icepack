@@ -155,6 +155,8 @@
          calc_Tsfc     = .true. ,&! if true, calculate surface temperature
                                   ! if false, Tsfc is computed elsewhere and
                                   ! atmos-ice fluxes are provided to CICE
+         geos_heatflux = .false.,&! geos heatflux option
+         geos_massflux = .false.,&! geos massflux option
          update_ocn_f = .false. ,&! include fresh water and salt fluxes for frazil
          solve_zsal   = .false. ,&! if true, update salinity profile from solve_S_dt
          modal_aero   = .false. ,&! if true, use modal aerosal optical properties
@@ -562,7 +564,7 @@
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
          update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
-         cpl_frazil_in, &
+         cpl_frazil_in, geos_heatflux_in, geos_massflux_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
          phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
@@ -697,6 +699,9 @@
          calc_Tsfc_in    , &! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
+         geos_heatflux_in, &! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat 
+         geos_massflux_in, &! compute mass/enthalpy correction when evaporation/sublimation
+                            ! computed outside at 0C
          update_ocn_f_in    ! include fresh water and salt fluxes for frazil
 
       real (kind=dbl_kind), intent(in), optional :: &
@@ -1166,6 +1171,8 @@
       if (present(conduct_in)           ) conduct          = conduct_in
       if (present(fbot_xfer_type_in)    ) fbot_xfer_type   = fbot_xfer_type_in
       if (present(calc_Tsfc_in)         ) calc_Tsfc        = calc_Tsfc_in
+      if (present(geos_heatflux_in)     ) geos_heatflux    = geos_heatflux_in
+      if (present(geos_massflux_in)     ) geos_massflux    = geos_massflux_in
       if (present(cpl_frazil_in)        ) cpl_frazil       = cpl_frazil_in
       if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
       if (present(dts_b_in)             ) dts_b            = dts_b_in
@@ -1574,8 +1581,8 @@
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
-         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
-         albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
+         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, geos_heatflux_out, &
+         albedo_type_out, albicev_out, albicei_out, albsnowv_out, geos_massflux_out, &
          albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
          rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, R_gC2molC_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
@@ -1715,6 +1722,9 @@
          calc_Tsfc_out    ,&! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
+         geos_heatflux_out,&! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat 
+         geos_massflux_out,&! compute mass/enthalpy correction when evaporation/sublimation
+                            ! computed outside at 0C
          update_ocn_f_out   ! include fresh water and salt fluxes for frazil
 
       real (kind=dbl_kind), intent(out), optional :: &
@@ -2218,6 +2228,8 @@
       if (present(conduct_out)           ) conduct_out      = conduct
       if (present(fbot_xfer_type_out)    ) fbot_xfer_type_out = fbot_xfer_type
       if (present(calc_Tsfc_out)         ) calc_Tsfc_out    = calc_Tsfc
+      if (present(geos_heatflux_out)     ) geos_heatflux_out= geos_heatflux
+      if (present(geos_massflux_out)     ) geos_massflux_out= geos_massflux
       if (present(cpl_frazil_out)        ) cpl_frazil_out   = cpl_frazil
       if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
       if (present(dts_b_out)             ) dts_b_out        = dts_b
@@ -2528,6 +2540,8 @@
         write(iounit,*) "  conduct    = ", trim(conduct)
         write(iounit,*) "  fbot_xfer_type = ", trim(fbot_xfer_type)
         write(iounit,*) "  calc_Tsfc  = ", calc_Tsfc
+        write(iounit,*) "  geos_heatflux = ", geos_heatflux
+        write(iounit,*) "  geos_massflux = ", geos_massflux
         write(iounit,*) "  cpl_frazil = ", cpl_frazil
         write(iounit,*) "  update_ocn_f = ", update_ocn_f
         write(iounit,*) "  dts_b      = ", dts_b

@@ -137,6 +137,8 @@
     atm_data_format = 'bin'
     ocn_data_format = 'bin'
     bgc_data_format = 'bin'
+    geos_heatflux   = .false.
+    geos_massflux   = .false.
 /
 
 &dynamics_nml

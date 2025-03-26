@@ -357,6 +357,8 @@ forcing_nml
    "", "``constant``", "constant ocean heat transfer coefficient", ""
    "``formdrag``", "logical", "calculate form drag", "``.false.``"
    "``fyear_init``", "integer", "first year of atmospheric forcing data", "1998"
+   "``geos_heatflux``", "logical", "GEOS heatflux coupling calculation based on d(hf)/dTs", "``.false.``"
+   "``geos_massflux``", "logical", "GEOS mass/enthalpy coupling adjustment", "``.false.``"
    "``highfreq``", "logical", "high-frequency atmo coupling", "``.false.``"
    "``lateral_flux_type``", "``uniform_ice``", "flux ice with identical properties into the cell when closing (Icepack only)", ""
    "", "``none``", "advect open water into the cell when closing (Icepack only)", ""

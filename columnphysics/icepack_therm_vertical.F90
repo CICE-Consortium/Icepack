@@ -30,7 +30,7 @@
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
-      use icepack_parameters, only: saltflux_option, congel_freeze
+      use icepack_parameters, only: saltflux_option, congel_freeze, geos_heatflux, geos_massflux
       use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_tracers, only: ncat, nilyr, nslyr, nfsd
@@ -41,6 +41,8 @@
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
       use icepack_therm_shared, only: adjust_enthalpy
+      use icepack_therm_shared, only: fsurf_cpl, flat_cpl, dfsurfdTs_cpl, dflatdTs_cpl
+      use icepack_therm_shared, only: fsurf_cpl0, flat_cpl0
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_mushy,  only: temperature_changes_salinity
 
@@ -342,7 +344,7 @@
                                      Tsf,       Tbot,      &
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
-                                     fcondtopn, fcondbotn,  &
+                                     fcondtopn, fcondbotn, &
                                      einit                 )
             if (icepack_warnings_aborted(subname)) return
 
@@ -983,6 +985,7 @@
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'zTin=',zTin(k)
                call icepack_warnings_add(warnstr)
+               !tice_high = .false.  ! GEOS, do we need this, what about tice_low and tsno??
             else
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTin > Tmax, layer" )
@@ -1154,7 +1157,8 @@
          wk1         , & ! temporary variable
          zqsnew      , & ! enthalpy of new snow (J m-3)
          hstot       , & ! snow thickness including new snow (m)
-         Tmlts           ! melting temperature (deg C)
+         Tmlts       , & ! melting temperature (deg C)
+         sblx            ! flux error due to cond/sub inconsistency
 
       real (kind=dbl_kind), dimension (nilyr+1) :: &
          zi1         , & ! depth of ice layer boundaries (m)
@@ -1191,6 +1195,7 @@
       dhi = c0
       dhs = c0
       hsn_new  = c0
+      sblx = c0
 
       do k = 1, nilyr
          dzi(k) = hilyr
@@ -1275,21 +1280,53 @@
       evapin = c0          ! initialize
 
       if (hsn > puny) then    ! add snow with enthalpy zqsn(1)
-         dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
 
-         ! assume all condensation becomes ice (no liquid)
-         massice(1) = massice(1) + dhs*rhos
+         if (geos_massflux) then  ! compute mass/enthalpy at 0C
+            dhs = econ / (-rhos*Lfresh - rhos*Lvap) ! econ < 0, dhs > 0
+
+            ! assume all condensation becomes ice (no liquid)
+            massice(1) = massice(1) + dhs*rhos
+
+            hstot = dzs(1) + dhs
+            ! adjust top layer snow enthalpy b.c. we added them at 0C
+            zqsnew = -rhos*Lfresh
+            if (hstot > puny) then
+               zqsn(1) =  (dzs(1) * zqsn(1) &
+                            + dhs * zqsnew) / hstot
+               if (ktherm < 2) then
+                  ! avoid roundoff errors
+                  zqsn(1) = min(zqsn(1), -rhos*Lfresh)
+               endif
+            endif
+         else
+            dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
+
+            ! assume all condensation becomes ice (no liquid)
+            massice(1) = massice(1) + dhs*rhos
+         endif
 
          dzs(1) = dzs(1) + dhs
          evapn = evapn + dhs*rhos
          evapsn = evapsn + dhs*rhos
+
       else                        ! add ice with enthalpy zqin(1)
-         dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
+
+         if (geos_massflux) then  ! compute mass/enthalpy at 0C
+            dhi = econ / (-rhoi*Lfresh - rhoi*Lvap) ! econ < 0, dhi > 0
+            ! adjust top layer ice enthalpy b.c. we added them at 0C
+            !zqsnew = -rhoi*Lfresh
+            !hqtot = dzi(1)*qm(1) + dhi*zqsnew
+            sblx = sblx + (-dhi)*(qm(1) - (-rhoi*Lfresh)) ! sblx can be v+- (J m-2)
+         else
+            dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
+         endif
+
          dzi(1) = dzi(1) + dhi
          evapn = evapn + dhi*rhoi
          evapin = evapin + dhi*rhoi
          ! enthalpy of melt water
          emlt_atm = emlt_atm - qmlt(1) * dhi
+
       endif
 
       !--------------------------------------------------------------
@@ -1389,8 +1426,14 @@
          ! Sublimation of snow (evapn < 0)
          !--------------------------------------------------------------
 
-         qsub = zqsn(k) - rhos*Lvap ! qsub < 0
-         dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
+         if (geos_massflux) then  ! compute mass/enthalpy and sblx correction
+            qsub = -rhos*Lfresh - rhos*Lvap ! qsub < 0
+            dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
+            sblx = sblx + (-dhs)*min(zqsn(k) - (-rhos*Lfresh), c0) ! sblx < 0 (J m-2)
+         else
+            qsub = zqsn(k) - rhos*Lvap ! qsub < 0
+            dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
+         endif
 
          mass  = massice(k) + massliq(k)
          massi = c0
@@ -1776,6 +1819,9 @@
       !  sublimated/condensed ice.
       !-----------------------------------------------------------------
 
+      if (geos_massflux) then  ! update fhocnn based on sblx correction
+         fhocnn = fhocnn + sblx/dt
+      endif
       efinal = -evapn*Lvap
       evapn =  evapn/dt
       evapsn =  evapsn/dt
@@ -2166,6 +2212,10 @@
                                     fswthrun_vdf,               &
                                     fswthrun_idr,               &
                                     fswthrun_idf,               &
+                                    fswthrun_uvrdr,             &
+                                    fswthrun_uvrdf,             &
+                                    fswthrun_pardr,             &
+                                    fswthrun_pardf,             &
                                     fswabs      ,               &
                                     flwout      ,               &
                                     Sswabsn     , Iswabsn     , &
@@ -2181,8 +2231,13 @@
                                     fswthru_vdf ,               &
                                     fswthru_idr ,               &
                                     fswthru_idf ,               &
+                                    fswthru_uvrdr ,             &
+                                    fswthru_uvrdf ,             &
+                                    fswthru_pardr ,             &
+                                    fswthru_pardf ,             &
                                     flatn_f     , fsensn_f    , &
                                     fsurfn_f    , fcondtopn_f , &
+                                    dfsurfdT    , dflatdT     , &
                                     faero_atm   , faero_ocn   , &
                                     fiso_atm    , fiso_ocn    , &
                                     fiso_evap   , &
@@ -2296,6 +2351,10 @@
          fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
+         fswthru_uvrdr,& ! vis uvr dir shortwave penetrating to ocean (W/m^2)
+         fswthru_uvrdf,& ! vis uvr dif shortwave penetrating to ocean (W/m^2)
+         fswthru_pardr,& ! vis par dir shortwave penetrating to ocean (W/m^2)
+         fswthru_pardf,& ! vis par dif shortwave penetrating to ocean (W/m^2)
          dsnow       , & ! change in snow depth     (m/step-->cm/day)
          fsloss          ! rate of snow loss to leads      (kg/m^2/s)
 
@@ -2370,10 +2429,16 @@
          dsnown          ! change in snow thickness (m/step-->cm/day)
 
       real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+         dfsurfdT     , & ! derivative of fsurfn with respect to temperatur (W m-2 K-1)
+         dflatdT      , & ! derivative of flatn with respect to temperature (W m-2 K-1)
          fswthrun_vdr , & ! vis dir SW through ice to ocean   (W/m^2)
          fswthrun_vdf , & ! vis dif SW through ice to ocean   (W/m^2)
          fswthrun_idr , & ! nir dir SW through ice to ocean   (W/m^2)
-         fswthrun_idf     ! nir dif SW through ice to ocean   (W/m^2)
+         fswthrun_idf , & ! nir dif SW through ice to ocean   (W/m^2)
+         fswthrun_uvrdr,& ! vis uvr dir SW through ice to ocean (W/m^2)
+         fswthrun_uvrdf,& ! vis uvr dif SW through ice to ocean (W/m^2)
+         fswthrun_pardr,& ! vis par dir SW through ice to ocean (W/m^2)
+         fswthrun_pardf   ! via par dif SW through ice to ocean (W/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy                (J m-3)
@@ -2445,6 +2510,10 @@
          l_fswthrun_vdf, & ! vis dif SW local n ice to ocean  (W/m^2)
          l_fswthrun_idr, & ! nir dir SW local n ice to ocean  (W/m^2)
          l_fswthrun_idf, & ! nir dif SW local n ice to ocean  (W/m^2)
+         l_fswthrun_uvrdr,& ! vis uvr dir SW through ice to ocean (W/m^2)
+         l_fswthrun_uvrdf,& ! vis uvr dif SW through ice to ocean (W/m^2)
+         l_fswthrun_pardr,& ! vis par dir SW through ice to ocean (W/m^2)
+         l_fswthrun_pardf,& ! vis par dif SW through ice to ocean (W/m^2)
          l_dsnow,        & ! local snow change
          l_dsnown,       & ! local snow change category
          l_meltsliq      ! mass of snow melt local           (kg/m^2)
@@ -2490,6 +2559,22 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
+         if (geos_heatflux) then
+            if (.not.(present(fswthru_uvrdr) .and. present(fswthru_uvrdf) .and. &
+                      present(fswthru_pardr) .and. present(fswthru_pardf) .and. &
+                      present(dfsurfdT)      .and. present(dflatdT)      )) then
+               call icepack_warnings_add(subname//' error in geos_heatflux arguments, geos_heatflux=T')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            endif
+         endif
+         if ((present(fswthru_uvrdr) .and. .not.present(fswthrun_uvrdr)) .or. &
+             (present(fswthru_uvrdf) .and. .not.present(fswthrun_uvrdf)) .or. &
+             (present(fswthru_pardr) .and. .not.present(fswthrun_pardr)) .or. &
+             (present(fswthru_pardf) .and. .not.present(fswthrun_pardf))) then
+            call icepack_warnings_add(subname//' error in fswthru [uvr|par]d[rf] arguments')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
          if ((present(dsnow) .and. .not.present(dsnown)) .or. &
              (present(dsnown) .and. .not.present(dsnow))) then
             call icepack_warnings_add(subname//' error in dsnow arguments')
@@ -2530,7 +2615,7 @@
       !-----------------------------------------------------------------
       ! Initialize pond area fractions
       !-----------------------------------------------------------------
-      do n= 1, ncat    
+      do n= 1, ncat
          if (tr_pond_lvl) then
             apond(n) = apnd(n) * alvl(n)
          else
@@ -2709,6 +2794,15 @@
                rsnw (:) = rsnwn (:,n)
                smice(:) = smicen(:,n)
                smliq(:) = smliqn(:,n)
+            endif
+
+            if (geos_heatflux) then
+               if (present(dfsurfdT)) dfsurfdTs_cpl = dfsurfdT(n)
+               if (present(dflatdT))  dflatdTs_cpl  = dflatdT(n)
+               fsurf_cpl     = fsurfn_f(n)
+               flat_cpl      = flatn_f(n)
+               fsurf_cpl0    = fsurf_cpl
+               flat_cpl0     = flat_cpl
             endif
 
             call thermo_vertical(dt=dt,               aicen=aicen         (n), &
@@ -2898,6 +2992,14 @@
             if (present(fswthrun_vdf)) l_fswthrun_vdf = fswthrun_vdf(n)
             if (present(fswthrun_idr)) l_fswthrun_idr = fswthrun_idr(n)
             if (present(fswthrun_idf)) l_fswthrun_idf = fswthrun_idf(n)
+            l_fswthrun_uvrdr = c0
+            l_fswthrun_uvrdf = c0
+            l_fswthrun_pardr = c0
+            l_fswthrun_pardf = c0
+            if (present(fswthrun_uvrdr)) l_fswthrun_uvrdr = fswthrun_uvrdr(n)
+            if (present(fswthrun_uvrdf)) l_fswthrun_uvrdf = fswthrun_uvrdf(n)
+            if (present(fswthrun_pardr)) l_fswthrun_pardr = fswthrun_pardr(n)
+            if (present(fswthrun_pardf)) l_fswthrun_pardf = fswthrun_pardf(n)
 
             call merge_fluxes (aicen=aicen_init(n),            &
                                flw=flw, &
@@ -2917,6 +3019,10 @@
                                fswthrun_vdf=l_fswthrun_vdf,         &
                                fswthrun_idr=l_fswthrun_idr,         &
                                fswthrun_idf=l_fswthrun_idf,         &
+                               fswthrun_uvrdr=l_fswthrun_uvrdr,     &
+                               fswthrun_uvrdf=l_fswthrun_uvrdf,     &
+                               fswthrun_pardr=l_fswthrun_pardr,     &
+                               fswthrun_pardf=l_fswthrun_pardf,     &
                                strairxT=strairxT, strairyT=strairyT,&
                                Cdn_atm_ratio=Cdn_atm_ratio,         &
                                fsurf=fsurf,       fcondtop=fcondtop,&
@@ -2933,6 +3039,10 @@
                                fswthru_vdf=fswthru_vdf,             &
                                fswthru_idr=fswthru_idr,             &
                                fswthru_idf=fswthru_idf,             &
+                               fswthru_uvrdr=fswthru_uvrdr,         &
+                               fswthru_uvrdf=fswthru_uvrdf,         &
+                               fswthru_pardr=fswthru_pardr,         &
+                               fswthru_pardf=fswthru_pardf,         &
                                melttn=melttn (n), meltsn=meltsn(n), &
                                meltbn=meltbn (n), congeln=congeln(n),&
                                meltt=meltt,       melts=melts,      &

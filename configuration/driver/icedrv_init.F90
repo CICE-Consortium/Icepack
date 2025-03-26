@@ -112,7 +112,7 @@
       real (kind=dbl_kind) :: ice_ref_salinity
 
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair, calc_dragio
-      logical (kind=log_kind) :: conserv_check
+      logical (kind=log_kind) :: conserv_check, geos_heatflux, geos_massflux
 
       integer (kind=int_kind) :: ntrcr
       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_snow
@@ -183,7 +183,8 @@
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
         ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
-        data_dir,        trestore,        restore_ocn
+        data_dir,        trestore,        restore_ocn,     &
+        geos_heatflux,   geos_massflux
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -217,6 +218,7 @@
            rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
            pndaspect_out=pndaspect, hs1_out=hs1, hp1_out=hp1, &
            ktherm_out=ktherm, calc_Tsfc_out=calc_Tsfc, &
+           geos_heatflux_out=geos_heatflux, geos_massflux_out=geos_massflux, &
            floediam_out=floediam, hfrazilmin_out=hfrazilmin, &
            update_ocn_f_out = update_ocn_f, cpl_frazil_out = cpl_frazil, &
            conduct_out=conduct, a_rapid_mode_out=a_rapid_mode, &
@@ -765,6 +767,8 @@
          write(nu_diag,1010) ' calc_strair               = ', calc_strair
          write(nu_diag,1010) ' calc_Tsfc                 = ', calc_Tsfc
          write(nu_diag,1010) ' calc_dragio               = ', calc_dragio
+         write(nu_diag,1010) ' geos_heatflux             = ', geos_heatflux
+         write(nu_diag,1010) ' geos_massflux             = ', geos_massflux
          write(nu_diag,1005) ' floediam                  = ', floediam
          write(nu_diag,1005) ' hfrazilmin                = ', hfrazilmin
 
@@ -976,6 +980,7 @@
            pndaspect_in=pndaspect, hs1_in=hs1, hp1_in=hp1, &
            floediam_in=floediam, hfrazilmin_in=hfrazilmin, &
            ktherm_in=ktherm, calc_Tsfc_in=calc_Tsfc, &
+           geos_heatflux_in=geos_heatflux, geos_massflux_in=geos_massflux, &
            conduct_in=conduct, a_rapid_mode_in=a_rapid_mode, &
            update_ocn_f_in=update_ocn_f, cpl_frazil_in=cpl_frazil, &
            Rac_rapid_mode_in=Rac_rapid_mode, &
