@@ -1,5 +1,5 @@
 atm_data_type   = 'MDF'
-atm_data_file   = 'MOSAiC_atm_drift1_stakes_snow_fyi_MDF_20191015_20200731.nc'
+atm_data_file   = 'MOSAiC_atm_drift1_precip_MDF_20191015_20200731.nc'
 atm_data_format = 'nc'
 use_leap_years  = .true.
 fyear_init      = 2019
