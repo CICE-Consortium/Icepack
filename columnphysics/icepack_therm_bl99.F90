@@ -273,8 +273,6 @@
       if (calc_Tsfc) then
          if (sw_redist) then
 
-         if (solve_zsal) sw_dtemp = p1  ! lower tolerance with dynamic salinity
-
          do k = 1, nilyr
 
             Iswabs_tmp = c0 ! all Iswabs is moved into fswsfc
