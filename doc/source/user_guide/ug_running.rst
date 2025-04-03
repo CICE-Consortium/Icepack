@@ -767,9 +767,9 @@ cases.  Current filenames can be found in the options scripts in
     Oceanic forcing fields consist of mixed layer salinity (PSU),
     mixed layer depth (m), turbulent heat fluxes over the halocline and thermocline (:math:`W/m^2`),
     mixed layer temperature (K), ocean-ice friction velocity (m/s), and sea ice drift speed (m/s). Note,
-    icepack's driver currently lacks a mechanism to use the ocean-ice friction velocity and/or sea ice
+    Icepack's driver currently lacks a mechanism to use the ocean-ice friction velocity and/or sea ice
     drift speed in the thermodynamics calculations. Additionally, caution should be used when using the
-    ocean mixed layer temperatures directly. For much of the experiment, Icepack's parameterization
+    modeled ocean mixed layer temperatures. For much of the experiment, Icepack's parameterization
     of the ocean mixed layer freezing point differs from the true freezing point by ~0.5 C.
     
     MOSAiC data are available exclusively as MDF-formatted netCDF files (see :ref:`init`).

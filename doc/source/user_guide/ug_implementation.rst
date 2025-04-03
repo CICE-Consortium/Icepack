@@ -157,8 +157,8 @@ not scientific results.
 
 If ``precalc_forc`` = .true., ``atm/ocn_data_type`` = 'MDF', and 
 ``atm/ocn_data_format`` = 'nc', then ``init_forcing`` reads data from
-netCDF files formatted according to the Merged Data File (MDF),
-conventions which includes timestamp information. During initialization, 
+netCDF files formatted according to the Merged Data File (MDF)
+conventions, which includes timestamp information. During initialization, 
 the forcing data is averaged/interpolated to the Icepack timestep and 
 stored the the ``*_data`` arrays. The ``get_forcing`` subroutine then
 simply queries the ``*_data`` arrays at each timestep. MDF forcing data

@@ -192,7 +192,7 @@
       if (trim(atm_data_type(1:4)) == 'clim')  call atm_climatological
       if (trim(atm_data_type(1:5)) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type(1:4)) == 'NICE')  call atm_NICE
-      if (trim(atm_data_type(1:6)) == 'MDF')   call atm_MDF
+      if (trim(atm_data_type(1:3)) == 'MDF')   call atm_MDF
       if (trim(ocn_data_type(1:5)) == 'SHEBA') call ice_open_clos
 
       if (restore_ocn) then
@@ -208,7 +208,7 @@
 
       if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
       if (trim(ocn_data_type(1:4)) == 'NICE')  call ocn_NICE
-      if (trim(ocn_data_type(1:6)) == 'MDF') call ocn_MDF
+      if (trim(ocn_data_type(1:3)) == 'MDF') call ocn_MDF
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     &
