@@ -10,6 +10,7 @@
       use icedrv_domain_size, only: nx
       use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
       use icedrv_calendar, only: daymo, daycal, dt, yday, sec
+      use icedrv_calendar, only: npt, use_leap_years, time0, year_init
       use icedrv_constants, only: nu_diag, nu_forcing, nu_open_clos
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -20,14 +21,18 @@
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing, sstdat
+#ifdef USE_NETCDF
+      use netcdf
+#endif
 
       implicit none
       private
+
       public :: init_forcing, get_forcing, interp_coeff, &
                 interp_coeff_monthly, get_wave_spec
 
-      integer (kind=int_kind), parameter :: &
-         ntime = 8760        ! number of data points in time
+      integer (kind=int_kind) :: &
+         ntime               ! number of data points in time
 
       integer (kind=int_kind), public :: &
          ycycle          , & ! number of years in forcing cycle
@@ -35,47 +40,45 @@
          fyear           , & ! current year in forcing cycle
          fyear_final         ! last year in cycle
 
-      real (kind=dbl_kind), dimension(ntime) :: &
-            fsw_data, & ! field values at temporal data points
-           cldf_data, &
-          fsnow_data, &
-           Tair_data, &
-           uatm_data, &
-           vatm_data, &
-           wind_data, &
-          strax_data, &
-          stray_data, &
-           rhum_data, &
-             Qa_data, &
-           rhoa_data, &
-           potT_data, &
-            flw_data, &
-            qdp_data, &
-            sst_data, &
-            sss_data, &
-           uocn_data, &
-           vocn_data, &
-          frain_data, &
-          swvdr_data, &
-          swvdf_data, &
-          swidr_data, &
-          swidf_data, &
-           zlvl_data, &
-           hmix_data
+      real (kind=dbl_kind), allocatable :: &
+            fsw_data(:), & ! field values at temporal data points
+           cldf_data(:), &
+          fsnow_data(:), &
+           Tair_data(:), &
+           uatm_data(:), &
+           vatm_data(:), &
+           wind_data(:), &
+          strax_data(:), &
+          stray_data(:), &
+           rhum_data(:), &
+             Qa_data(:), &
+           rhoa_data(:), &
+           potT_data(:), &
+            flw_data(:), &
+            qdp_data(:), &
+            sst_data(:), &
+            sss_data(:), &
+           uocn_data(:), &
+           vocn_data(:), &
+          frain_data(:), &
+          swvdr_data(:), &
+          swvdf_data(:), &
+          swidr_data(:), &
+          swidf_data(:), &
+           zlvl_data(:), &
+           hmix_data(:), &
+           open_data(:), &
+           clos_data(:)
 
       real (kind=dbl_kind), dimension(nx) :: &
           sst_temp
-
-      real (kind=dbl_kind), dimension(ntime) :: &
-           open_data, &
-           clos_data
 
       character(char_len), public :: &
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
-         atm_data_type,   & ! 'default', 'clim', 'CFS'
-         ocn_data_type,   & ! 'default', 'SHEBA'
+         atm_data_type,   & ! 'default', 'clim', 'CFS', 'MDF'
+         ocn_data_type,   & ! 'default', 'SHEBA' 'MDF'
          bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
          lateral_flux_type,   & ! 'uniform_ice', 'open_water'
          atm_data_file,   & ! atmospheric forcing data file
@@ -94,8 +97,9 @@
          frcidf = 0.17_dbl_kind    ! frac of incoming sw in near IR diffuse band
 
       logical (kind=log_kind), public :: &
-         oceanmixed_ice , & ! if true, use internal ocean mixed layer
-         restore_ocn        ! restore sst if true
+         oceanmixed_ice        , & ! if true, use internal ocean mixed layer
+         restore_ocn           , & ! restore sst if true
+         precalc_forc              ! whether to precalculate forcing
 
       real (kind=dbl_kind), public :: &
          trest, &           ! restoring time scale (sec)
@@ -119,6 +123,32 @@
          i                ! index
 
       character(len=*), parameter :: subname='(init_forcing)'
+
+      ! Initialize ntime and allocate data arrays
+      if (precalc_forc) then
+         if (trim(atm_data_type(1:3)) /= 'MDF') &
+            call icedrv_system_abort(string=subname//&
+            'precalc_forc should only be used with MDF atmosphere', &
+            file=__FILE__,line=__LINE__)
+         if (.not. ((trim(ocn_data_type(1:3)) == 'MDF') &
+            .or. (trim(ocn_data_type(1:7)) == 'default'))) &
+            call icedrv_system_abort(string=subname//&
+            'precalc_forc should only be used with MDF ocean or'//&
+            ' default ocean', file=__FILE__,line=__LINE__)
+         ntime = npt
+      else
+         ntime = 8760
+      endif
+      allocate(fsw_data(ntime), cldf_data(ntime), fsnow_data(ntime), &
+               Tair_data(ntime), uatm_data(ntime), vatm_data(ntime), &
+               wind_data(ntime), strax_data(ntime), stray_data(ntime), &
+               rhum_data(ntime), Qa_data(ntime), rhoa_data(ntime), &
+               potT_data(ntime), flw_data(ntime), qdp_data(ntime), &
+               sst_data(ntime), sss_data(ntime), uocn_data(ntime), &
+               vocn_data(ntime), frain_data(ntime), swvdr_data(ntime), &
+               swvdf_data(ntime), swidr_data(ntime), swidf_data(ntime), &
+               zlvl_data(ntime), hmix_data(ntime), open_data(ntime), &
+               clos_data(ntime))
 
       fyear       = fyear_init + mod(nyr-1,ycycle) ! current year
       fyear_final = fyear_init + ycycle - 1 ! last year in forcing cycle
@@ -153,6 +183,7 @@
          fsnow_data(:) = fsnow(i)    ! snowfall rate (kg/m^2 s)
            qdp_data(:) = qdp  (i)    ! deep ocean heat flux (W/m^2)
            sss_data(:) = sss  (i)    ! sea surface salinity
+           hmix_data(:)= hmix (i)    ! ocean mixed layer depth (m)
           uocn_data(:) = uocn (i)    ! ocean current components (m/s)
           vocn_data(:) = vocn (i)
           cldf_data(:) = c0          ! cloud fraction
@@ -161,6 +192,7 @@
       if (trim(atm_data_type(1:4)) == 'clim')  call atm_climatological
       if (trim(atm_data_type(1:5)) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type(1:4)) == 'NICE')  call atm_NICE
+      if (trim(atm_data_type(1:3)) == 'MDF')   call atm_MDF
       if (trim(ocn_data_type(1:5)) == 'SHEBA') call ice_open_clos
 
       if (restore_ocn) then
@@ -176,6 +208,7 @@
 
       if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
       if (trim(ocn_data_type(1:4)) == 'NICE')  call ocn_NICE
+      if (trim(ocn_data_type(1:3)) == 'MDF') call ocn_MDF
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     &
@@ -227,164 +260,194 @@
 
       character(len=*), parameter :: subname='(get_forcing)'
 
-      if (trim(atm_data_type) == 'CFS') then
-         ! calculate data index corresponding to current timestep
-         i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
-         mlast = i
-         mnext = mlast
-         c1intp = c1
-         c2intp = c0
+      if (precalc_forc) then
+         ! Fill all grid boxes with same forcing data
+         Tair (:) = Tair_data(timestep)
+         Qa   (:) = Qa_data(timestep)
+         uatm (:) = uatm_data(timestep)
+         vatm (:) = vatm_data(timestep)
+         fsnow(:) = fsnow_data(timestep)
+         flw  (:) = flw_data(timestep)
+         fsw  (:) = fsw_data(timestep)
 
-         ! fill all grid boxes with the same forcing data
+         ! derived (or not otherwise set)
+         potT (:) = potT_data(timestep)
+         wind (:) = wind_data(timestep)
+         strax(:) = strax_data(timestep)
+         stray(:) = stray_data(timestep)
+         rhoa (:) = rhoa_data(timestep)
+         frain(:) = frain_data(timestep)
+         swvdr(:) = swvdr_data(timestep)
+         swvdf(:) = swvdf_data(timestep)
+         swidr(:) = swidr_data(timestep)
+         swidf(:) = swidf_data(timestep)
+
+         ! Ocean forcing
+         sst_temp(:) = sst_data(timestep)
+         sss     (:) = sss_data(timestep)
+         uocn    (:) = uocn_data(timestep)
+         vocn    (:) = vocn_data(timestep)
+         qdp     (:) = qdp_data(timestep)
+
+      else
+         if (trim(atm_data_type) == 'CFS') then
+            ! calculate data index corresponding to current timestep
+            i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+            mlast = i
+            mnext = mlast
+            c1intp = c1
+            c2intp = c0
+
+            ! fill all grid boxes with the same forcing data
+            Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+            Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+            uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+            vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+            fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+            flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+            fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+
+            ! derived (or not otherwise set)
+            potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+            wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+            strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+            stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+            rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+            frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+            swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+            swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+            swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+            swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
+         elseif (trim(atm_data_type) == 'clim') then
+            midmonth = 15  ! assume data is given on 15th of every month
+            recslot = 1                             ! latter half of month
+            if (mday < midmonth) recslot = 2        ! first half of month
+            if (recslot == 1) then
+               mlast = month
+               mnext = mod(month   ,12) + 1
+            else ! recslot = 2
+               mlast = mod(month+10,12) + 1
+               mnext = month
+            endif
+            call interp_coeff_monthly(recslot, c1intp, c2intp)
+
+            ! fill all grid boxes with the same forcing data
+            Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+            Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+            uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+            vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+            fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+            flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+            fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+
+            ! derived (or not otherwise set)
+            potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+            wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+            strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+            stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+            rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+            frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+            swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+            swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+            swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+            swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
+         elseif (trim(atm_data_type) == 'ISPOL') then
+
+         offndy = 0                              ! first data record (Julian day)
+         offset = real(offndy,dbl_kind)*secday
+         dataloc = 1                             ! data located at middle of interval
+         maxrec = 365
+         recslot = 2
+         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff (recnum, recslot, secday, dataloc, &
+                              c1intp, c2intp, offset)
+
          Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
          Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
          uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
          vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
          fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+
+            ! derived (or not otherwise set)
+            potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+            wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+            strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+            stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+            rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+            frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+
+         sec6hr = secday/c4;                      ! seconds in 6 hours
+         offndy = 0
+         maxrec = 1460
+         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
+         recslot = 2
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+                              c1intp, c2intp, offset)
+
          fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
 
-         ! derived (or not otherwise set)
-         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+            ! derived
+            swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+            swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+            swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+            swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
 
-      elseif (trim(atm_data_type) == 'clim') then
-         midmonth = 15  ! assume data is given on 15th of every month
-         recslot = 1                             ! latter half of month
-         if (mday < midmonth) recslot = 2        ! first half of month
-         if (recslot == 1) then
-            mlast = month
-            mnext = mod(month   ,12) + 1
-         else ! recslot = 2
-            mlast = mod(month+10,12) + 1
-            mnext = month
+         elseif (trim(atm_data_type) == 'NICE') then
+
+         offndy = 0                              ! first data record (Julian day)
+         offset = real(offndy,dbl_kind)*secday
+         dataloc = 1                          ! data located in middle of interval
+         maxrec = 365
+         recslot = 2
+         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff (recnum, recslot, secday, dataloc, &
+                              c1intp, c2intp, offset)
+
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+
+            ! derived (or not otherwise set)
+            potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+            wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+            strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+            stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+            rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+            frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+
+         sec6hr = secday/c4;                      ! seconds in 6 hours
+         maxrec = 1460
+         dataloc = 2                              ! data located at end of interval
+         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
+         recslot = 2
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+                              c1intp, c2intp, offset)
+
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+
+            ! derived
+            swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+            swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+            swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+            swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
          endif
-         call interp_coeff_monthly(recslot, c1intp, c2intp)
-
-         ! fill all grid boxes with the same forcing data
-         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-
-         ! derived (or not otherwise set)
-         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-
-      elseif (trim(atm_data_type) == 'ISPOL') then
-
-        offndy = 0                              ! first data record (Julian day)
-        offset = real(offndy,dbl_kind)*secday
-        dataloc = 1                             ! data located at middle of interval
-        maxrec = 365
-        recslot = 2
-        recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, secday, dataloc, &
-                           c1intp, c2intp, offset)
-
-        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-        Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-        uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-        vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-        fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-
-         ! derived (or not otherwise set)
-         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-
-        sec6hr = secday/c4;                      ! seconds in 6 hours
-        offndy = 0
-        maxrec = 1460
-        recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
-        recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
-        recslot = 2
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, sec6hr, dataloc, &
-                           c1intp, c2intp, offset)
-
-        fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-        flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-
-         ! derived
-         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-
-      elseif (trim(atm_data_type) == 'NICE') then
-
-        offndy = 0                              ! first data record (Julian day)
-        offset = real(offndy,dbl_kind)*secday
-        dataloc = 1                          ! data located in middle of interval
-        maxrec = 365
-        recslot = 2
-        recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, secday, dataloc, &
-                           c1intp, c2intp, offset)
-
-        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-        Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-        uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-        vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-        fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-
-         ! derived (or not otherwise set)
-         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-
-        sec6hr = secday/c4;                      ! seconds in 6 hours
-        maxrec = 1460
-        dataloc = 2                              ! data located at end of interval
-        recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
-        recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
-        recslot = 2
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, sec6hr, dataloc, &
-                           c1intp, c2intp, offset)
-
-        fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-        flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-
-         ! derived
-         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-
-      endif
 
 ! possible bug:  is the ocean data also offset to the beginning of the field campaigns?
 
@@ -441,6 +504,7 @@
          qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
 
       endif
+   endif
 
       call finish_ocn_forcing(sst_temp)
 
@@ -534,6 +598,10 @@
       ! 6 W/m2 warming of mixed layer from deep ocean
         qdp_data(:) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
                               ! SH+LH with bulk transfer than in MU 71
+      ! Warn that this overwrites default and namelist value
+      write(nu_diag,*) subname
+      write(nu_diag,*) 'WARNING: atm_data_type = clim overwrites '//&
+         'oceanic heat flux convergence from default or namelist'
 
       end subroutine atm_climatological
 
@@ -974,6 +1042,406 @@
 
 !=======================================================================
 
+      subroutine atm_MDF
+
+      integer (kind=int_kind) :: &
+         nt,      &  ! timestep index for Icepack arrays
+         i,       &  ! index for forcing data arrays
+         bound,   &  ! bound for subsetting data
+         dimlen,  &  ! length of the data arrays
+         ncid,    &  ! NetCDF file id
+         dimid,   &  ! NetCDF dimension id
+         status,  &  ! NetCDF status flag
+         varid       ! NetCDF variable id
+
+      integer (kind=8), allocatable :: &
+         data_time(:)   ! array for time array in forcing data
+
+      integer (kind=8), dimension(ntime) :: &
+         model_time ! array for Icepack minutely time
+
+      real (kind=dbl_kind) :: &
+         model_time0    ! start time for model in seconds since 1970
+
+      real (kind=dbl_kind), allocatable :: &
+         data(:)  ! data array from file
+
+      character (char_len) :: &
+         calendar_type, &  ! data calendar type
+         varname
+
+      character (char_len_long) :: &
+         filename, &
+         time_basis     ! time basis for data
+
+      integer (kind=int_kind), dimension(ntime, 2) :: &
+         data_sections  ! 2D array for indices corresponding
+                        ! to which data values should be averaged to
+                        ! create the model forcing values
+
+      real (kind=dbl_kind), parameter :: &
+         Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+         model_miss_val = -9999.00     ! missing value for internal use
+
+      character(len=*), parameter :: subname='(atm_MDF)'
+
+      filename = trim(data_dir)//'/MDF/'//trim(atm_data_file)
+
+      if (atm_data_format /= 'nc') then
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: only NetCDF input implemented for atm_MDF', &
+         file=__FILE__,line=__LINE__)
+      else
+#ifdef USE_NETCDF
+         ! Open forcing file
+         status = nf90_open(trim(filename), nf90_nowrite, ncid)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt open netcdf file', &
+                           file=__FILE__,line=__LINE__)
+         
+         ! Create array for the time step values in seconds since 1970
+         ! CF standard calendar is Gregorian
+         ! May have strange behavior if dt is not an integer
+         model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
+         do nt = 1, ntime
+            model_time(nt) = int(model_time0 + dt * nt, kind=8)
+         enddo
+
+         ! Read, average, and interpolate forcing data from each variable
+         ! Moving average forcing values into model arrays
+         call load_var_MDF("tas", Tair_data, ncid, model_time)
+         call load_var_MDF("hus", Qa_data, ncid, model_time)
+         call load_var_MDF("uas", uatm_data, ncid, model_time)
+         call load_var_MDF("vas", vatm_data, ncid, model_time)
+         call load_var_MDF("rlds", flw_data, ncid, model_time)
+         call load_var_MDF("rsds", fsw_data, ncid, model_time)
+
+         ! Precipitation data is optional
+         ! Check whether snowfall rate is in the dataset
+         status = nf90_inq_varid(ncid, "prsn", varid)
+         if (status /= nf90_noerr) then
+            write(nu_diag,*) subname
+            write(nu_diag,*) 'WARNING: no snowfall rate in forcing.'// &
+               ' Icepack will assume snowfall rate is zero.'
+            fsnow_data(:) = c0
+         else
+            call load_var_MDF("prsn", fsnow_data, ncid, model_time)
+         endif
+         ! Check whether total precipitation rate is in the dataset
+         status = nf90_inq_varid(ncid, "pr", varid)
+         if (status /= nf90_noerr) then
+            write(nu_diag,*) subname
+            write(nu_diag,*) 'WARNING: no precipitation rate in '// &
+               'forcing. Icepack will assume rainfall rate is zero.'
+            frain_data(:) = c0
+         else
+            call load_var_MDF("pr", frain_data, ncid, model_time)
+         endif
+         ! rainfall is total precipitation minus snowfall
+         ! subject to the constraint that rainfall is non-negative
+         do nt = 1, ntime
+            frain_data(nt) = max(frain_data(nt) - fsnow_data(nt), c0)
+         enddo
+
+#else
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: atm_data_format = "nc" requires USE_NETCDF', &
+         file=__FILE__,line=__LINE__)
+#endif
+      endif
+
+      end subroutine atm_MDF
+
+!=======================================================================
+
+#ifdef USE_NETCDF
+      subroutine MDF_average(data_var_name, model_var_arr, &
+         data_var_len, ncid, data_sections, model_miss_val)
+
+      character(len=*), intent(in) :: &
+         data_var_name  ! Name of the variable in the MDF forcing file
+
+      real (kind=dbl_kind), dimension(ntime), intent(out) :: &
+         model_var_arr  ! array to place averaged forcing data in
+
+      integer (kind=int_kind), intent(in) :: &
+         data_var_len, &   ! Size of data array in MDF forcing file
+         ncid              ! NetCDF file id
+
+      integer (kind=int_kind), dimension(ntime, 2) :: &
+         data_sections     ! indices for which data values to average
+
+      real (kind=dbl_kind), intent(in) :: &
+         model_miss_val ! for when there is no data in a time step
+
+      ! Local variables
+      real (kind=dbl_kind), dimension(data_var_len) :: &
+         data_var_arr      ! array for data from forcing file
+
+      real (kind=dbl_kind) :: &
+         work, &           ! variable for averaging
+         data_miss_val, &  ! value of missing data
+         count             ! counter for data to average
+
+      integer (kind=int_kind) :: &
+         status, &         ! NetCDF status flag
+         nt,     &         ! timestep index for Icepack arrays
+         i,      &         ! index for forcing data arrays
+         varid             ! NetCDF variable id
+
+      character(len=*), parameter :: subname='(MDF_average)'
+
+      ! Allocate get data and missing value from file
+      status = nf90_inq_varid(ncid, trim(data_var_name), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get '//data_var_name//' var id', &
+                           file=__FILE__,line=__LINE__)
+      status = nf90_get_att(ncid, varid, "missing_value", data_miss_val)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get '//data_var_name//' missing value', &
+                           file=__FILE__,line=__LINE__)
+      status = nf90_get_var(ncid, varid, data_var_arr)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get '//data_var_name//' values', &
+                           file=__FILE__,line=__LINE__)
+
+      ! For each model time point average non-missing data values
+      do nt = 1, ntime
+         count = 0
+         work = c0
+         do i = data_sections(nt, 1), data_sections(nt, 2)
+            if (data_var_arr(i) /= data_miss_val) then
+               work = work + data_var_arr(i)
+               count = count + 1
+            endif
+         end do
+         if (count > 0) then
+            model_var_arr(nt) = work / count
+         else
+            model_var_arr(nt) = model_miss_val
+         endif
+      end do
+
+      end subroutine MDF_average
+#endif
+
+!=======================================================================
+
+      subroutine MDF_interpolate(model_var_arr, model_miss_val)
+
+      real (kind=dbl_kind), dimension(ntime), intent(inout) :: &
+         model_var_arr  ! array to place averaged forcing data in
+
+      real (kind=dbl_kind), intent(in) :: &
+         model_miss_val ! for when there is no data in a time step
+
+      integer (kind=int_kind) :: &
+         mlast,         &  ! index of last present data
+         nt, m,         &  ! model timestep indices
+         count             ! counter for missing values
+
+      character(len=*), parameter :: subname='(MDF_interpolate)'
+
+      ! Interpolate, extrapolate for first and last values
+      if (model_var_arr(1) == model_miss_val) then
+         mlast = 0
+      else
+         mlast = 1
+      endif
+      do nt = 2, ntime
+         if (model_var_arr(nt) == model_miss_val) then
+            ! Do nothing (i.e., allow nt to increment) unless we're at end
+            if (nt == ntime) then
+               do m = mlast + 1, nt
+                  model_var_arr(m) = model_var_arr(mlast)
+               end do
+            endif
+         else if ((nt - mlast) == 1) then
+            ! No missing data, increment mlast
+            mlast = nt
+         else
+            ! If we're at the start extrapolate to fill
+            if (mlast==0) then
+               do m = mlast + 1, nt - 1
+                  model_var_arr(m) = model_var_arr(nt)
+               end do
+            else
+               ! Interpolate missing data
+               do m = mlast + 1, nt - 1
+                  model_var_arr(m) = model_var_arr(mlast) &
+                     + (model_var_arr(nt) - model_var_arr(mlast)) &
+                     * (m - mlast) / (nt - mlast)
+               end do
+            endif
+            mlast = nt
+         endif
+      end do
+
+      end subroutine MDF_interpolate
+!=======================================================================
+
+      subroutine load_var_MDF(data_var_name, model_var_arr, ncid, &
+                                 model_time)
+
+      character(len=*), intent(in) :: &
+         data_var_name  ! Name of the variable in the MDF forcing file
+
+      real (kind=dbl_kind), dimension(ntime), intent(out) :: &
+         model_var_arr  ! array to place forcing data in
+
+      integer (kind=int_kind), intent(in) :: &
+         ncid           ! NetCDF file id
+
+      integer (kind=8), dimension(ntime), intent(in) :: &
+         model_time     ! model time array
+
+      ! Local variables
+
+      integer (kind=int_kind) :: &
+         nt,      &  ! timestep index for Icepack arrays
+         i,       &  ! index for forcing data arrays
+         bound,   &  ! bound for subsetting data
+         dimlen,  &  ! length of the data arrays
+         dimid,   &  ! NetCDF dimension id
+         status,  &  ! NetCDF status flag
+         nvardims,&  ! number of dimensions for variable
+         varid       ! NetCDF variable id
+
+      integer (kind=8), allocatable :: &
+         data_time(:)   ! array for time array in forcing data
+
+      integer, dimension(1) :: &
+         vardimids      ! dimension id for variable
+
+      character (char_len) :: &
+         calendar_type, &  ! data calendar type
+         dimname           ! name for variables dimension
+
+      character (char_len_long) :: &
+         time_basis     ! time basis for data
+
+      integer (kind=int_kind), dimension(ntime, 2) :: &
+         data_sections  ! 2D array for indices corresponding
+                        ! to which data values should be averaged to
+                        ! create the model forcing values
+
+      real (kind=dbl_kind), parameter :: &
+         Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+         model_miss_val = -9999.00     ! missing value for internal use      
+
+      character(len=*), parameter :: subname='(load_var_MDF)'
+
+#ifdef USE_NETCDF
+
+      ! Get varid and missing value from file
+      status = nf90_inq_varid(ncid, trim(data_var_name), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get '//data_var_name//' var id', &
+                           file=__FILE__,line=__LINE__)
+      ! Get information about the dimension for this variable
+      status = nf90_inquire_variable(ncid, varid, ndims=nvardims)
+      if (nvardims /= 1) call icedrv_system_abort(&
+            string=subname//data_var_name//' has more than 1 dimension', &
+                           file=__FILE__,line=__LINE__)
+      status = nf90_inquire_variable(ncid, varid, dimids=vardimids)
+      status = nf90_inquire_dimension(ncid, vardimids(1), &
+            name=dimname, len=dimlen)
+      ! Check that dimname matches pattern
+      if (dimname(1:4) /= 'time') call icedrv_system_abort(&
+            string=subname//data_var_name//' dimension name is not timeXXXX', &
+                           file=__FILE__,line=__LINE__)
+      if (verify(trim(dimname(5:)), "0123456789") /= 0) call icedrv_system_abort(&
+            string=subname//data_var_name//' dimension name is not timeXXXX', &
+                           file=__FILE__,line=__LINE__)
+      allocate (data_time(dimlen))
+      ! Check that cadence variable exists and calendars match
+      status = nf90_inq_varid(ncid, trim(dimname), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+         string=subname//'Couldnt get '//trim(dimname)//' var id', &
+                        file=__FILE__,line=__LINE__)
+      status = nf90_get_att(ncid, varid, "calendar", calendar_type)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+         string=subname//'Couldnt get calendar attribute', &
+                        file=__FILE__,line=__LINE__)
+      ! In future this check could be replaced with calendar matching
+      if (calendar_type /= "standard" .or. .not. use_leap_years) then
+         call icedrv_system_abort(&
+         string=subname//'Forcing calendar not standard or not using leap years',&
+         file=__FILE__,line=__LINE__)
+      endif
+      ! Get the time array
+      !! Note, in the file the value is actually unsigned, need to make sure this
+      ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
+      status = nf90_get_var(ncid, varid, data_time)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+         string=subname//'Couldnt read '//trim(dimname)//' values', &
+                        file=__FILE__,line=__LINE__)
+      ! Convert the data time from minutes into seconds for compatability w/ icepack
+      data_time = data_time * 60
+
+      ! Check that the time basis in forcing file is correct
+      status = nf90_get_att(ncid, varid, "units", time_basis)
+      if (status /= nf90_noerr) call icedrv_system_abort(&
+         string=subname//'Couldnt get '//trim(dimname)//' units', &
+                        file=__FILE__,line=__LINE__)
+      if (time_basis /= "minutes since 1970-01-01 00:00:00") then
+         call icedrv_system_abort(&
+         string=subname//'Time basis is not minutes since 1970',&
+         file=__FILE__,line=__LINE__)
+      endif
+      
+      ! Check that we are not extrapolating forcing outside of time bounds
+      if (model_time(1) < data_time(1)) call icedrv_system_abort(&
+      string=subname//'Simulation starts before forcing',&
+      file=__FILE__,line=__LINE__)
+      if (model_time(ntime) > data_time(dimlen)) call icedrv_system_abort(&
+      string=subname//'Simulation ends after forcing',&
+      file=__FILE__,line=__LINE__)
+
+      ! data_sections is a 2D array where the first dimension
+      ! is the same length as model_time. The 1D array at each index
+      ! contains the start and stop indices of the data to be averaged
+      ! into each model timestep
+      ! Get the first start index
+      bound = model_time(1) - (model_time(2) - model_time(1))/2
+      i = 1
+      do while (data_time(i) < bound)
+         i = i + 1
+      end do
+      data_sections(1, 1) = i
+      do nt = 1, ntime - 1
+         ! Bound is halfway between this time step and the next
+         bound = (model_time(nt + 1) + model_time(nt))/2
+         do while (data_time(i) < bound)
+            i = i + 1
+         end do ! i - 1 is now the last element in timestep nt
+         data_sections(nt, 2) = i - 1
+         data_sections(nt + 1, 1) = i
+      end do
+      ! Get the last index
+      bound = model_time(ntime) + (model_time(ntime) - model_time(ntime - 1))/2
+      i = dimlen
+      do while (data_time(i) > bound)
+         i = i - 1
+      end do
+      data_sections(ntime, 2) = i
+
+      ! Moving average forcing values into model arrays
+      call MDF_average(data_var_name, model_var_arr, dimlen, ncid, &
+         data_sections, model_miss_val)
+      ! Linearly interpolate missing values
+      call MDF_interpolate(model_var_arr, model_miss_val)
+
+#else
+      call icedrv_system_abort(string=subname//&
+      ' load_var_MDF requires USE_NETCDF', &
+      file=__FILE__,line=__LINE__)
+#endif
+
+      end subroutine load_var_MDF
+
+!=======================================================================
+
       subroutine ocn_NICE
 
       integer (kind=int_kind) :: &
@@ -1070,7 +1538,102 @@
          qdp_data (i) = qdp (i)
       end do
 
-     end subroutine ocn_ISPOL
+    end subroutine ocn_ISPOL
+
+!=======================================================================
+
+      subroutine ocn_MDF
+
+      integer (kind=int_kind) :: &
+         nt,      &  ! timestep index for Icepack arrays
+         i,       &  ! index for forcing data arrays
+         bound,   &  ! bound for subsetting data
+         dimlen,  &  ! length of the data arrays
+         ncid,    &  ! NetCDF file id
+         dimid,   &  ! NetCDF dimension id
+         status,  &  ! NetCDF status flag
+         varid       ! NetCDF variable id
+
+      integer (kind=8), allocatable :: &
+         data_time(:)   ! array for time array in forcing data
+
+      integer (kind=8), dimension(ntime) :: &
+         model_time ! array for Icepack minutely time
+
+      real (kind=dbl_kind) :: &
+         model_time0    ! start time for model in seconds since 1970
+
+      real (kind=dbl_kind), allocatable :: &
+         data(:)  ! data array from file
+
+      character (char_len) :: &
+         calendar_type, &  ! data calendar type
+         varname
+
+      character (char_len_long) :: &
+         filename, &
+         time_basis     ! time basis for data
+
+      integer (kind=int_kind), dimension(ntime, 2) :: &
+         data_sections  ! 2D array for indices corresponding
+                        ! to which data values should be averaged to
+                        ! create the model forcing values
+
+      real (kind=dbl_kind), parameter :: &
+         Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+         model_miss_val = -9999.00, &  ! missing value for internal use
+         leg4_end_time  = 1596034800, &! end of leg 4 in seconds since 1970
+         leg5_start_time= 1598451600   ! start of leg 5 in seconds since 1970
+
+      character(len=*), parameter :: subname='(ocn_MDF)'
+
+      filename = trim(data_dir)//'/MDF/'//trim(ocn_data_file)
+
+      if (ocn_data_format /= 'nc') then
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: only NetCDF input implemented for ocn_MDF', &
+         file=__FILE__,line=__LINE__)
+      else
+#ifdef USE_NETCDF
+         ! Open forcing file
+         status = nf90_open(trim(filename), nf90_nowrite, ncid)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt open netcdf file', &
+                           file=__FILE__,line=__LINE__)
+         
+         ! Create array for the time step values in seconds since 1970
+         ! CF standard calendar is Gregorian
+         ! May have strange behavior if dt is not an integer
+         model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
+         do nt = 1, ntime
+            model_time(nt) = int(model_time0 + dt * nt, kind=8)
+         enddo
+
+         ! Warn if simulation includes leg 4-5 transition
+         if ((model_time(1) < leg5_start_time) .and. &
+             (model_time(ntime) > leg4_end_time) .and. &
+             (index(ocn_data_file, 'MOSAiC') > 0)) then
+            write(nu_diag,*) subname
+            write(nu_diag,*) 'WARNING: Forcing may be from MOSAiC '// &
+               'and time includes MOSAIC leg 4-5 repositioning. ' // &
+               'If so, forcing interpolation is not valid.'
+         endif
+
+         ! Read, average, and interpolate forcing data from each variable
+         ! Moving average forcing values into model arrays
+         call load_var_MDF("so", sss_data, ncid, model_time)
+         call load_var_MDF("mlotst", hmix_data, ncid, model_time)
+         call load_var_MDF("hfsot", qdp_data, ncid, model_time)
+         call load_var_MDF("tos", sst_data, ncid, model_time)
+
+#else
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: ocn_data_format = "nc" requires USE_NETCDF', &
+         file=__FILE__,line=__LINE__)
+#endif
+      endif
+
+      end subroutine ocn_MDF
 
 !=======================================================================
 

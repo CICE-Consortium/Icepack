@@ -10,6 +10,7 @@
       use icedrv_constants, only: nu_diag, ice_stdout, nu_diag_out, nu_nml
       use icedrv_constants, only: c0, c1, c2, c3, p2, p5
       use icedrv_domain_size, only: nx
+      use icedrv_flux, only: sst_init
       use icepack_intfc, only: icepack_init_parameters
       use icepack_intfc, only: icepack_init_fsd
       use icepack_intfc, only: icepack_init_tracer_flags
@@ -43,6 +44,12 @@
          lmask_n, & ! northern hemisphere mask
          lmask_s    ! southern hemisphere mask
 
+      real (kind=dbl_kind), public :: &
+         hi_init_slab,   & ! initial ice thickness for slab cell (nx=2)
+         hsno_init_slab, & ! initial snow thickness for slab cell (nx=2)
+         hbar_init_itd,  & ! hbar for ice thickness for itd cell (nx=3)
+         hsno_init_itd     ! initial snow thickness for itd cell (nx=3)
+
 !=======================================================================
 
       contains
@@ -66,6 +73,7 @@
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, restart_format
       use icedrv_flux, only: l_mpond_fresh, cpl_bgc
       use icedrv_flux, only: default_season
+      use icedrv_flux, only: sss_fixed, qdp_fixed, hmix_fixed
       use icedrv_forcing, only: precip_units,    fyear_init,      ycycle
       use icedrv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
       use icedrv_forcing, only: atm_data_file,   ocn_data_file,   bgc_data_file
@@ -74,6 +82,7 @@
       use icedrv_forcing, only: data_dir
       use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
       use icedrv_forcing, only: snw_ssp_table, lateral_flux_type
+      use icedrv_forcing, only: precalc_forc
 
       ! local variables
 
@@ -138,7 +147,9 @@
         ice_ic,         restart,        restart_dir,     restart_file,  &
         restart_format, &
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc,       &
-        conserv_check,  history_format
+        conserv_check,  history_format,                                 &
+        hi_init_slab,   hsno_init_slab, hbar_init_itd,   hsno_init_itd, &
+        sst_init
 
       namelist /grid_nml/ &
         kcatbound
@@ -183,7 +194,9 @@
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
         ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
-        data_dir,        trestore,        restore_ocn
+        data_dir,        trestore,        restore_ocn,     &
+        sss_fixed,       qdp_fixed,       hmix_fixed,     &
+        precalc_forc
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -264,6 +277,11 @@
       history_format = 'none'     ! if 'nc', write history files. Otherwise do nothing
       ice_ic       = 'default'    ! initial conditions are specified in the code
                                   ! otherwise, the filename for reading restarts
+      hi_init_slab   = c2            ! initial ice thickness for slab cell (nx=2)
+      hsno_init_slab = c0            ! initial snow thickness for slab cell (nx=2)
+      hbar_init_itd  = c3            ! hbar for ice thickness for itd cell (nx=3)
+      hsno_init_itd  = 0.25_dbl_kind ! initial snow thickness for itd cell (nx=3)
+      sst_init       = -1.8_dbl_kind ! initial mixed layer temperature (all cells)
       ndtd = 1               ! dynamic time steps per thermodynamic time step
       l_mpond_fresh = .false.     ! logical switch for including meltpond freshwater
                                   ! flux feedback to ocean model
@@ -290,6 +308,7 @@
       restore_ocn     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
       snw_ssp_table   = 'test'    ! snow table type, test or snicar
+      precalc_forc    = .false.   ! whether to precalculate forcing
 
       ! extra tracers
       tr_iage      = .false. ! ice age
@@ -673,6 +692,11 @@
          write(nu_diag,1030) ' restart_format            = ', trim(restart_format)
          write(nu_diag,1030) ' history_format            = ', trim(history_format)
          write(nu_diag,1030) ' ice_ic                    = ', trim(ice_ic)
+         write(nu_diag,1005) ' hi_init_slab              = ', hi_init_slab
+         write(nu_diag,1005) ' hsno_init_slab            = ', hsno_init_slab
+         write(nu_diag,1005) ' hbar_init_itd             = ', hbar_init_itd
+         write(nu_diag,1005) ' hsno_init_itd             = ', hsno_init_itd
+         write(nu_diag,1005) ' sst_init                  = ', sst_init
          write(nu_diag,1010) ' conserv_check             = ', conserv_check
          write(nu_diag,1020) ' kitd                      = ', kitd
          write(nu_diag,1020) ' kcatbound                 = ', kcatbound
@@ -778,6 +802,7 @@
          write(nu_diag,1030) ' ocn_data_file             = ', trim(ocn_data_file)
          write(nu_diag,1030) ' bgc_data_file             = ', trim(bgc_data_file)
          write(nu_diag,1030) ' ice_data_file             = ', trim(ice_data_file)
+         write(nu_diag,1010) ' precalc_forc              = ', precalc_forc
 
          if (trim(atm_data_type)=='default') &
          write(nu_diag,1030) ' default_season            = ', trim(default_season)
@@ -1342,9 +1367,6 @@
       real (kind=dbl_kind), dimension(nslyr) :: &
          qsn             ! snow enthalpy (J/m3)
 
-      real (kind=dbl_kind), parameter :: &
-         hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
-
       logical (kind=log_kind) :: tr_brine, tr_lvl, tr_fsd, tr_snow
       integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice, nt_fsd
       integer (kind=int_kind) :: nt_fbri, nt_alvl, nt_vlvl
@@ -1408,24 +1430,31 @@
 
       i = 1  ! ice-free
              ! already initialized above
+      if (i <= nx) then ! need to set ocean parameters
+         sst(i) = sst_init
+      endif
 
       !-----------------------------------------------------------------
 
-      i = 2  ! 2-m slab, no snow
+      i = 2  ! 100% ice concentration slab, thickness and snow from namelist
       if (i <= nx) then
-      if (3 <= ncat) then
-         n = 3
-         ainit(n) = c1  ! assumes we are using the default ITD boundaries
-         hinit(n) = c2
-      else
-         ainit(ncat) = c1
-         hinit(ncat) = c2
-      endif
+         sst(i) = sst_init ! initial ocean temperature
+         do n = 1, ncat
+            if (hi_init_slab <= hin_max(n)) then
+               ainit(n) = c1
+               hinit(n) = hi_init_slab
+               exit
+            endif
+         enddo
+         if (hi_init_slab > hin_max(ncat)) then
+            ainit(ncat) = c1
+            hinit(ncat) = hi_init_slab
+         endif
       do n = 1, ncat
          ! ice volume, snow volume
          aicen(i,n) = ainit(n)
          vicen(i,n) = hinit(n) * ainit(n) ! m
-         vsnon(i,n) = c0
+         vsnon(i,n) = hsno_init_slab * ainit(n)
          ! tracers
          call icepack_init_enthalpy(Tair = Tair(i),     &
                                 Tf       = Tf(i),       &
@@ -1469,8 +1498,9 @@
 
       i = 3  ! full thickness distribution
       if (i <= nx) then
+      sst(i) = sst_init
       ! initial category areas in cells with ice
-      hbar = c3  ! initial ice thickness with greatest area
+      hbar = hbar_init_itd  ! initial ice thickness with greatest area
       ! Note: the resulting average ice thickness
       ! tends to be less than hbar due to the
       ! nonlinear distribution of ice thicknesses
@@ -1494,7 +1524,7 @@
          ! ice volume, snow volume
          aicen(i,n) = ainit(n)
          vicen(i,n) = hinit(n) * ainit(n) ! m
-         vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
+         vsnon(i,n) = min(aicen(i,n)*hsno_init_itd,p2*vicen(i,n))
          ! tracers
          call icepack_init_enthalpy(Tair = Tair(i),     &
                                 Tf       = Tf(i),       &

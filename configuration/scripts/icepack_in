@@ -7,6 +7,11 @@
     npt            = 8760
     ndtd           = 1
     ice_ic         = 'default'
+    hi_init_slab   = 2.0
+    hsno_init_slab = 0.0
+    hbar_init_itd  = 3.0
+    hsno_init_itd  = 0.25
+    sst_init       = -1.8
     restart        = .false.
     restart_dir    = './restart/'
     restart_format = 'bin'
@@ -58,7 +63,7 @@
     albicev         = 0.78
     albicei         = 0.36
     albsnowv        = 0.98
-    albsnowi        = 0.70 
+    albsnowi        = 0.70
     ahmax           = 0.3
     R_ice           = 0.
     R_pnd           = 0.
@@ -121,6 +126,9 @@
     wave_spec_type  = 'none'
     restore_ocn     = .false.
     trestore        = 90
+    sss_fixed       = 34.0
+    qdp_fixed       = 0.0
+    hmix_fixed      = 20.0
     precip_units    = 'mks'
     default_season  = 'spring'
     atm_data_type   = 'clim'
@@ -137,6 +145,7 @@
     atm_data_format = 'bin'
     ocn_data_format = 'bin'
     bgc_data_format = 'bin'
+    precalc_forc  = .false.
 /
 
 &dynamics_nml
@@ -167,7 +176,7 @@
     tr_bgc_PON      = .false.
     tr_bgc_hum      = .false.
     tr_bgc_DON      = .false.
-    tr_bgc_Fe       = .false. 
+    tr_bgc_Fe       = .false.
     grid_o          = 0.006
     grid_o_t        = 0.006
     l_sk            = 2.0
@@ -175,17 +184,17 @@
     l_skS           = 0.028
     phi_snow        = -1.0
     initbio_frac    = 1.0
-    frazil_scav     = 0.8  
-    ratio_Si2N_diatoms = 1.8                         
+    frazil_scav     = 0.8
+    ratio_Si2N_diatoms = 1.8
     ratio_Si2N_sp      = 0.0
     ratio_Si2N_phaeo   = 0.0
-    ratio_S2N_diatoms  = 0.03  
-    ratio_S2N_sp       = 0.03 
+    ratio_S2N_diatoms  = 0.03
+    ratio_S2N_sp       = 0.03
     ratio_S2N_phaeo    = 0.03
     ratio_Fe2C_diatoms = 0.0033
     ratio_Fe2C_sp      = 0.0033
     ratio_Fe2C_phaeo   = 0.1
-    ratio_Fe2N_diatoms = 0.023 
+    ratio_Fe2N_diatoms = 0.023
     ratio_Fe2N_sp      = 0.023
     ratio_Fe2N_phaeo   = 0.7
     ratio_Fe2DON       = 0.023

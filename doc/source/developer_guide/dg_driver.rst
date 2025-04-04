@@ -40,7 +40,7 @@ Overview
 
 The icepack driver exists to test the column physics.  At the present time, it is hardwired
 to run 4 different gridcells on one processor with the same forcing used for all gridcells.  
-There is no MPI and no threading built into the icepack driver.  There is limited IO capabilities,
-no history files, and no netcdf restart files.  The model generally runs very quickly.
+There is no MPI nor threading built into the icepack driver.  There are limited IO capabilities. 
+The model generally runs very quickly.
 
 Forcing data and details on these data are available in :ref:`force`.

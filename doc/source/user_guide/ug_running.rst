@@ -736,6 +736,46 @@ cases.  Current filenames can be found in the options scripts in
     At present, only the opening and closing rates (1/s) are used from the forcing data. 
     In the namelist, set ``ocn_data_type = SHEBA`` to use this forcing in Icepack.
 
+   d) **Multidisciplinary Drifting Observatory for the Study of Arctic Climate (MOSAiC)**
+
+    Atmospheric and oceanic forcing are available from the 2019-2020 Multidisciplinary Drifting Observatory 
+    for the Study of Arctic Climate (MOSAiC) expedition :cite:`Clemens-Sewall25`. The atmospheric forcing is
+    available minutely and the oceanic forcing is available daily. These data are based on observations from
+    a collection of drifting ice floes in the Arctic Ocean. MOSAiC consisted of two drift experiments, 
+    in which the R/V Polarstern was moored to a drifting ice floe and continuous observations were made. The
+    first drift started in October 2019 North of the Laptev Sea (85.4N, 129.2E) and ended in July 2020 in
+    the Fram Strait (79.2N, 2.6W). The second drift was from August to September, 2020 in the vicinity of
+    the North Pole (approximately 88.6N, 110.6E). Initial conditions are available for drift 1 in
+    **set_nml.atmmosaic**. Initial conditions for drift 2 have not yet been implemented in Icepack.
+
+    
+    Atmospheric forcing fields from :cite:`Clemens-Sewall25` consist of 2-m air temperature (K), 2-m 
+    specific humidity (kg/kg), 2-m wind velocity in the u and v directions (m/s), downward solar radiation 
+    (:math:`W/m^2`), downward longwave radiation (:math:`W/m^2`), and total and solid (snowfall)
+    precipitation rate (:math:`kg/m^2/s`). Three options are available for the atmospheric forcing for
+    drift 1. The precip file, `MOSAiC_atm_drift1_precip_MDF_20191015_20200731.nc`, has our best estimate of 
+    the actual precipitation input. The stakes files, `MOSAiC_atm_drift1_stakes_snow_fyi_MDF_20191015_20200731.nc`
+    and `MOSAiC_atm_drift1_stakes_snow_syi_MDF_20191015_20200731.nc`, contain a pseudo-precipitation that has
+    been tuned to reproduce the observed snow depth evolution at the manual mass balance ('stakes') sites 
+    on relatively level first-year ice (`_fyi_`) and second-year ice (`_syi_`) respectively. Therefore, the stakes 
+    pseudo-precipitation effectively combines the effects of true precipitation and snow redistribution.
+    It is recommended to use the precip file for general testing. However, to specifically reproduce the
+    observed snow depth at the manual mass balance sites with the precip forcing, one would need also need to 
+    accurately reproduce the wind-driven snow redistribution. See :cite:`Raphael24` for further details on the
+    manual mass balance measurements.
+    
+    Oceanic forcing fields consist of mixed layer salinity (PSU),
+    mixed layer depth (m), turbulent heat fluxes over the halocline and thermocline (:math:`W/m^2`),
+    mixed layer temperature (K), ocean-ice friction velocity (m/s), and sea ice drift speed (m/s). Note,
+    Icepack's driver currently lacks a mechanism to use the ocean-ice friction velocity and/or sea ice
+    drift speed in the thermodynamics calculations. Additionally, caution should be used when using the
+    modeled ocean mixed layer temperatures. For much of the experiment, Icepack's parameterization
+    of the ocean mixed layer freezing point differs from the true freezing point by ~0.5 C.
+    
+    MOSAiC data are available exclusively as MDF-formatted netCDF files (see :ref:`init`).
+
+    
+
 3) **Climatological** - Maykut and Untersteiner 1971 :cite:`Maykut71`
 
    The climatological forcing consists of a monthly climatology of downward radiative fluxes, air temperature, 
