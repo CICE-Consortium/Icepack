@@ -71,8 +71,12 @@ jobs:
       - name: link
         run: |
           ln -s ${GITHUB_WORKSPACE}/../Icepack ${HOME}/icepack
-#           ls -al ${HOME}/
-#           ls -al ${GITHUB_WORKSPACE}/
+          echo "HOME"
+          ls -al ${HOME}/
+          echo "HOME/icepack"
+          ls -al ${HOME}/icepack/
+          echo "GH_WORKSPACE"
+          ls -al ${GITHUB_WORKSPACE}/
       - name: check for tabs
         run: |
           cd $HOME/icepack
@@ -92,7 +96,7 @@ jobs:
         run: |
           cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
           source $HOME/miniconda/bin/activate
-          conda init tcsh
+          conda init bash
           cd $HOME/icepack
           conda env create -f configuration/scripts/machines/environment.yml
       - name: check conda env
