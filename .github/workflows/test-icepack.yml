@@ -44,7 +44,7 @@ jobs:
           sudo xcode-select -s /Library/Developer/CommandLineTools
           echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
           echo "xcode-select -p: $(xcode-select -p)"
-      - name: system info
+      - name: system info bash
         shell: /bin/bash {0}
         run: |
           type wget
@@ -59,6 +59,13 @@ jobs:
           echo "OS: ${{ matrix.os }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
           echo "MINICOND: ${{ matrix.minicond }}"
+      - name: system info csh
+        shell: /bin/csh {0}
+        run: |
+          set cshv = `csh --version`
+          echo "csh --version: ${cshv}"
+          set tcshv = `tcsh --version`
+          echo "tcsh --version: ${tcshv}"
       - name : install miniconda
         shell: /bin/bash {0}
         run: |
