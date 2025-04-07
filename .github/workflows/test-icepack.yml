@@ -17,7 +17,7 @@ on:
 
 defaults:
   run:
-    shell: /bin/csh -e {0}
+    shell: /bin/bash -e {0}
 
 jobs:
   build:
@@ -59,13 +59,6 @@ jobs:
           echo "OS: ${{ matrix.os }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
           echo "MINICOND: ${{ matrix.minicond }}"
-      - name: system info csh
-        shell: /bin/csh {0}
-        run: |
-          set cshv = `csh --version`
-          echo "csh --version: ${cshv}"
-          set tcshv = `tcsh --version`
-          echo "tcsh --version: ${tcshv}"
       - name : install miniconda
         shell: /bin/bash {0}
         run: |
@@ -75,13 +68,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-      - name: check1
-        shell: /bin/csh {0}
-        run: |
-          echo "HOME: $HOME"
-          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-          ls -al ${HOME}/
-          ls -al ${GITHUB_WORKSPACE}/
       - name: link
         run: |
           ln -s ${GITHUB_WORKSPACE}/../Icepack ${HOME}/icepack
