@@ -69,6 +69,7 @@ jobs:
         with:
           submodules: 'recursive'
       - name: check1
+        shell: /bin/bash {0}
         run: |
           echo "HOME: $HOME"
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
