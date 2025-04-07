@@ -68,11 +68,17 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: 'recursive'
+      - name: check1
+        run: |
+          echo "HOME: $HOME"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          ls -al ${HOME}/
+          ls -al ${GITHUB_WORKSPACE}/
       - name: link
         run: |
-           ls -al ${HOME}/
-           ls -al ${GITHUB_WORKSPACE}/
-           ln -s ${GITHUB_WORKSPACE}/../Icepack ${HOME}/icepack
+          ln -s ${GITHUB_WORKSPACE}/../Icepack ${HOME}/icepack
+#           ls -al ${HOME}/
+#           ls -al ${GITHUB_WORKSPACE}/
       - name: check for tabs
         run: |
           cd $HOME/icepack
