@@ -129,7 +129,7 @@
          Tliquidus_max = c0           ,&! maximum liquidus temperature of mush (C)
          dSin0_frazil = c3            ,&! bulk salinity reduction of newly formed frazil
          ustar_min = 0.005_dbl_kind   ,&! minimum friction velocity for ocean heat flux (m/s)
-         hi_min    = p01              ,&! minimum ice thickness allowed (m) for thermo
+         hi_min    = p1               ,&! minimum ice thickness allowed (m) for thermo
          ! mushy thermo
          a_rapid_mode      =  0.5e-3_dbl_kind,&! channel radius for rapid drainage mode (m)
          Rac_rapid_mode    =    10.0_dbl_kind,&! critical Rayleigh number
