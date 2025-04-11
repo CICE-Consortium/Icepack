@@ -1,0 +1,17 @@
+atm_data_type   = 'MDF'
+atm_data_file   = 'MOSAiC_atm_drift1_precip_MDF_20191015_20200731.nc'
+atm_data_format = 'nc'
+use_leap_years  = .true.
+fyear_init      = 2019
+year_init       = 2019
+istep0          = 7728
+npt             = 6132
+precalc_forc    = .true.
+hi_init_slab    = 0.55
+hsno_init_slab  = 0.07
+hbar_init_itd   = 1.5
+hsno_init_itd   = 0.15
+qdp_fixed       = -1.0
+sst_init        = -1.8
+sss_fixed       = 32.0
+hmix_fixed      = 45.0
