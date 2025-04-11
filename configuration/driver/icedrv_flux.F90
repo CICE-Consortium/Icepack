@@ -253,7 +253,14 @@
          dagedtt,& ! ice age tendency thermo.    (s/s)
          mlt_onset, &! day of year that sfc melting begins
          frz_onset, &! day of year that freezing begins (congel or frazil)
-         frazil_diag ! frazil ice growth diagnostic (m/step-->cm/day)
+         frazil_diag, & ! frazil ice growth diagnostic (m/step-->cm/day)
+         flpnd,  & ! pond flushing rate due to ice permeability (m/step)
+         expnd,  & ! exponential pond drainage rate (m/step)
+         frpnd,  & ! pond drainage rate due to freeboard constraint (m/step)
+         rfpnd,  & ! runoff rate due to rfrac (m/step)
+         ilpnd,  & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
+         mipnd,  & ! pond 'drainage' due to ice melting (m / step)
+         rdpnd     ! pond drainage due to ridging (m / step)
 
       real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
@@ -262,7 +269,13 @@
          fcondtopn,& ! category fcondtop
          fcondbotn,& ! category fcondbot
          fsensn,   & ! category sensible heat flux
-         flatn       ! category latent heat flux
+         flatn,    & ! category latent heat flux
+         ! Like melttn these are defined as volume per unit category area
+         flpndn,   & ! category pond flushing rate due to ice permeability
+         expndn,   & ! category exponential pond drainage rate
+         frpndn,   & ! category pond drainage rate due to freeboard constraint
+         rfpndn,   & ! category runoff rate due to rfrac (m/step)
+         ilpndn      ! category pond loss/gain due to ice lid (m/step)
 
       ! As above but these remain grid box mean values i.e. they are not
       ! divided by aice at end of ice_dynamics.
@@ -697,6 +710,13 @@
       apeff_ai (:) = c0
       snowfrac (:) = c0
       frazil_diag (:) = c0
+      flpnd (:) = c0
+      expnd (:) = c0
+      frpnd (:) = c0
+      rfpnd (:) = c0
+      ilpnd (:) = c0
+      mipnd (:) = c0
+      rdpnd (:) = c0
 
       ! drag coefficients are computed prior to the atmo_boundary call,
       ! during the thermodynamics section
