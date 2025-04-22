@@ -95,8 +95,7 @@
          nt_bgc_DMS   = 0, & !
          nt_bgc_PON   = 0, & ! zooplankton and detritus
          nt_bgc_hum   = 0, & ! humic material
-         nt_zbgc_frac = 0, & ! fraction of tracer in the mobile phase
-         nt_bgc_S     = 0    ! Bulk salinity in fraction ice with dynamic salinity (Bio grid) (deprecated)
+         nt_zbgc_frac = 0    ! fraction of tracer in the mobile phase
 
       logical (kind=log_kind), public :: &
          tr_iage      = .false., & ! if .true., use age tracer
@@ -391,7 +390,7 @@
            nlt_bgc_DOC_in, nlt_bgc_DON_in, nlt_bgc_DIC_in, nlt_bgc_Fed_in, &
            nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
            nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
-           nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
+           nlt_bgc_PON_in, nt_zbgc_frac_in, nlt_chl_sw_in, &
            nlt_zaero_sw_in, &
            bio_index_o_in, bio_index_in)
 
@@ -433,7 +432,6 @@
              nlt_bgc_hum_in,& !
              nlt_bgc_PON_in,& ! zooplankton and detritus
              nt_zbgc_frac_in,&! fraction of tracer in the mobile phase
-             nt_bgc_S_in,   & ! (deprecated, was related to zsalinity)
              nlt_chl_sw_in    ! points to total chla in trcrn_sw
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
@@ -515,7 +513,6 @@
         if (present(nlt_bgc_PON_in)  ) nlt_bgc_PON   = nlt_bgc_PON_in
         if (present(nlt_chl_sw_in)   ) nlt_chl_sw    = nlt_chl_sw_in
         if (present(nt_zbgc_frac_in) ) nt_zbgc_frac  = nt_zbgc_frac_in
-        if (present(nt_bgc_S_in)     ) nt_bgc_S      = nt_bgc_S_in
 
         if (present(bio_index_in)) then
            nsiz = size(bio_index_in)
@@ -753,7 +750,7 @@
            nlt_bgc_DOC_out, nlt_bgc_DON_out, nlt_bgc_DIC_out, nlt_bgc_Fed_out, &
            nlt_bgc_Fep_out, nlt_bgc_Nit_out, nlt_bgc_Am_out, nlt_bgc_Sil_out, &
            nlt_bgc_DMSPp_out, nlt_bgc_DMSPd_out, nlt_bgc_DMS_out, nlt_bgc_hum_out, &
-           nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
+           nlt_bgc_PON_out, nt_zbgc_frac_out, nlt_chl_sw_out, &
            nlt_zaero_sw_out, &
            bio_index_o_out, bio_index_out)
 
@@ -795,7 +792,6 @@
              nlt_bgc_hum_out,& !
              nlt_bgc_PON_out,& ! zooplankton and detritus
              nt_zbgc_frac_out,&! fraction of tracer in the mobile phase
-             nt_bgc_S_out,   & ! (deprecated, was related to zsalinity)
              nlt_chl_sw_out    ! points to total chla in trcrn_sw
 
         integer (kind=int_kind), dimension(:), intent(out), optional :: &
@@ -875,7 +871,6 @@
         if (present(nlt_bgc_PON_out)  ) nlt_bgc_PON_out   = nlt_bgc_PON
         if (present(nlt_chl_sw_out)   ) nlt_chl_sw_out    = nlt_chl_sw
         if (present(nt_zbgc_frac_out) ) nt_zbgc_frac_out  = nt_zbgc_frac
-        if (present(nt_bgc_S_out)     ) nt_bgc_S_out      = nt_bgc_S
 
         if (present(bio_index_o_out) ) bio_index_o_out  = bio_index_o
         if (present(bio_index_out)   ) bio_index_out    = bio_index
@@ -954,7 +949,6 @@
         write(iounit,*) "  nlt_bgc_PON   = ",nlt_bgc_PON
         write(iounit,*) "  nlt_chl_sw    = ",nlt_chl_sw
         write(iounit,*) "  nt_zbgc_frac  = ",nt_zbgc_frac
-        write(iounit,*) "  nt_bgc_S      = ",nt_bgc_S," (deprecated)"
 
         write(iounit,*) "  max_nbtrcr = ",max_nbtrcr
         do k = 1, max_nbtrcr

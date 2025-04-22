@@ -9,8 +9,8 @@
       use icepack_kinds
       use icepack_parameters, only: p01, p001, p5, c0, c1, c2, c1p5, puny, p25
       use icepack_parameters, only: gravit, rhoi, rhow, rhos, depressT
-      use icepack_parameters, only: salt_loss, min_salin, rhosi
-      use icepack_parameters, only: dts_b, l_sk
+      use icepack_parameters, only: min_salin, rhosi
+      use icepack_parameters, only: l_sk
       use icepack_tracers, only: nilyr, nblyr, ntrcr, nt_qice, nt_sice
       use icepack_tracers, only: nt_Tsfc
       use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
@@ -28,8 +28,7 @@
                 compute_microS_mushy, &
                 update_hbrine, &
                 calculate_drho, &
-                icepack_init_hbrine, &
-                icepack_init_zsalinity   ! deprecated
+                icepack_init_hbrine
 
       real (kind=dbl_kind), parameter :: &
          maxhbr  = 1.25_dbl_kind  , & ! brine overflows if hbr > maxhbr*hin
@@ -51,7 +50,7 @@
 
 !=======================================================================
 ! Computes the top and bottom brine boundary changes for flushing
-! works for zsalinity and tr_salinity
+! works for tr_salinity
 !
 ! NOTE: In this subroutine, trcrn(nt_fbri) is the volume fraction of ice with
 ! dynamic salinity or the height ratio = hbr/vicen*aicen, where hbr is the
@@ -680,7 +679,7 @@
       ! Calculate bio gridn: 0 to 1 corresponds to ice top to bottom
       !-----------------------------------------------------------------
 
-      bgrid(:)       = c0 ! zsalinity grid points
+      bgrid(:)       = c0 ! biology nondimensional vertical grid points
       bgrid(nblyr+2) = c1 ! bottom value
       igrid(:)       = c0 ! bgc interface grid points
       igrid(1)       = c0 ! ice top
@@ -738,36 +737,6 @@
 
       end subroutine icepack_init_hbrine
 
-!=======================================================================
-!autodocument_start icepack_init_zsalinity
-!  **DEPRECATED**, all code removed
-!  Interface provided for backwards compatibility
-
-      subroutine icepack_init_zsalinity(Rayleigh_criteria, &
-               Rayleigh_real, trcrn_bgc, sss)
-
-      logical (kind=log_kind), intent(inout) :: &
-       Rayleigh_criteria
-
-      real (kind=dbl_kind), intent(inout):: &
-       Rayleigh_real
-
-      real (kind=dbl_kind), intent(in):: &
-       sss
-
-      real (kind=dbl_kind), dimension(:,:), intent(inout):: &
-       trcrn_bgc  ! bgc subset of trcrn
-
-!autodocument_end
-
-      ! local variables
-
-      character(len=*),parameter :: subname='(icepack_init_zsalinity)'
-
-      call icepack_warnings_add(subname//' DEPRECATED, do not use')
-!      call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-
-      end subroutine icepack_init_zsalinity
 !=======================================================================
 
       end module icepack_brine

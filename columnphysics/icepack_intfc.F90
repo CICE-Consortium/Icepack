@@ -92,7 +92,6 @@
       use icepack_shortwave, only: icepack_step_radiation
 
       use icepack_brine, only: icepack_init_hbrine
-      use icepack_brine, only: icepack_init_zsalinity    ! deprecated
 
       use icepack_zbgc , only: icepack_init_bgc
       use icepack_zbgc , only: icepack_init_zbgc
