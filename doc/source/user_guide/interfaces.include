@@ -783,7 +783,7 @@ icepack_init_parameters
            min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, hs_ssl_min_in, &
            awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
            qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
-           ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in &
+           ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, &
            update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
            cpl_frazil_in, &
            Rac_rapid_mode_in, aspect_rapid_mode_in, &
@@ -1109,7 +1109,7 @@ icepack_init_parameters
   
         real (kind=dbl_kind), intent(in), optional :: &
            grid_o_in      , & ! for bottom flux
-           l_sk_in        , & ! characteristic diffusive scale (zsalinity) (m)
+           l_sk_in        , & ! characteristic diffusive scale (m)
            grid_o_t_in    , & ! top grid point length scale
            initbio_frac_in, & ! fraction of ocean tracer concentration used to initialize tracer
            phi_snow_in        ! snow porosity at the ice/snow interface
@@ -1668,7 +1668,7 @@ icepack_query_parameters
   
         real (kind=dbl_kind), intent(out), optional :: &
            grid_o_out      , & ! for bottom flux
-           l_sk_out        , & ! characteristic diffusive scale (zsalinity) (m)
+           l_sk_out        , & ! characteristic diffusive scale (m)
            grid_o_t_out    , & ! top grid point length scale
            initbio_frac_out, & ! fraction of ocean tracer concentration used to initialize tracer
            phi_snow_out        ! snow porosity at the ice/snow interface
