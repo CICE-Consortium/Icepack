@@ -614,7 +614,7 @@
           modal_aero, restore_bgc
 
       logical (kind=log_kind) :: &
-          solve_zsal        ! deprecated with zsalinity
+          solve_zsal = .false.   ! deprecated with zsalinity
 
       character (char_len) :: &
           bgc_flux_type
