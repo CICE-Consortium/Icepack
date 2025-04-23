@@ -1331,11 +1331,9 @@
       econ = min(wk1, c0)     ! energy for condensation, < 0
 
       wk1 = (fsurfn - fcondtopn) * dt
-      ! wk1 = fsurfn * dt
       etop_mlt = max(wk1, c0)           ! etop_mlt > 0
 
       wk1 = (fcondbotn - fbot + fcondtopn_extra) * dt
-      ! wk1 = (fcondbotn - fbot) * dt
       ebot_mlt = max(wk1, c0)           ! ebot_mlt > 0
       ebot_gro = min(wk1, c0)           ! ebot_gro < 0
 
@@ -1626,7 +1624,6 @@
       !-----------------------------------------------------------------
 
       fhocnn = fbot + (esub + etop_mlt + ebot_mlt + e_num)/dt
-      ! fhocnn = fbot + (esub + etop_mlt + ebot_mlt)/dt
 
     !-----------------------------------------------------------------
     ! Add new snowfall at top surface

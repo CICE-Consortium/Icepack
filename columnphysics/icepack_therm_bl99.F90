@@ -567,7 +567,6 @@
                else
                   zTsn(k) = c0
                endif
-               ! if (l_brine) zTsn(k) = min(zTsn(k), c0)
                if ((l_brine) .and. zTsn(k)>c0) then
 
                   ! Alex West: return this energy to the ocean
