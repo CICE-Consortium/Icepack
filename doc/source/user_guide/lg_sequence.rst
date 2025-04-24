@@ -126,7 +126,6 @@ computation and a routine to update the radiation computation::
 icepack_brine addresses brine computations::
 
       use icepack_brine, only: icepack_init_hbrine
-      use icepack_brine, only: icepack_init_zsalinity  ! DEPRECATED
 
 icepack_zbgc contains several public interfaces to support initialization
 and computation for the skeletal layer bgc and zbgc options::

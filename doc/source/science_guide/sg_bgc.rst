@@ -456,12 +456,6 @@ flags in **icepack\_in** must be true: a) ``tr_brine``, b) ``z_tracers``, and c)
    This is appropriate for the black carbon and dust aerosols specified
    by ``tr_zaero`` true.
 
-.. zsalinity is being deprecated
-.. In addition, a halodynamics scheme must also be used. The default
-.. thermo-halodynamics is mushy layer ``ktherm`` set to 2. An alternative uses
-.. the Bitz and Lipscomb thermodynamics ``ktherm`` set to 1 and ``solve_zsal``
-.. true (referred to as "zsalinity").
-
 With the above flags and ``tr_bgc_Nit`` set to true, the default biochemistry is a simple
 algal-nitrate system: ``tr_bgc_N`` (turned on by default) and ``tr_bgc_Nit`` (required). Options
 exist in **icepack\_in** to use a more complicated ecosystem which includes up

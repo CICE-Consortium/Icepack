@@ -100,32 +100,6 @@ icepack_init_hbrine
   
  
 
-.. _icepack_init_zsalinity:
-
-icepack_init_zsalinity
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. code-block:: fortran
-
-  !  **DEPRECATED**, all code removed
-  !  Interface provided for backwards compatibility
-  
-        subroutine icepack_init_zsalinity(Rayleigh_criteria, &
-                 Rayleigh_real, trcrn_bgc, sss)
-  
-        logical (kind=log_kind), intent(inout) :: &
-         Rayleigh_criteria
-  
-        real (kind=dbl_kind), intent(inout):: &
-         Rayleigh_real
-  
-        real (kind=dbl_kind), intent(in):: &
-         sss
-  
-        real (kind=dbl_kind), dimension(:,:), intent(inout):: &
-         trcrn_bgc  ! bgc subset of trcrn
-  
- 
-
 icepack_fsd.F90
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -279,7 +253,6 @@ icepack_intfc.F90
         use icepack_shortwave, only: icepack_step_radiation
   
         use icepack_brine, only: icepack_init_hbrine
-        use icepack_brine, only: icepack_init_zsalinity    ! deprecated
   
         use icepack_zbgc , only: icepack_init_bgc
         use icepack_zbgc , only: icepack_init_zbgc
@@ -489,7 +462,7 @@ icepack_step_ridge
                                       dvirdgndt,                   &
                                       araftn,       vraftn,        &
                                       aice,         fsalt,         &
-                                      first_ice,    fzsal,         &
+                                      first_ice,                   &
                                       flux_bio,     closing,       &
                                       Tf,                          &
                                       docleanup,    dorebin)
@@ -530,9 +503,6 @@ icepack_step_ridge
            fresh    , & ! fresh water flux to ocean (kg/m^2/s)
            fsalt    , & ! salt flux to ocean (kg/m^2/s)
            fhocn        ! net heat flux to ocean (W/m^2)
-  
-        real (kind=dbl_kind), intent(inout), optional :: &
-           fzsal        ! zsalinity flux to ocean(kg/m^2/s) (deprecated)
   
         real (kind=dbl_kind), intent(inout), optional :: &
            closing      ! rate of closing due to divergence/shear (1/s)
@@ -809,12 +779,11 @@ icepack_init_parameters
            iceruf_in, Cf_in, Pstar_in, Cstar_in, kappav_in, &
            kice_in, ksno_in, &
            zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
-           saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
-           Tliquidus_max_in, &
+           saltmax_in, phi_init_in, min_salin_in, Tliquidus_max_in, &
            min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, hs_ssl_min_in, &
            awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
            qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
-           ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
+           ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, &
            update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
            cpl_frazil_in, &
            Rac_rapid_mode_in, aspect_rapid_mode_in, &
@@ -831,8 +800,7 @@ icepack_init_parameters
            dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
            bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
            modal_aero_in, use_macromolecules_in, restartbgc_in, skl_bgc_in, &
-           solve_zsal_in, grid_o_in, l_sk_in, &
-           initbio_frac_in, grid_oS_in, l_skS_in,  dEdd_algae_in, &
+           grid_o_in, l_sk_in, initbio_frac_in, dEdd_algae_in, &
            phi_snow_in, T_max_in, fsal_in, use_atm_dust_iron_in, &
            fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
            op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
@@ -932,7 +900,6 @@ icepack_init_parameters
            saltmax_in,    & ! max salinity at ice base for BL99 (ppt)
            phi_init_in,   & ! initial liquid fraction of frazil
            min_salin_in,  & ! threshold for brine pocket treatment
-           salt_loss_in,  & ! fraction of salt retained in zsalinity
            Tliquidus_max_in, & ! maximum liquidus temperature of mush (C)
            dSin0_frazil_in  ! bulk salinity reduction of newly formed frazil
   
@@ -954,7 +921,6 @@ icepack_init_parameters
            update_ocn_f_in    ! include fresh water and salt fluxes for frazil
   
         real (kind=dbl_kind), intent(in), optional :: &
-           dts_b_in,   &      ! zsalinity timestep
            hi_min_in,  &      ! minimum ice thickness allowed (m) for thermo
            ustar_min_in       ! minimum friction velocity for ice-ocean heat flux
   
@@ -1139,19 +1105,14 @@ icepack_init_parameters
            conserv_check_in     ! if .true., run conservation checks and abort if checks fail
   
         logical (kind=log_kind), intent(in), optional :: &
-           skl_bgc_in,        &   ! if true, solve skeletal biochemistry
-           solve_zsal_in          ! if true, update salinity profile from solve_S_dt
+           skl_bgc_in         ! if true, solve skeletal biochemistry
   
         real (kind=dbl_kind), intent(in), optional :: &
            grid_o_in      , & ! for bottom flux
-           l_sk_in        , & ! characteristic diffusive scale (zsalinity) (m)
+           l_sk_in        , & ! characteristic diffusive scale (m)
            grid_o_t_in    , & ! top grid point length scale
            initbio_frac_in, & ! fraction of ocean tracer concentration used to initialize tracer
            phi_snow_in        ! snow porosity at the ice/snow interface
-  
-        real (kind=dbl_kind), intent(in), optional :: &
-           grid_oS_in     , & ! for bottom flux (zsalinity)
-           l_skS_in           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
   
         real (kind=dbl_kind), intent(in), optional :: &
            ratio_Si2N_diatoms_in, &   ! algal Si to N (mol/mol)
@@ -1368,13 +1329,12 @@ icepack_query_parameters
            iceruf_out, Cf_out, Pstar_out, Cstar_out, kappav_out, &
            kice_out, ksno_out, &
            zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
-           saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
-           Tliquidus_max_out, &
+           saltmax_out, phi_init_out, min_salin_out, Tliquidus_max_out, &
            min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, hs_ssl_min_out, &
            awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, cpl_frazil_out, &
            qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
            Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
-           ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
+           ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, &
            Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
            phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
            albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
@@ -1389,8 +1349,7 @@ icepack_query_parameters
            dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
            bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
            modal_aero_out, use_macromolecules_out, restartbgc_out, use_atm_dust_iron_out, &
-           skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
-           initbio_frac_out, grid_oS_out, l_skS_out, &
+           skl_bgc_out, grid_o_out, l_sk_out, initbio_frac_out, &
            phi_snow_out, conserv_check_out, &
            fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &
            T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
@@ -1498,7 +1457,6 @@ icepack_query_parameters
            saltmax_out,    & ! max salinity at ice base for BL99 (ppt)
            phi_init_out,   & ! initial liquid fraction of frazil
            min_salin_out,  & ! threshold for brine pocket treatment
-           salt_loss_out,  & ! fraction of salt retained in zsalinity
            Tliquidus_max_out, & ! maximum liquidus temperature of mush (C)
            dSin0_frazil_out  ! bulk salinity reduction of newly formed frazil
   
@@ -1520,7 +1478,6 @@ icepack_query_parameters
            update_ocn_f_out   ! include fresh water and salt fluxes for frazil
   
         real (kind=dbl_kind), intent(out), optional :: &
-           dts_b_out,   &      ! zsalinity timestep
            hi_min_out,  &      ! minimum ice thickness allowed (m) for thermo
            ustar_min_out       ! minimum friction velocity for ice-ocean heat flux
   
@@ -1707,19 +1664,14 @@ icepack_query_parameters
            conserv_check_out     ! if .true., run conservation checks and abort if checks fail
   
         logical (kind=log_kind), intent(out), optional :: &
-           skl_bgc_out,        &   ! if true, solve skeletal biochemistry
-           solve_zsal_out          ! if true, update salinity profile from solve_S_dt
+           skl_bgc_out         ! if true, solve skeletal biochemistry
   
         real (kind=dbl_kind), intent(out), optional :: &
            grid_o_out      , & ! for bottom flux
-           l_sk_out        , & ! characteristic diffusive scale (zsalinity) (m)
+           l_sk_out        , & ! characteristic diffusive scale (m)
            grid_o_t_out    , & ! top grid point length scale
            initbio_frac_out, & ! fraction of ocean tracer concentration used to initialize tracer
            phi_snow_out        ! snow porosity at the ice/snow interface
-  
-        real (kind=dbl_kind), intent(out), optional :: &
-           grid_oS_out     , & ! for bottom flux (zsalinity)
-           l_skS_out           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
   
         real (kind=dbl_kind), intent(out), optional :: &
            ratio_Si2N_diatoms_out, &   ! algal Si to N (mol/mol)
@@ -2253,7 +2205,7 @@ icepack_step_therm2
                                        fresh,        fsalt,         &
                                        fhocn,        update_ocn_f,  &
                                        faero_ocn,                   &
-                                       first_ice,    fzsal,         &
+                                       first_ice,                   &
                                        flux_bio,     ocean_bio,     &
                                        frazil_diag,                 &
                                        frz_onset,    yday,          &
@@ -2307,9 +2259,6 @@ icepack_step_therm2
            meltl    , & ! lateral ice melt         (m/step-->cm/day)
            frazil   , & ! frazil ice growth        (m/step-->cm/day)
            frazil_diag  ! frazil ice growth diagnostic (m/step-->cm/day)
-  
-        real (kind=dbl_kind), intent(inout), optional :: &
-           fzsal        ! salt flux to ocean from zsalinity (kg/m^2/s) (deprecated)
   
         real (kind=dbl_kind), intent(in), optional :: &
            wlat         ! lateral melt rate (m/s)
@@ -2733,7 +2682,7 @@ icepack_step_therm1
            Tsfc        , & ! ice/snow surface temperature, Tsfcn
            alvl        , & ! level ice area fraction
            vlvl        , & ! level ice volume fraction
-           apnd        , & ! melt pond area fraction
+           apnd        , & ! melt pond area fraction tracer
            hpnd        , & ! melt pond depth                        (m)
            ipnd        , & ! melt pond refrozen lid thickness       (m)
            iage        , & ! volume-weighted ice age
@@ -2913,7 +2862,7 @@ icepack_init_tracer_indices
              nlt_bgc_DOC_in, nlt_bgc_DON_in, nlt_bgc_DIC_in, nlt_bgc_Fed_in, &
              nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
              nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
-             nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
+             nlt_bgc_PON_in, nt_zbgc_frac_in, nlt_chl_sw_in, &
              nlt_zaero_sw_in, &
              bio_index_o_in, bio_index_in)
   
@@ -2955,7 +2904,6 @@ icepack_init_tracer_indices
                nlt_bgc_hum_in,& !
                nlt_bgc_PON_in,& ! zooplankton and detritus
                nt_zbgc_frac_in,&! fraction of tracer in the mobile phase
-               nt_bgc_S_in,   & ! (deprecated, was related to zsalinity)
                nlt_chl_sw_in    ! points to total chla in trcrn_sw
   
           integer (kind=int_kind), dimension(:), intent(in), optional :: &
@@ -3017,7 +2965,7 @@ icepack_query_tracer_indices
              nlt_bgc_DOC_out, nlt_bgc_DON_out, nlt_bgc_DIC_out, nlt_bgc_Fed_out, &
              nlt_bgc_Fep_out, nlt_bgc_Nit_out, nlt_bgc_Am_out, nlt_bgc_Sil_out, &
              nlt_bgc_DMSPp_out, nlt_bgc_DMSPd_out, nlt_bgc_DMS_out, nlt_bgc_hum_out, &
-             nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
+             nlt_bgc_PON_out, nt_zbgc_frac_out, nlt_chl_sw_out, &
              nlt_zaero_sw_out, &
              bio_index_o_out, bio_index_out)
   
@@ -3059,7 +3007,6 @@ icepack_query_tracer_indices
                nlt_bgc_hum_out,& !
                nlt_bgc_PON_out,& ! zooplankton and detritus
                nt_zbgc_frac_out,&! fraction of tracer in the mobile phase
-               nt_bgc_S_out,   & ! (deprecated, was related to zsalinity)
                nlt_chl_sw_out    ! points to total chla in trcrn_sw
   
           integer (kind=int_kind), dimension(:), intent(out), optional :: &
@@ -3228,7 +3175,7 @@ icepack_compute_tracers
                                             trcr_base, n_trcr_strata,  &
                                             nt_strata, trcrn, Tf)
   
-        integer (kind=int_kind), dimension (ntrcr), intent(in) :: &
+        integer (kind=int_kind), dimension (:), intent(in) :: &
            trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
            n_trcr_strata  ! number of underlying tracer layers
   
@@ -3247,7 +3194,7 @@ icepack_compute_tracers
            vicen , & ! volume per unit area of ice          (m)
            vsnon     ! volume per unit area of snow         (m)
   
-        real (kind=dbl_kind), dimension (ntrcr), intent(out) :: &
+        real (kind=dbl_kind), dimension (:), intent(out) :: &
            trcrn     ! ice tracers
   
         real (kind=dbl_kind), intent(in) :: &

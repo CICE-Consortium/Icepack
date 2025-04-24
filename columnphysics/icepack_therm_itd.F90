@@ -26,7 +26,7 @@
       use icepack_parameters, only: c0, c1, c2, c3, c4, c6, c10
       use icepack_parameters, only: p001, p1, p333, p5, p666, puny, bignum
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
-      use icepack_parameters, only: phi_init, dsin0_frazil, salt_loss
+      use icepack_parameters, only: phi_init, dsin0_frazil
       use icepack_parameters, only: Tliquidus_max
       use icepack_parameters, only: rhosi, conserv_check, rhosmin, snwredist
       use icepack_parameters, only: kitd, ktherm
@@ -1886,7 +1886,7 @@
                                      fresh,        fsalt,         &
                                      fhocn,        update_ocn_f,  &
                                      faero_ocn,                   &
-                                     first_ice,    fzsal,         &
+                                     first_ice,                   &
                                      flux_bio,     ocean_bio,     &
                                      frazil_diag,                 &
                                      frz_onset,    yday,          &
@@ -1944,9 +1944,6 @@
 
       real (kind=dbl_kind), intent(inout), optional :: &
          mipnd        ! pond 'drainage' due to ice melting (m / step)
-
-      real (kind=dbl_kind), intent(inout), optional :: &
-         fzsal        ! salt flux to ocean from zsalinity (kg/m^2/s) (deprecated)
 
       real (kind=dbl_kind), intent(in), optional :: &
          wlat         ! lateral melt rate (m/s)

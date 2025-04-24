@@ -1759,7 +1759,7 @@
                                     dvirdgndt,                   &
                                     araftn,       vraftn,        &
                                     aice,         fsalt,         &
-                                    first_ice,    fzsal,         &
+                                    first_ice,                   &
                                     flux_bio,     closing,       &
                                     Tf,           rdpnd,         &
                                     docleanup,    dorebin)
@@ -1800,9 +1800,6 @@
          fresh    , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt    , & ! salt flux to ocean (kg/m^2/s)
          fhocn        ! net heat flux to ocean (W/m^2)
-
-      real (kind=dbl_kind), intent(inout), optional :: &
-         fzsal        ! zsalinity flux to ocean(kg/m^2/s) (deprecated)
 
       real (kind=dbl_kind), intent(inout), optional :: &
          closing      ! rate of closing due to divergence/shear (1/s)
