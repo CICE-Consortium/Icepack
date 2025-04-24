@@ -726,9 +726,6 @@
             fcondbot = kh(1+nslyr+nilyr) * &
                        (zTin(nilyr) - Tbot)
 
-            ! Flux extra energy out of the ice
-            ! fcondbot = fcondbot + einex/dt
-
             ferr = abs( (enew-einit+e_num)/dt &
                  - (fcondtopn - fcondbot + fswint) )
 
