@@ -610,16 +610,21 @@
           tr_bgc_hum,    tr_aero
 
       logical (kind=log_kind) :: &
-          solve_zsal, skl_bgc, z_tracers, scale_bgc, solve_zbgc, dEdd_algae, &
+          skl_bgc, z_tracers, scale_bgc, solve_zbgc, dEdd_algae, &
           modal_aero, restore_bgc
+
+      logical (kind=log_kind) :: &
+          solve_zsal = .false.   ! deprecated with zsalinity
 
       character (char_len) :: &
           bgc_flux_type
 
       real (kind=dbl_kind) :: &
+          grid_oS, l_skS    ! deprecated with zsalinity
+
+      real (kind=dbl_kind) :: &
           grid_o, grid_o_t, l_sk, initbio_frac, &
-          frazil_scav, grid_oS, l_skS, &
-          phi_snow, &
+          frazil_scav, phi_snow, &
           ratio_Si2N_diatoms , ratio_Si2N_sp      , ratio_Si2N_phaeo   ,  &
           ratio_S2N_diatoms  , ratio_S2N_sp       , ratio_S2N_phaeo    ,  &
           ratio_Fe2C_diatoms , ratio_Fe2C_sp      , ratio_Fe2C_phaeo   ,  &
@@ -827,7 +832,7 @@
            dEdd_algae_out=dEdd_algae, solve_zbgc_out=solve_zbgc, grid_o_t_out=grid_o_t, &
            bgc_flux_type_out=bgc_flux_type, grid_o_out=grid_o, l_sk_out=l_sk, &
            initbio_frac_out=initbio_frac, frazil_scav_out=frazil_scav, &
-           grid_oS_out=grid_oS, l_skS_out=l_skS, phi_snow_out=phi_snow, &
+           phi_snow_out=phi_snow, &
            algal_vel_out=algal_vel, R_dFe2dust_out=R_dFe2dust, &
            dustFe_sol_out=dustFe_sol, T_max_out=T_max, fsal_out=fsal, &
            op_dep_min_out=op_dep_min, fr_graze_s_out=fr_graze_s, &
@@ -835,7 +840,7 @@
            fr_dFe_out=fr_dFe, k_nitrif_out=k_nitrif, t_iron_conv_out=t_iron_conv, &
            max_loss_out=max_loss, max_dfe_doc1_out=max_dfe_doc1, fr_resp_out=fr_resp, &
            fr_resp_s_out=fr_resp_s, y_sk_DMS_out=y_sk_DMS, t_sk_conv_out=t_sk_conv, &
-           t_sk_ox_out=t_sk_ox, modal_aero_out=modal_aero, solve_zsal_out = solve_zsal)
+           t_sk_ox_out=t_sk_ox, modal_aero_out=modal_aero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -1178,7 +1183,7 @@
            dEdd_algae_in=dEdd_algae, solve_zbgc_in=solve_zbgc, grid_o_t_in=grid_o_t, &
            bgc_flux_type_in=bgc_flux_type, grid_o_in=grid_o, l_sk_in=l_sk, &
            initbio_frac_in=initbio_frac, frazil_scav_in=frazil_scav, &
-           grid_oS_in=grid_oS, l_skS_in=l_skS, phi_snow_in=phi_snow, &
+           phi_snow_in=phi_snow, &
            algal_vel_in=algal_vel, R_dFe2dust_in=R_dFe2dust, &
            dustFe_sol_in=dustFe_sol, T_max_in=T_max, fsal_in=fsal, &
            op_dep_min_in=op_dep_min, fr_graze_s_in=fr_graze_s, &
@@ -1186,7 +1191,7 @@
            fr_dFe_in=fr_dFe, k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, &
            max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, fr_resp_in=fr_resp, &
            fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, t_sk_conv_in=t_sk_conv, &
-           t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero, solve_zsal_in = solve_zsal)
+           t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)

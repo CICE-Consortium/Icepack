@@ -126,10 +126,8 @@
                                         ! phi_init, dSin0_frazil are for mushy thermo
          phi_init  = 0.75_dbl_kind    ,&! initial liquid fraction of frazil
          min_salin = p1               ,&! threshold for brine pocket treatment
-         salt_loss = 0.4_dbl_kind     ,&! fraction of salt retained in zsalinity
          Tliquidus_max = c0           ,&! maximum liquidus temperature of mush (C)
          dSin0_frazil = c3            ,&! bulk salinity reduction of newly formed frazil
-         dts_b     = 50._dbl_kind     ,&! zsalinity timestep
          ustar_min = 0.005_dbl_kind   ,&! minimum friction velocity for ocean heat flux (m/s)
          hi_min    = p01              ,&! minimum ice thickness allowed (m) for thermo
          ! mushy thermo
@@ -156,7 +154,6 @@
                                   ! if false, Tsfc is computed elsewhere and
                                   ! atmos-ice fluxes are provided to CICE
          update_ocn_f = .false. ,&! include fresh water and salt fluxes for frazil
-         solve_zsal   = .false. ,&! if true, update salinity profile from solve_S_dt
          modal_aero   = .false. ,&! if true, use modal aerosal optical properties
                                   ! only for use with tr_aero or tr_zaero
          conserv_check = .false.  ! if true, do conservations checks and abort
@@ -410,9 +407,7 @@
          phi_snow     = -1.0_dbl_kind   , & ! snow porosity (compute from snow density if negative)
          grid_o       = 0.006_dbl_kind  , & ! for bottom flux
          initbio_frac = c1              , & ! fraction of ocean trcr concentration in bio trcrs
-         l_sk         = 2.0_dbl_kind    , & ! characteristic diffusive scale (m)
-         grid_oS      = c0              , & ! for bottom flux
-         l_skS        = 0.028_dbl_kind  , & ! characteristic skeletal layer thickness (m) (zsalinity)
+         l_sk         = 2.0_dbl_kind    , & ! characteristic diffusive scale brine (m)
          algal_vel    = 1.0e-7_dbl_kind , & ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
          R_dFe2dust   = 0.035_dbl_kind  , & !  g/g (3.5% content) Tagliabue 2009
          dustFe_sol   = 0.005_dbl_kind  , & ! solubility fraction
@@ -555,12 +550,11 @@
          iceruf_in, Cf_in, Pstar_in, Cstar_in, kappav_in, &
          kice_in, ksno_in, &
          zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
-         saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
-         Tliquidus_max_in, &
+         saltmax_in, phi_init_in, min_salin_in, Tliquidus_max_in, &
          min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, hs_ssl_min_in, &
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
-         ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
+         ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, &
          update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
          cpl_frazil_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
@@ -577,8 +571,7 @@
          dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
          bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
          modal_aero_in, use_macromolecules_in, restartbgc_in, skl_bgc_in, &
-         solve_zsal_in, grid_o_in, l_sk_in, &
-         initbio_frac_in, grid_oS_in, l_skS_in,  dEdd_algae_in, &
+         grid_o_in, l_sk_in, initbio_frac_in, dEdd_algae_in, &
          phi_snow_in, T_max_in, fsal_in, use_atm_dust_iron_in, &
          fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
          op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
@@ -678,7 +671,6 @@
          saltmax_in,    & ! max salinity at ice base for BL99 (ppt)
          phi_init_in,   & ! initial liquid fraction of frazil
          min_salin_in,  & ! threshold for brine pocket treatment
-         salt_loss_in,  & ! fraction of salt retained in zsalinity
          Tliquidus_max_in, & ! maximum liquidus temperature of mush (C)
          dSin0_frazil_in  ! bulk salinity reduction of newly formed frazil
 
@@ -700,7 +692,6 @@
          update_ocn_f_in    ! include fresh water and salt fluxes for frazil
 
       real (kind=dbl_kind), intent(in), optional :: &
-         dts_b_in,   &      ! zsalinity timestep
          hi_min_in,  &      ! minimum ice thickness allowed (m) for thermo
          ustar_min_in       ! minimum friction velocity for ice-ocean heat flux
 
@@ -885,19 +876,14 @@
          conserv_check_in     ! if .true., run conservation checks and abort if checks fail
 
       logical (kind=log_kind), intent(in), optional :: &
-         skl_bgc_in,        &   ! if true, solve skeletal biochemistry
-         solve_zsal_in          ! if true, update salinity profile from solve_S_dt
+         skl_bgc_in         ! if true, solve skeletal biochemistry
 
       real (kind=dbl_kind), intent(in), optional :: &
          grid_o_in      , & ! for bottom flux
-         l_sk_in        , & ! characteristic diffusive scale (zsalinity) (m)
+         l_sk_in        , & ! characteristic diffusive scale (m)
          grid_o_t_in    , & ! top grid point length scale
          initbio_frac_in, & ! fraction of ocean tracer concentration used to initialize tracer
          phi_snow_in        ! snow porosity at the ice/snow interface
-
-      real (kind=dbl_kind), intent(in), optional :: &
-         grid_oS_in     , & ! for bottom flux (zsalinity)
-         l_skS_in           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
 
       real (kind=dbl_kind), intent(in), optional :: &
          ratio_Si2N_diatoms_in, &   ! algal Si to N (mol/mol)
@@ -1146,7 +1132,6 @@
       if (present(saltmax_in)           ) saltmax          = saltmax_in
       if (present(phi_init_in)          ) phi_init         = phi_init_in
       if (present(min_salin_in)         ) min_salin        = min_salin_in
-      if (present(salt_loss_in)         ) salt_loss        = salt_loss_in
       if (present(Tliquidus_max_in)     ) Tliquidus_max    = Tliquidus_max_in
       if (present(min_bgc_in)           ) min_bgc          = min_bgc_in
       if (present(dSin0_frazil_in)      ) dSin0_frazil     = dSin0_frazil_in
@@ -1168,7 +1153,6 @@
       if (present(calc_Tsfc_in)         ) calc_Tsfc        = calc_Tsfc_in
       if (present(cpl_frazil_in)        ) cpl_frazil       = cpl_frazil_in
       if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
-      if (present(dts_b_in)             ) dts_b            = dts_b_in
       if (present(ustar_min_in)         ) ustar_min        = ustar_min_in
       if (present(hi_min_in)            ) hi_min           = hi_min_in
       if (present(a_rapid_mode_in)      ) a_rapid_mode     = a_rapid_mode_in
@@ -1362,19 +1346,11 @@
       if (present(restartbgc_in)     ) restartbgc    = restartbgc_in
       if (present(conserv_check_in)     ) conserv_check    = conserv_check_in
       if (present(skl_bgc_in)           ) skl_bgc          = skl_bgc_in
-      if (present(solve_zsal_in)) then
-         call icepack_warnings_add(subname//' WARNING: zsalinity is deprecated')
-         if (solve_zsal_in) then
-            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         endif
-      endif
       if (present(grid_o_in)            ) grid_o           = grid_o_in
       if (present(l_sk_in)              ) l_sk             = l_sk_in
       if (present(grid_o_t_in)          ) grid_o_t         = grid_o_t_in
       if (present(frazil_scav_in)       ) frazil_scav      = frazil_scav_in
       if (present(initbio_frac_in)      ) initbio_frac     = initbio_frac_in
-      if (present(grid_oS_in)           ) grid_oS          = grid_oS_in
-      if (present(l_skS_in)             ) l_skS            = l_skS_in
       if (present(phi_snow_in)          ) phi_snow         = phi_snow_in
 
       if (present(ratio_Si2N_diatoms_in) ) ratio_Si2N_diatoms = ratio_Si2N_diatoms_in
@@ -1566,13 +1542,12 @@
          iceruf_out, Cf_out, Pstar_out, Cstar_out, kappav_out, &
          kice_out, ksno_out, &
          zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
-         saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
-         Tliquidus_max_out, &
+         saltmax_out, phi_init_out, min_salin_out, Tliquidus_max_out, &
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, hs_ssl_min_out, &
          awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, cpl_frazil_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
-         ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
+         ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
          phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
          albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
@@ -1587,8 +1562,7 @@
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
          modal_aero_out, use_macromolecules_out, restartbgc_out, use_atm_dust_iron_out, &
-         skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
-         initbio_frac_out, grid_oS_out, l_skS_out, &
+         skl_bgc_out, grid_o_out, l_sk_out, initbio_frac_out, &
          phi_snow_out, conserv_check_out, &
          fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &
          T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
@@ -1696,7 +1670,6 @@
          saltmax_out,    & ! max salinity at ice base for BL99 (ppt)
          phi_init_out,   & ! initial liquid fraction of frazil
          min_salin_out,  & ! threshold for brine pocket treatment
-         salt_loss_out,  & ! fraction of salt retained in zsalinity
          Tliquidus_max_out, & ! maximum liquidus temperature of mush (C)
          dSin0_frazil_out  ! bulk salinity reduction of newly formed frazil
 
@@ -1718,7 +1691,6 @@
          update_ocn_f_out   ! include fresh water and salt fluxes for frazil
 
       real (kind=dbl_kind), intent(out), optional :: &
-         dts_b_out,   &      ! zsalinity timestep
          hi_min_out,  &      ! minimum ice thickness allowed (m) for thermo
          ustar_min_out       ! minimum friction velocity for ice-ocean heat flux
 
@@ -1905,19 +1877,14 @@
          conserv_check_out     ! if .true., run conservation checks and abort if checks fail
 
       logical (kind=log_kind), intent(out), optional :: &
-         skl_bgc_out,        &   ! if true, solve skeletal biochemistry
-         solve_zsal_out          ! if true, update salinity profile from solve_S_dt
+         skl_bgc_out         ! if true, solve skeletal biochemistry
 
       real (kind=dbl_kind), intent(out), optional :: &
          grid_o_out      , & ! for bottom flux
-         l_sk_out        , & ! characteristic diffusive scale (zsalinity) (m)
+         l_sk_out        , & ! characteristic diffusive scale (m)
          grid_o_t_out    , & ! top grid point length scale
          initbio_frac_out, & ! fraction of ocean tracer concentration used to initialize tracer
          phi_snow_out        ! snow porosity at the ice/snow interface
-
-      real (kind=dbl_kind), intent(out), optional :: &
-         grid_oS_out     , & ! for bottom flux (zsalinity)
-         l_skS_out           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
 
       real (kind=dbl_kind), intent(out), optional :: &
          ratio_Si2N_diatoms_out, &   ! algal Si to N (mol/mol)
@@ -2198,7 +2165,6 @@
       if (present(saltmax_out)           ) saltmax_out      = saltmax
       if (present(phi_init_out)          ) phi_init_out     = phi_init
       if (present(min_salin_out)         ) min_salin_out    = min_salin
-      if (present(salt_loss_out)         ) salt_loss_out    = salt_loss
       if (present(Tliquidus_max_out)     ) Tliquidus_max_out= Tliquidus_max
       if (present(min_bgc_out)           ) min_bgc_out      = min_bgc
       if (present(dSin0_frazil_out)      ) dSin0_frazil_out = dSin0_frazil
@@ -2220,7 +2186,6 @@
       if (present(calc_Tsfc_out)         ) calc_Tsfc_out    = calc_Tsfc
       if (present(cpl_frazil_out)        ) cpl_frazil_out   = cpl_frazil
       if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
-      if (present(dts_b_out)             ) dts_b_out        = dts_b
       if (present(ustar_min_out)         ) ustar_min_out    = ustar_min
       if (present(hi_min_out)            ) hi_min_out       = hi_min
       if (present(a_rapid_mode_out)      ) a_rapid_mode_out = a_rapid_mode
@@ -2303,13 +2268,10 @@
       if (present(restartbgc_out)        ) restartbgc_out= restartbgc
       if (present(conserv_check_out)     ) conserv_check_out= conserv_check
       if (present(skl_bgc_out)           ) skl_bgc_out      = skl_bgc
-      if (present(solve_zsal_out)        ) solve_zsal_out   = solve_zsal
       if (present(grid_o_out)            ) grid_o_out       = grid_o
       if (present(l_sk_out)              ) l_sk_out         = l_sk
       if (present(initbio_frac_out)      ) initbio_frac_out = initbio_frac
       if (present(frazil_scav_out)       ) frazil_scav_out  = frazil_scav
-      if (present(grid_oS_out)           ) grid_oS_out      = grid_oS
-      if (present(l_skS_out)             ) l_skS_out        = l_skS
       if (present(grid_o_t_out)          ) grid_o_t_out      = grid_o_t
       if (present(phi_snow_out)          ) phi_snow_out     = phi_snow
       if (present(ratio_Si2N_diatoms_out) ) ratio_Si2N_diatoms_out = ratio_Si2N_diatoms
@@ -2497,7 +2459,6 @@
         write(iounit,*) "  saltmax    = ",saltmax
         write(iounit,*) "  phi_init   = ",phi_init
         write(iounit,*) "  min_salin  = ",min_salin
-        write(iounit,*) "  salt_loss  = ",salt_loss
         write(iounit,*) "  Tliquidus_max = ",Tliquidus_max
         write(iounit,*) "  min_bgc    = ",min_bgc
         write(iounit,*) "  dSin0_frazil = ",dSin0_frazil
@@ -2530,7 +2491,6 @@
         write(iounit,*) "  calc_Tsfc  = ", calc_Tsfc
         write(iounit,*) "  cpl_frazil = ", cpl_frazil
         write(iounit,*) "  update_ocn_f = ", update_ocn_f
-        write(iounit,*) "  dts_b      = ", dts_b
         write(iounit,*) "  ustar_min  = ", ustar_min
         write(iounit,*) "  hi_min     = ", hi_min
         write(iounit,*) "  a_rapid_mode = ", a_rapid_mode
@@ -2613,14 +2573,11 @@
         write(iounit,*) "  restartbgc = ", restartbgc
         write(iounit,*) "  conserv_check = ", conserv_check
         write(iounit,*) "  skl_bgc    = ", skl_bgc
-        write(iounit,*) "  solve_zsal = ", solve_zsal
         write(iounit,*) "  grid_o     = ", grid_o
         write(iounit,*) "  l_sk       = ", l_sk
         write(iounit,*) "  grid_o_t   = ", grid_o_t
         write(iounit,*) "  initbio_frac = ", initbio_frac
         write(iounit,*) "  frazil_scav= ", frazil_scav
-        write(iounit,*) "  grid_oS    = ", grid_oS
-        write(iounit,*) "  l_skS      = ", l_skS
         write(iounit,*) "  phi_snow   = ", phi_snow
 
         write(iounit,*) "  ratio_Si2N_diatoms = ", ratio_Si2N_diatoms
