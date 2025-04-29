@@ -116,7 +116,7 @@ be added to the melt pond liquid volume:
    \Delta V_{melt} = {r\over\rho_w} \left({\rho_{i}}\Delta h_{i} + {\rho_{s}}\Delta h_{s} + F_{rain}{\Delta t}\right) a_i,
    :label: meltvol
 
-For the topo pond parameterization and the level pond parameterization
+For the topo pond parameterization and the level-ice pond parameterization
 
 .. math:: 
    r = r_{min} + \left(r_{max} - r_{min}\right) a_i
@@ -738,7 +738,7 @@ parameterized such that when pond surfaces are at sea level and the
 category is snow-free, the pond area fraction is equal to the namelist 
 parameter ``apnd_sl`` (notated as :math:`a_{p,sl}` in :eq:`pndasp`). 
 Unless otherwise specified, the sealvl parameterization uses the same 
-parameterizations as the level pond scheme (e.g., the same approach is 
+parameterizations as the level-ice pond scheme (e.g., the same approach is 
 used to set the effective surface fractions for the Delta-Eddington 
 shortwave calculations).
 
@@ -791,7 +791,7 @@ parameterizations (below). :math:`hpsurf` is calculated by:
    hpsurf = h_{in} - pndasp + 2 * pndasp * a_{p}
    :label: hpsurf
 
-Unlike in the level pond scheme, ponds are not limited to the level ice
+Unlike in the level-ice pond scheme, ponds are not limited to the level ice
 fraction. Currently the parameterization of the hypsometric curve does
 not account for the impacts of deformed ice due to limited data. Future
 research should target this limitation.
@@ -804,8 +804,10 @@ drainage), drainage through macro-flaws in the ice (super-cm scale), an
 ice freeboard constraint, drainage during ice deformation, and pond lid
 refreezing. Meltwater is also lost when the ice melts. Unlike in the
 level or topo schemes, the sealvl scheme does not use the 'runoff'
-(``rfrac``) parameterization. Physically, runoff is the same as drainage
-through flaws in the ice. So it is handled by the macro-scale drainage.
+(``rfrac``) parameterization. nstead of draining a portion of the total 
+meltwater before it reaches the ponds via rfrac as in the topo and 
+level-ice schemes, this water is handled by the macro-scale drainage 
+in the sealvl scheme.
 
 * *Percolation Drainage.* Percolation drainage implemented in the mushy 
   thermodynamics scheme. The harmonic mean of the permeability of the 
@@ -824,7 +826,7 @@ through flaws in the ice. So it is handled by the macro-scale drainage.
   scheme, macro-flaw drainage is parameterized as an exponential decay 
   of pond height relative to sea level (a.k.a., the hydraulic head). So 
   macro-flaw drainage cannot remove pond water that sits below sea 
-  level. The level pond scheme is identical except that the exponential 
+  level. The level-ice pond scheme is identical except that the exponential 
   decay is applied to the entire pond height. The decay constant is 
   controlled by the ``tscale_pnd_drain`` namelist parameter. Currently, 
   this decay constant is uniform in time and space, but future work 
@@ -841,11 +843,9 @@ through flaws in the ice. So it is handled by the macro-scale drainage.
   other categories. If necessary, pond water is drained such that the 
   mean ice surface of the category is at sea level. I.e., the mean 
   category ice freeboard is constrained to be greater than or equal to
-  zero. The level pond scheme has the same constraint, except in the 
-  level pond scheme the ponded area of the category is assumed to be 
-  mechanically uncoupled from the surrounding ice. So in the level pond
-  scheme, the freeboard constrains pond depth to be no greater than 10%
-  of the category ice thickness.
+  zero. The level-ice pond scheme has the same constraint, except in the 
+  level-ice pond scheme the ponded area of the category is assumed to be 
+  mechanically uncoupled from the surrounding ice.
 
 * *Drainage During Ice Deformation.* In all of the pond schemes, it is 
   assumed that all pond water drains from ice undergoing deformation.

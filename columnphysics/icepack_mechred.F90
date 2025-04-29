@@ -1404,14 +1404,9 @@
                enddo
             endif
 
-            if (tr_pond_topo .or. tr_pond_sealvl) then
+            if (tr_pond_topo) then
                mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
                                       * trcrn(nt_hpnd,n)
-            endif
-
-            if (tr_pond_lvl) then
-               mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
-                                      * trcrn(nt_hpnd,n) * trcrn(nt_alvl,n)
             endif
 
       !-----------------------------------------------------------------

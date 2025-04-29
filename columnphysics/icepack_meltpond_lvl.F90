@@ -157,10 +157,11 @@
                    +                 melts*rhos &
                    +                 frain*  dt)*aicen
             endif
-            ! Track lost meltwater dvn is volume of meltwater (m3/m2) captured
-            ! over entire grid cell area. Multiply by (1-rfrac)/rfrac to get
-            ! loss over entire area. And divide by aicen to get loss per unit
-            ! category area (for consistency with melttn, frpndn, etc)
+            ! Track meltwater runoff fraction. Here dvn is volume of 
+            ! meltwater (m3/m2) captured over entire grid cell area. 
+            ! Multiply by (1-rfrac)/rfrac to get loss over entire area. 
+            ! Divide by aicen to get loss per unit category area 
+            ! (for consistency with melttn, frpndn, etc)
             rfpndn = dvn * (c1-rfrac) / (rfrac * aicen)
             dvn_temp = dvn
 

@@ -1,3 +1,6 @@
+apnd_sl      = 0.27d0
+rfracmin     = 1.0d0
+rfracmax     = 1.0d0
 tr_pond_topo = .false.
 tr_pond_lvl  = .false.
 tr_pond_sealvl = .true.

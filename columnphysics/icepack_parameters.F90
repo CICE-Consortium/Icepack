@@ -335,23 +335,27 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
-         hs0       = 0.03_dbl_kind    ! snow depth for transition to bare sea ice (m)
-
-      ! level-ice and sealvl ponds
-      character (len=char_len), public :: &
-         frzpnd    = 'cesm'     , &   ! pond refreezing parameterization
-         pndhyps   = 'sealevel' , &   ! pond hypsometry option
-         pndfrbd   = 'floor'    , &   ! over what domain to calculate freeboard constraint
-         pndhead   = 'perched'  , &   ! geometry for computing pond pressure head
-         pndmacr   = 'lambda'         ! driving force for macro-flaw pond drainage
+         hs0       = 0.03_dbl_kind, & ! snow depth for transition to bare sea ice (m)
+         hs1       = 0.03_dbl_kind    ! snow depth for transition to bare pond ice (m)
 
       real (kind=dbl_kind), public :: &
          dpscale   = 0.001_dbl_kind,& ! alter e-folding time scale for flushing (ktherm=1)
          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
          pndaspect = 0.8_dbl_kind,  & ! ratio of pond depth to area fraction
-         hs1       = 0.03_dbl_kind, & ! snow depth for transition to bare pond ice (m)
+
+      character (len=char_len), public :: &
+         frzpnd    = 'cesm'     , &   ! pond refreezing parameterization
+
+      ! sealvl ponds
+      real (kind=dbl_kind), public :: &
          apnd_sl   = 0.27_dbl_kind    ! equilibrium pond fraction for sea level parameterization
+
+      character (len=char_len), public :: &
+         pndhyps   = 'sealevel' , &   ! pond hypsometry option
+         pndfrbd   = 'floor'    , &   ! over what domain to calculate freeboard constraint
+         pndhead   = 'perched'  , &   ! geometry for computing pond pressure head
+         pndmacr   = 'lambda'         ! driving force for macro-flaw pond drainage
 
       ! topo ponds
       real (kind=dbl_kind), public :: &
