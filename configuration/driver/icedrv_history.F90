@@ -83,7 +83,7 @@
       real (kind=dbl_kind),allocatable :: &
          value1(:), value2(:,:), value3(:,:,:), value4(:,:,:,:)  ! temporary
 
-      integer (kind=dbl_kind), parameter :: num_2d = 32
+      integer (kind=dbl_kind), parameter :: num_2d = 33
       character(len=16), parameter :: fld_2d(num_2d) = &
          (/ 'aice            ', 'vice            ', 'vsno            ', &
             'uvel            ', 'vvel            ', 'divu            ', &

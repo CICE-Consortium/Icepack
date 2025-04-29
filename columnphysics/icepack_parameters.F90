@@ -342,10 +342,10 @@
          dpscale   = 0.001_dbl_kind,& ! alter e-folding time scale for flushing (ktherm=1)
          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
-         pndaspect = 0.8_dbl_kind,  & ! ratio of pond depth to area fraction
+         pndaspect = 0.8_dbl_kind     ! ratio of pond depth to area fraction
 
       character (len=char_len), public :: &
-         frzpnd    = 'cesm'     , &   ! pond refreezing parameterization
+         frzpnd    = 'cesm'           ! pond refreezing parameterization
 
       ! sealvl ponds
       real (kind=dbl_kind), public :: &
