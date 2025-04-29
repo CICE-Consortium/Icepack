@@ -1394,16 +1394,6 @@
                enddo
             endif
 
-            if (z_tracers .and. nbtrcr > 0) then
-               dzssl = p5/real(nslyr,kind=dbl_kind)
-               dzint = c1-dzssl
-               do it = 1, nbtrcr
-                  mbio(it) = mbio(it) + vsrdgn*(c1-fsnowrdg) &
-                           * (trcrn(bio_index(it) + nblyr + 1,n) * dzssl &
-                            + trcrn(bio_index(it) + nblyr + 2,n) * dzint)
-               enddo
-            endif
-
             if (tr_pond_topo) then
                mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
                                       * trcrn(nt_hpnd,n)
