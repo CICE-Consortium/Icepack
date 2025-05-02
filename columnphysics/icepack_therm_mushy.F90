@@ -3119,7 +3119,7 @@
     ! only flush if ponds are active
     if (tr_pond) then
 
-       call calc_ice_mass(phi, zTin, hilyr, ice_mass)
+       ice_mass  = c0
        perm_harm = c0
        phi_min   = c1
 
@@ -3129,6 +3129,10 @@
           !phi = icepack_mushy_liquid_fraction(zTin(k), zSin(k))
           phi_min = min(phi_min,phi(k))
 
+          ice_mass = ice_mass + phi(k) * &
+           icepack_mushy_density_brine( &
+            liquidus_brine_salinity_mush(zTin(k))) + (c1 - phi(k))*rhoi
+
           ! permeability
           perm = permeability(phi(k))
 
@@ -3137,13 +3141,19 @@
 
        enddo ! k
 
+       ice_mass = ice_mass * hilyr
+
        perm_harm = real(nilyr,dbl_kind) / perm_harm
 
        ! calculate ocean surface height above bottom of ice
        hocn = (ice_mass + hpond * apond * rhofresh + hsn * rhos) / rhow
 
        ! calculate brine height above bottom of ice
-       call pond_height(apond, hpond, hin, hbrine)
+       if (tr_pond_sealvl) then
+          call pond_height(apond, hpond, hin, hbrine)
+       else
+          hbrine = hin + hpond
+       endif
 
        ! pressure head
        dhhead = max(hbrine - hocn,c0)
