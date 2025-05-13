@@ -1,6 +1,6 @@
 {
     "license": "other-open", 
-    "description": "No description provided", 
+    "description": "View detailed release notes at https://github.com/CICE-Consortium/Icepack/releases", 
     "language": "eng", 
     "title": "CICE-Consortium/Icepack: Icepack m.n.p", 
     "keywords": [
@@ -76,8 +76,16 @@
             "name": "Mads Ribergaard"
         }, 
         {
+            "affiliation": "Alfred-Wegener-Institut Helmholz-Zentrum fur Polar- und Meersforschung", 
+            "name": "Lettie Roach"
+        }, 
+        {
             "affiliation": "Los Alamos National Laboratory", 
             "name": "Andrew Roberts"
+        }, 
+        {
+            "affiliation": "Australian Earth-System Simulator", 
+            "name": "Anton Steketee"
         }, 
         {
             "affiliation": "Los Alamos National Laboratory", 
@@ -89,6 +97,7 @@
         }
     ], 
     "access_right": "open", 
+    "repository_url": "https://github.com/CICE-Consortium/Icepack", 
     "related_identifiers": [
         {
             "identifier": "https://github.com/CICE-Consortium/Icepack/tree/Icepack1.0.0", 
