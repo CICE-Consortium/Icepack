@@ -230,10 +230,10 @@
                                   fswthrun_vdf,       &
                                   fswthrun_idr,       &
                                   fswthrun_idf,       &
-                                  fswthru_uvrdr,      &
-                                  fswthru_uvrdf,      &
-                                  fswthru_pardr,      &
-                                  fswthru_pardf,      &
+                                  fswthrun_uvrdr,     &
+                                  fswthrun_uvrdf,     &
+                                  fswthrun_pardr,     &
+                                  fswthrun_pardf,     &
                                   fswpenl,            &
                                   Iswabs,   SSwabs,   &
                                   albin,    albsn,    &
@@ -284,10 +284,10 @@
          fswthrun_vdf, & ! vis dif SW through ice to ocean (W m-2)
          fswthrun_idr, & ! nir dir SW through ice to ocean (W m-2)
          fswthrun_idf, & ! nir dif SW through ice to ocean (W m-2)
-         fswthru_uvrdr,& ! vis dir uvr SW through ice to ocean (W m-2)
-         fswthru_uvrdf,& ! vis dif uvr SW through ice to ocean (W m-2)
-         fswthru_pardr,& ! vis dir par SW through ice to ocean (W m-2)
-         fswthru_pardf   ! vis dif par SW through ice to ocean (W m-2)
+         fswthrun_uvrdr,&! vis dir uvr SW through ice to ocean (W m-2)
+         fswthrun_uvrdf,&! vis dif uvr SW through ice to ocean (W m-2)
+         fswthrun_pardr,&! vis dir par SW through ice to ocean (W m-2)
+         fswthrun_pardf  ! vis dif par SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind), intent(inout) :: &
          coszen       ! cosine(zenith angle)
@@ -450,10 +450,10 @@
          if (present(fswthrun_vdf)) fswthrun_vdf(n) = l_fswthru_vdf
          if (present(fswthrun_idr)) fswthrun_idr(n) = l_fswthru_idr
          if (present(fswthrun_idf)) fswthrun_idf(n) = l_fswthru_idf
-         if (present(fswthru_uvrdr)) fswthru_uvrdr(n) = l_fswthru_uvrdr
-         if (present(fswthru_uvrdf)) fswthru_uvrdf(n) = l_fswthru_uvrdf
-         if (present(fswthru_pardr)) fswthru_pardr(n) = l_fswthru_pardr
-         if (present(fswthru_pardf)) fswthru_pardf(n) = l_fswthru_pardf
+         if (present(fswthrun_uvrdr)) fswthrun_uvrdr(n) = l_fswthru_uvrdr
+         if (present(fswthrun_uvrdf)) fswthrun_uvrdf(n) = l_fswthru_uvrdf
+         if (present(fswthrun_pardr)) fswthrun_pardr(n) = l_fswthru_pardr
+         if (present(fswthrun_pardf)) fswthrun_pardf(n) = l_fswthru_pardf
 
       endif ! aicen > puny
 
@@ -4147,10 +4147,10 @@
                                  fswthrun_vdf=fswthrun_vdf,&
                                  fswthrun_idr=fswthrun_idr,&
                                  fswthrun_idf=fswthrun_idf,&
-                                 fswthru_uvrdr=fswthrun_uvrdr,&
-                                 fswthru_uvrdf=fswthrun_uvrdf,&
-                                 fswthru_pardr=fswthrun_pardr,&
-                                 fswthru_pardf=fswthrun_pardf,&
+                                 fswthrun_uvrdr=fswthrun_uvrdr,&
+                                 fswthrun_uvrdf=fswthrun_uvrdf,&
+                                 fswthrun_pardr=fswthrun_pardr,&
+                                 fswthrun_pardf=fswthrun_pardf,&
                                  fswpenl=fswpenln,       &
                                  Iswabs=Iswabsn,         &
                                  Sswabs=Sswabsn,         &
