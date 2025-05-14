@@ -48,6 +48,14 @@
       logical (kind=log_kind), public :: &
          l_brine         ! if true, treat brine pocket effects
 
+      real (kind=dbl_kind), public :: &
+         dfsurfdTs_cpl,      & !
+         dflatdTs_cpl,       & !
+         fsurf_cpl0,         & !
+         flat_cpl0,          & !
+         fsurf_cpl,          & !
+         flat_cpl              !
+
 !=======================================================================
 
       contains
