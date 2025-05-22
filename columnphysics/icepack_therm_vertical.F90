@@ -2565,7 +2565,7 @@
       !-----------------------------------------------------------------
       ! Initialize pond area fractions
       !-----------------------------------------------------------------
-      do n= 1, ncat    
+      do n= 1, ncat
          if (tr_pond_lvl) then
             apond(n) = apnd(n) * alvl(n)
          else

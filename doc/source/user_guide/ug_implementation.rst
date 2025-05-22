@@ -28,6 +28,9 @@ source code for the driver, and the scripts.  Forcing data is available from the
 The directory structure of Icepack is as follows.  All columnphysics filename have a prefix
 of icepack\_ and all driver files are prefixed with icedrv\_*.
 
+**COPYRIGHT.pdf**
+  copyright notice
+
 **LICENSE.pdf**
   license for using and sharing the code
 

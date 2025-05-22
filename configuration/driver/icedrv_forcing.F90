@@ -1098,7 +1098,7 @@
          if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt open netcdf file', &
                            file=__FILE__,line=__LINE__)
-         
+
          ! Create array for the time step values in seconds since 1970
          ! CF standard calendar is Gregorian
          ! May have strange behavior if dt is not an integer
@@ -1327,7 +1327,7 @@
 
       real (kind=dbl_kind), parameter :: &
          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
-         model_miss_val = -9999.00     ! missing value for internal use      
+         model_miss_val = -9999.00     ! missing value for internal use
 
       character(len=*), parameter :: subname='(load_var_MDF)'
 
@@ -1389,7 +1389,7 @@
          string=subname//'Time basis is not minutes since 1970',&
          file=__FILE__,line=__LINE__)
       endif
-      
+
       ! Check that we are not extrapolating forcing outside of time bounds
       if (model_time(1) < data_time(1)) call icedrv_system_abort(&
       string=subname//'Simulation starts before forcing',&
@@ -1602,7 +1602,7 @@
          if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt open netcdf file', &
                            file=__FILE__,line=__LINE__)
-         
+
          ! Create array for the time step values in seconds since 1970
          ! CF standard calendar is Gregorian
          ! May have strange behavior if dt is not an integer
