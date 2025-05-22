@@ -2,18 +2,18 @@
     "license": "other-open", 
     "description": "View detailed release notes at https://github.com/CICE-Consortium/Icepack/releases", 
     "language": "eng", 
-    "title": "CICE-Consortium/Icepack: Icepack m.n.p", 
+    "title": "CICE-Consortium/Icepack: Icepack 1.5.1", 
     "keywords": [
         "sea ice model, Icepack"
     ], 
-    "version": "m.n.p", 
+    "version": "1.5.1", 
     "upload_type": "software", 
     "communities": [
         {
             "identifier": "cice-consortium"
         }
     ], 
-    "publication_date": "2019-06-20", 
+    "publication_date": "2025-05-21", 
     "creators": [
         {
             "affiliation": "Los Alamos National Laboratory", 
