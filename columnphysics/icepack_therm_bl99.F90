@@ -14,7 +14,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p1, p5, puny
       use icepack_parameters, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
-      use icepack_parameters, only: conduct, calc_Tsfc
+      use icepack_parameters, only: conduct, calc_Tsfc, geos_heatflux
       use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
       use icepack_tracers, only: nilyr, nslyr
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -22,6 +22,8 @@
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
+      use icepack_therm_shared, only: fsurf_cpl, flat_cpl, dfsurfdTs_cpl, dflatdTs_cpl
+      use icepack_therm_shared, only: fsurf_cpl0, flat_cpl0
 
       implicit none
 
@@ -211,6 +213,12 @@
       dflat_dT   = c0
       dflwout_dT = c0
       einex      = c0
+      if (geos_heatflux) then  ! initialize
+         dfsurf_dT  = dfsurfdTs_cpl
+         dflat_dT   = dflatdTs_cpl
+         fsurfn     = fsurf_cpl
+         flatn      = flat_cpl
+      endif
       dt_rhoi_hlyr = dt / (rhoi*hilyr)  ! hilyr > 0
       if (hslyr > hs_min/real(nslyr,kind=dbl_kind)) &
            l_snow = .true.
@@ -303,6 +311,10 @@
 
       endif
 
+      if (geos_heatflux) then
+         fsurfn = fsurfn + fswsfc ! this is the total heat flux
+      endif
+
       !-----------------------------------------------------------------
       ! Solve for new temperatures.
       ! Iterate until temperatures converge with minimal energy error.
@@ -322,7 +334,7 @@
       !-----------------------------------------------------------------
 
             converged = .true.
-            dfsurf_dT = c0
+            if (.not.geos_heatflux) dfsurf_dT = c0
             avg_Tsi   = c0
             enew      = c0
             einex     = c0
@@ -353,21 +365,23 @@
       ! with respect to Tsf.
       !-----------------------------------------------------------------
 
-               ! surface heat flux
-               call surface_heat_flux(Tsf    , fswsfc, &
-                                      rhoa   , flw   , &
-                                      potT   , Qa    , &
-                                      shcoef , lhcoef, &
-                                      flwoutn, fsensn, &
-                                      flatn  , fsurfn)
-               if (icepack_warnings_aborted(subname)) return
+               if (.not.geos_heatflux) then  ! no heat flux calculation
+                  ! surface heat flux
+                  call surface_heat_flux(Tsf    , fswsfc, &
+                                         rhoa   , flw   , &
+                                         potT   , Qa    , &
+                                         shcoef , lhcoef, &
+                                         flwoutn, fsensn, &
+                                         flatn  , fsurfn)
+                  if (icepack_warnings_aborted(subname)) return
 
-               ! derivative of heat flux with respect to surface temperature
-               call dsurface_heat_flux_dTsf(Tsf      , rhoa      , &
-                                            shcoef   , lhcoef    , &
-                                            dfsurf_dT, dflwout_dT, &
-                                            dfsens_dT, dflat_dT  )
-               if (icepack_warnings_aborted(subname)) return
+                  ! derivative of heat flux with respect to surface temperature
+                  call dsurface_heat_flux_dTsf(Tsf      , rhoa      , &
+                                               shcoef   , lhcoef    , &
+                                               dfsurf_dT, dflwout_dT, &
+                                               dfsens_dT, dflat_dT  )
+                  if (icepack_warnings_aborted(subname)) return
+               endif
 
       !-----------------------------------------------------------------
       ! Compute conductive flux at top surface, fcondtopn.
@@ -644,6 +658,9 @@
       !-----------------------------------------------------------------
 
                fsurfn = fsurfn + dTsf*dfsurf_dT
+               if (geos_heatflux) then  ! update lat hf based on dT
+                  flatn  = flatn  + dTsf*dflat_dT
+               endif
                if (l_snow) then
                   fcondtopn = kh(1) * (Tsf-zTsn(1))
                else
@@ -710,8 +727,15 @@
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fsurf:', fsurfn
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'fcondtop, fcondbot, fswint', &
-              fcondtopn, fcondbot, fswint
+         write(warnstr,*) subname, 'dfsurf_dT:', dfsurf_dT
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'enew:', enew
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'einit:', einit
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'dt:', dt
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'fcondtop, fcondbot, fswint', fcondtopn, fcondbot, fswint
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fswsfc', fswsfc
          call icepack_warnings_add(warnstr)
@@ -777,9 +801,11 @@
       if (calc_Tsfc) then
 
          ! update fluxes that depend on Tsf
-         flwoutn = flwoutn + dTsf_prev * dflwout_dT
-         fsensn  = fsensn  + dTsf_prev * dfsens_dT
-         flatn   = flatn   + dTsf_prev * dflat_dT
+         if (.not.geos_heatflux) then
+            flwoutn = flwoutn + dTsf_prev * dflwout_dT
+            fsensn  = fsensn  + dTsf_prev * dfsens_dT
+            flatn   = flatn   + dTsf_prev * dflat_dT
+         endif
 
       endif                        ! calc_Tsfc
 
