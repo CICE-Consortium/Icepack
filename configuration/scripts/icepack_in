@@ -146,8 +146,8 @@
     ocn_data_format = 'bin'
     bgc_data_format = 'bin'
     precalc_forc    = .false.
-    geos_heatflux   = .false.
-    geos_massflux   = .false.
+    semi_implicit_Tsfc = .false.
+    vapor_flux_correction = .false.
 /
 
 &dynamics_nml

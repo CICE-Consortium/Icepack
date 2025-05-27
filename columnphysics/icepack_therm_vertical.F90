@@ -30,7 +30,7 @@
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
-      use icepack_parameters, only: saltflux_option, congel_freeze, geos_heatflux, geos_massflux
+      use icepack_parameters, only: saltflux_option, congel_freeze, semi_implicit_Tsfc, vapor_flux_correction
       use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_tracers, only: ncat, nilyr, nslyr, nfsd
@@ -985,7 +985,6 @@
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'zTin=',zTin(k)
                call icepack_warnings_add(warnstr)
-               !tice_high = .false.  ! GEOS, do we need this, what about tice_low and tsno??
             else
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTin > Tmax, layer" )
@@ -1158,7 +1157,7 @@
          zqsnew      , & ! enthalpy of new snow (J m-3)
          hstot       , & ! snow thickness including new snow (m)
          Tmlts       , & ! melting temperature (deg C)
-         sblx            ! flux error due to cond/sub inconsistency
+         de_vapor        ! energy correction due to cond/sub inconsistency (J m-2)
 
       real (kind=dbl_kind), dimension (nilyr+1) :: &
          zi1         , & ! depth of ice layer boundaries (m)
@@ -1195,7 +1194,7 @@
       dhi = c0
       dhs = c0
       hsn_new  = c0
-      sblx = c0
+      de_vapor = c0
 
       do k = 1, nilyr
          dzi(k) = hilyr
@@ -1281,7 +1280,7 @@
 
       if (hsn > puny) then    ! add snow with enthalpy zqsn(1)
 
-         if (geos_massflux) then  ! compute mass/enthalpy at 0C
+         if (vapor_flux_correction) then  ! compute mass/enthalpy at 0C
             dhs = econ / (-rhos*Lfresh - rhos*Lvap) ! econ < 0, dhs > 0
 
             ! assume all condensation becomes ice (no liquid)
@@ -1311,12 +1310,12 @@
 
       else                        ! add ice with enthalpy zqin(1)
 
-         if (geos_massflux) then  ! compute mass/enthalpy at 0C
+         if (vapor_flux_correction) then  ! compute mass/enthalpy at 0C
             dhi = econ / (-rhoi*Lfresh - rhoi*Lvap) ! econ < 0, dhi > 0
             ! adjust top layer ice enthalpy b.c. we added them at 0C
             !zqsnew = -rhoi*Lfresh
             !hqtot = dzi(1)*qm(1) + dhi*zqsnew
-            sblx = sblx + (-dhi)*(qm(1) - (-rhoi*Lfresh)) ! sblx can be v+- (J m-2)
+            de_vapor = de_vapor + (-dhi)*(qm(1) - (-rhoi*Lfresh)) ! de_vapor can be v+- (J m-2)
          else
             dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
          endif
@@ -1426,10 +1425,10 @@
          ! Sublimation of snow (evapn < 0)
          !--------------------------------------------------------------
 
-         if (geos_massflux) then  ! compute mass/enthalpy and sblx correction
+         if (vapor_flux_correction) then  ! compute mass/enthalpy and de_vapor correction
             qsub = -rhos*Lfresh - rhos*Lvap ! qsub < 0
             dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
-            sblx = sblx + (-dhs)*min(zqsn(k) - (-rhos*Lfresh), c0) ! sblx < 0 (J m-2)
+            de_vapor = de_vapor + (-dhs)*min(zqsn(k) - (-rhos*Lfresh), c0) ! de_vapor < 0 (J m-2)
          else
             qsub = zqsn(k) - rhos*Lvap ! qsub < 0
             dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
@@ -1819,8 +1818,8 @@
       !  sublimated/condensed ice.
       !-----------------------------------------------------------------
 
-      if (geos_massflux) then  ! update fhocnn based on sblx correction
-         fhocnn = fhocnn + sblx/dt
+      if (vapor_flux_correction) then  ! update fhocnn based on de_vapor correction
+         fhocnn = fhocnn + de_vapor/dt
       endif
       efinal = -evapn*Lvap
       evapn =  evapn/dt
@@ -2559,11 +2558,11 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
-         if (geos_heatflux) then
+         if (semi_implicit_Tsfc) then
             if (.not.(present(fswthru_uvrdr) .and. present(fswthru_uvrdf) .and. &
                       present(fswthru_pardr) .and. present(fswthru_pardf) .and. &
                       present(dfsurfdT)      .and. present(dflatdT)      )) then
-               call icepack_warnings_add(subname//' error in geos_heatflux arguments, geos_heatflux=T')
+               call icepack_warnings_add(subname//' error in semi_implicit_Tsfc arguments, semi_implicit_Tsfc=T')
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             endif
          endif
@@ -2796,7 +2795,7 @@
                smliq(:) = smliqn(:,n)
             endif
 
-            if (geos_heatflux) then
+            if (semi_implicit_Tsfc) then
                if (present(dfsurfdT)) dfsurfdTs_cpl = dfsurfdT(n)
                if (present(dflatdT))  dflatdTs_cpl  = dflatdT(n)
                fsurf_cpl     = fsurfn_f(n)

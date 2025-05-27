@@ -51,7 +51,7 @@
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg
       use icepack_parameters, only: R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
-      use icepack_parameters, only: snw_ssp_table, modal_aero, geos_heatflux
+      use icepack_parameters, only: snw_ssp_table, modal_aero, semi_implicit_Tsfc
       use icepack_parameters, only: dEdd_algae
 
       use icepack_tracers,    only: ncat, nilyr, nslyr, nblyr
@@ -1101,7 +1101,7 @@
       call compute_coszen (TLAT, TLON, yday,  sec, coszen,  &
                            days_per_year, nextsw_cday, calendar_type)
 #else
-      if (.not.geos_heatflux) then  ! geos sets solar angles in driver level
+      if (.not.semi_implicit_Tsfc) then  ! geos sets solar angles in driver level
          call compute_coszen (TLAT, TLON, yday,  sec, coszen)
       endif
 #endif
@@ -4018,12 +4018,12 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
-         if (geos_heatflux) then
+         if (semi_implicit_Tsfc) then
             if (.not.(present(swuvrdr) .and. present(swuvrdf) .and. &
                       present(swpardr) .and. present(swpardf) .and. &
                       present(fswthrun_uvrdr) .and. present(fswthrun_uvrdf) .and. &
                       present(fswthrun_pardr) .and. present(fswthrun_pardf))) then
-               call icepack_warnings_add(subname//' ERROR: geos_heatflux=T, missing arguments')
+               call icepack_warnings_add(subname//' ERROR: semi_implicit_Tsfc=T, missing arguments')
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                return
             endif

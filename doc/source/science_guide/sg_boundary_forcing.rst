@@ -95,7 +95,8 @@ with respect to surface temperature ``dfsurfn_dTs``. In this case, ``calc_Tsfc``
 is still set to true, allowing ice surface and internal temperature to be updated
 implicitly. The resultant surface temperature change is passed back to the
 atmosphere model via coupler to complete the full update of its temperature profiles.
-This middle-ground approach, enabled by ``enforcing_heatflux=true``, does not sacrifice accuracy because it does not need limiting effective conductivity as in the explicit case.
+This middle-ground approach, enabled by ``vapor_flux_correction=true``, does not sacrifice 
+accuracy because it does not need effective conductivity limiting as in the explicit case.
 
       
 

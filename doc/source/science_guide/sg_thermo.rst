@@ -1806,8 +1806,8 @@ have the same enthalpy as the existing surface layer. Some climate models (for
 example, GEOS-ESM) compute mass flux (sublimation or deposition) in the atmsophere 
 model which assumes vapor deposits or sublimates at 0 degC. In this case, mass
 conservation is enforced and the resulting discrepancy in energy is resolved by
-another term ``sblx`` and passed to ocean. This option is only on when 
-``enforcing_massflux = true``.      
+another term ``de_vapor`` and passed to ocean. This option is only on when 
+``semi-implicit_Tsfc=true``.      
 
 After growth and melting, the various ice layers no longer have equal
 thicknesses. We therefore adjust the layer interfaces, conserving

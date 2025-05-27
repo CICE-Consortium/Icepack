@@ -6,7 +6,7 @@
   use icepack_parameters, only: c0, c1, c2, c8, c10
   use icepack_parameters, only: p01, p05, p1, p2, p5, pi, bignum, puny
   use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit, rhofresh
-  use icepack_parameters, only: hs_min, snwgrain, geos_heatflux
+  use icepack_parameters, only: hs_min, snwgrain, semi_implicit_Tsfc
   use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode, tscale_pnd_drain
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
   use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
@@ -843,7 +843,7 @@
     else
        ! initially melting
 
-       if (geos_heatflux) then  ! update surf/lat hf based on dT
+       if (semi_implicit_Tsfc) then  ! update surf/lat hf based on dT
           fsurf_cpl = fsurf_cpl + dfsurfdTs_cpl * (Tmlt - Tsf)
           flat_cpl  = flat_cpl  + dflatdTs_cpl  * (Tmlt - Tsf)
        endif
@@ -892,7 +892,7 @@
           fcondtop1 = fcondtop
           fsurfn1   = fsurfn
 
-          if (geos_heatflux) then  ! initialize
+          if (semi_implicit_Tsfc) then  ! initialize
              fsurf_cpl = fsurf_cpl0
              flat_cpl  = flat_cpl0
           endif
@@ -1238,7 +1238,7 @@
     zTsn_prev = zTsn
     zTin_prev = zTin
 
-    if (geos_heatflux) then  ! surf/lat hf from coupler, d(surf/lat)/dT computed
+    if (semi_implicit_Tsfc) then  ! surf/lat hf from coupler, d(surf/lat)/dT computed
        dfsurfn_dTsf  = dfsurfdTs_cpl
        dflatn_dTsf   = dflatdTs_cpl
        fsurfn        = fsurf_cpl
@@ -1251,7 +1251,7 @@
     ! picard iteration
     picard: do nit = 1, nit_max
 
-       if (.not.geos_heatflux) then  ! no surface heat flux calculation
+       if (.not.semi_implicit_Tsfc) then  ! no surface heat flux calculation
           ! surface heat flux
           call surface_heat_flux(Tsf,     fswsfc, &
                                  rhoa,    flw,    &
@@ -1313,7 +1313,7 @@
                                      fadvheat_nit)
        if (icepack_warnings_aborted(subname)) return
 
-       if (geos_heatflux) then  ! update surf/lat hf based on dT
+       if (semi_implicit_Tsfc) then  ! update surf/lat hf based on dT
           fsurfn = fsurfn + (Tsf - Tsf_prev)*dfsurfn_dTsf
           flatn  = flatn  + (Tsf - Tsf_prev)*dflatn_dTsf
        endif
@@ -1341,7 +1341,7 @@
     if (icepack_warnings_aborted(subname)) return
 
     ! final surface heat flux
-    if (.not.geos_heatflux) then  ! no surface heat flux calculation
+    if (.not.semi_implicit_Tsfc) then  ! no surface heat flux calculation
        call surface_heat_flux(Tsf,     fswsfc, &
                               rhoa,    flw,    &
                               potT,    Qa,     &

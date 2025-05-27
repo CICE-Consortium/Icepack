@@ -14,7 +14,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p1, p5, puny
       use icepack_parameters, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
-      use icepack_parameters, only: conduct, calc_Tsfc, geos_heatflux
+      use icepack_parameters, only: conduct, calc_Tsfc, semi_implicit_Tsfc
       use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
       use icepack_tracers, only: nilyr, nslyr
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -213,7 +213,7 @@
       dflat_dT   = c0
       dflwout_dT = c0
       einex      = c0
-      if (geos_heatflux) then  ! initialize
+      if (semi_implicit_Tsfc) then  ! initialize
          dfsurf_dT  = dfsurfdTs_cpl
          dflat_dT   = dflatdTs_cpl
          fsurfn     = fsurf_cpl
@@ -311,7 +311,7 @@
 
       endif
 
-      if (geos_heatflux) then
+      if (semi_implicit_Tsfc) then
          fsurfn = fsurfn + fswsfc ! this is the total heat flux
       endif
 
@@ -334,7 +334,7 @@
       !-----------------------------------------------------------------
 
             converged = .true.
-            if (.not.geos_heatflux) dfsurf_dT = c0
+            if (.not.semi_implicit_Tsfc) dfsurf_dT = c0
             avg_Tsi   = c0
             enew      = c0
             einex     = c0
@@ -365,7 +365,7 @@
       ! with respect to Tsf.
       !-----------------------------------------------------------------
 
-               if (.not.geos_heatflux) then  ! no heat flux calculation
+               if (.not.semi_implicit_Tsfc) then  ! no heat flux calculation
                   ! surface heat flux
                   call surface_heat_flux(Tsf    , fswsfc, &
                                          rhoa   , flw   , &
@@ -658,7 +658,7 @@
       !-----------------------------------------------------------------
 
                fsurfn = fsurfn + dTsf*dfsurf_dT
-               if (geos_heatflux) then  ! update lat hf based on dT
+               if (semi_implicit_Tsfc) then  ! update lat hf based on dT
                   flatn  = flatn  + dTsf*dflat_dT
                endif
                if (l_snow) then
@@ -801,7 +801,7 @@
       if (calc_Tsfc) then
 
          ! update fluxes that depend on Tsf
-         if (.not.geos_heatflux) then
+         if (.not.semi_implicit_Tsfc) then
             flwoutn = flwoutn + dTsf_prev * dflwout_dT
             fsensn  = fsensn  + dTsf_prev * dfsens_dT
             flatn   = flatn   + dTsf_prev * dflat_dT
