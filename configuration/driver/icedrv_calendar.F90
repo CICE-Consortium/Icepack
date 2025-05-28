@@ -94,7 +94,7 @@
          dumpfreq           ! restart frequency, 'y','m','d'
 
       character (len=char_len), public :: &
-         calendar_type      ! differentiates Gregorian from other calendars
+         calendar_type      ! differentiates proleptic_gregorian from other calendars
                             ! default = ' '
 
 !=======================================================================
