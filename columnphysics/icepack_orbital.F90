@@ -196,7 +196,8 @@
          endif
       endif
 
-      if (calendar_type == "GREGORIAN") then
+      if ((calendar_type == "GREGORIAN") &
+         .or. (calendar_type=="proleptic_gregorian")) then
          ydayp1 = min(nextsw_cday, real(days_per_year,kind=dbl_kind))
       else
          ydayp1 = nextsw_cday

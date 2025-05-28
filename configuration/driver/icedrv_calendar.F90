@@ -145,7 +145,7 @@
       end if
 
       calendar_type = ' '
-      if (use_leap_years .and. days_per_year == 365) calendar_type = 'Gregorian'
+      if (use_leap_years .and. days_per_year == 365) calendar_type = 'proleptic_gregorian'
 
       dayyr = real(days_per_year, kind=dbl_kind)
       if (days_per_year == 360) then
