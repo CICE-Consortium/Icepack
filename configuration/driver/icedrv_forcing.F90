@@ -1066,9 +1066,7 @@
       real (kind=dbl_kind), allocatable :: &
          data(:)  ! data array from file
 
-      character (char_len) :: &
-         calendar_type, &  ! data calendar type
-         varname
+      character (char_len) :: varname
 
       character (char_len_long) :: &
          filename, &
@@ -1566,9 +1564,7 @@
       real (kind=dbl_kind), allocatable :: &
          data(:)  ! data array from file
 
-      character (char_len) :: &
-         calendar_type, &  ! data calendar type
-         varname
+      character (char_len) :: varname
 
       character (char_len_long) :: &
          filename, &

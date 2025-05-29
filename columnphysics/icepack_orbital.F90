@@ -172,7 +172,7 @@
          nextsw_cday         ! julian day of next shortwave calculation
 
       character (len=char_len), intent(in), optional :: &
-         calendar_type       ! differentiates Gregorian from other calendars
+         calendar_type       ! differentiates proleptic_gregorian from other calendars
 
       ! local variables
 
@@ -196,7 +196,8 @@
          endif
       endif
 
-      if (calendar_type == "GREGORIAN") then
+      if (calendar_type == "GREGORIAN" .or. &
+          calendar_type == "proleptic_gregorian") then
          ydayp1 = min(nextsw_cday, real(days_per_year,kind=dbl_kind))
       else
          ydayp1 = nextsw_cday
