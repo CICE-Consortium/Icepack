@@ -2013,9 +2013,7 @@
       ! Let rain drain through to the ocean.
       !-----------------------------------------------------------------
 
-      if (.not.semi_implicit_Tsfc) then  ! include rain drainage
-         fresh  = fresh + frain * aice
-      endif
+      fresh  = fresh + frain * aice
 
       !-----------------------------------------------------------------
       ! Given thermodynamic growth rates, transport ice between
