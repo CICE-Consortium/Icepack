@@ -235,12 +235,6 @@
             ! limit pond depth to maintain nonnegative freeboard
             hpond_tmp = hpondn
             hpondn = min(hpondn, ((rhow-rhoi)*hi - rhos*hs)/rhofresh)
-            ! The way apondn is used is very confusing but at this point
-            ! apondn is the fraction of the entire category (level + deformed)
-            ! with ponds on it. Thus, multiplying the change in hpondn (i.e.,
-            ! the meltwater lost from the ponded area) by apondn here yields
-            ! the meltwater height lost averaged over the category area
-            ! analogous to how melttn is defined.
             frpndn = (hpond_tmp - hpondn) * apondn
 
             ! fraction of grid cell covered by ponds

@@ -1036,7 +1036,7 @@
       ! level-ice and sealvl ponds
       character (len=*), intent(in), optional :: &
          frzpnd_in          ! pond refreezing parameterization
-      
+
       real (kind=dbl_kind), intent(in), optional :: &
          dpscale_in, &      ! alter e-folding time scale for flushing
          rfracmin_in, &     ! minimum retained fraction of meltwater
