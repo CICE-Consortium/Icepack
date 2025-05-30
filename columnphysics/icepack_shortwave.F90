@@ -881,7 +881,7 @@
          yday       ! day of the year
 
       character (len=char_len), intent(in), optional :: &
-         calendar_type       ! differentiates Gregorian from other calendars
+         calendar_type       ! differentiates proleptic_gregorian from other calendars
 
       integer (kind=int_kind), intent(in), optional :: &
          days_per_year       ! number of days in one year
@@ -3838,7 +3838,7 @@
          yday          ! day of the year
 
       character (len=char_len), intent(in), optional :: &
-         calendar_type ! differentiates Gregorian from other calendars
+         calendar_type ! differentiates proleptic_gregorian from other calendars
 
       integer (kind=int_kind), intent(in), optional :: &
          days_per_year ! number of days in one year

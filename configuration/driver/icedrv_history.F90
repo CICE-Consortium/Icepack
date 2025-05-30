@@ -195,8 +195,10 @@
             status = nf90_put_att(ncid,varid,'calendar','NoLeap')
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att calendar noleap')
          elseif (use_leap_years) then
-            status = nf90_put_att(ncid,varid,'calendar','Gregorian')
-            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att calendar gregorian')
+            status = nf90_put_att(ncid,varid,'calendar','proleptic_gregorian')
+            if (status /= nf90_noerr) then
+               call icedrv_system_abort(string=subname//' ERROR: put_att calendar proleptic_gregorian')
+            endif
          else
             call icedrv_system_abort(string=subname//' ERROR: invalid calendar settings')
          endif

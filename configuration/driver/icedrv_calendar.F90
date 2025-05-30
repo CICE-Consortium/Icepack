@@ -93,10 +93,6 @@
       character (len=1), public :: &
          dumpfreq           ! restart frequency, 'y','m','d'
 
-      character (len=char_len), public :: &
-         calendar_type      ! differentiates Gregorian from other calendars
-                            ! default = ' '
-
 !=======================================================================
 
       contains
@@ -143,9 +139,6 @@
          write(nu_diag,*) 'Warning: days_per_year has been set to 365', &
               ' because use_leap_years = .true.'
       end if
-
-      calendar_type = ' '
-      if (use_leap_years .and. days_per_year == 365) calendar_type = 'Gregorian'
 
       dayyr = real(days_per_year, kind=dbl_kind)
       if (days_per_year == 360) then
