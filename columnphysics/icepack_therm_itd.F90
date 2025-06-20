@@ -29,7 +29,7 @@
       use icepack_parameters, only: phi_init, dsin0_frazil
       use icepack_parameters, only: Tliquidus_max
       use icepack_parameters, only: rhosi, conserv_check, rhosmin, snwredist
-      use icepack_parameters, only: kitd, ktherm, semi_implicit_Tsfc
+      use icepack_parameters, only: kitd, ktherm
       use icepack_parameters, only: z_tracers, hfrazilmin, hi_min
       use icepack_parameters, only: cpl_frazil, update_ocn_f, saltflux_option
       use icepack_parameters, only: icepack_chkoptargflag
