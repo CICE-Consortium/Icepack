@@ -153,6 +153,8 @@
          calc_Tsfc     = .true. ,&! if true, calculate surface temperature
                                   ! if false, Tsfc is computed elsewhere and
                                   ! atmos-ice fluxes are provided to CICE
+         semi_implicit_Tsfc = .false.    ,&! surface temperature coupling option
+         vapor_flux_correction = .false. ,&! compute mass/enthalpy correction for evaporation/sublimation
          update_ocn_f = .false. ,&! include fresh water and salt fluxes for frazil
          modal_aero   = .false. ,&! if true, use modal aerosal optical properties
                                   ! only for use with tr_aero or tr_zaero
@@ -556,7 +558,7 @@
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, &
          update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
-         cpl_frazil_in, &
+         cpl_frazil_in, semi_implicit_Tsfc_in, vapor_flux_correction_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
          phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
@@ -689,6 +691,9 @@
          calc_Tsfc_in    , &! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
+         semi_implicit_Tsfc_in   , &! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat 
+         vapor_flux_correction_in, &! compute mass/enthalpy correction when evaporation/sublimation
+                            ! computed outside at 0C
          update_ocn_f_in    ! include fresh water and salt fluxes for frazil
 
       real (kind=dbl_kind), intent(in), optional :: &
@@ -1151,6 +1156,8 @@
       if (present(conduct_in)           ) conduct          = conduct_in
       if (present(fbot_xfer_type_in)    ) fbot_xfer_type   = fbot_xfer_type_in
       if (present(calc_Tsfc_in)         ) calc_Tsfc        = calc_Tsfc_in
+      if (present(semi_implicit_Tsfc_in)) semi_implicit_Tsfc= semi_implicit_Tsfc_in
+      if (present(vapor_flux_correction_in)) vapor_flux_correction= vapor_flux_correction_in
       if (present(cpl_frazil_in)        ) cpl_frazil       = cpl_frazil_in
       if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
       if (present(ustar_min_in)         ) ustar_min        = ustar_min_in
@@ -1549,8 +1556,8 @@
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
-         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
-         albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
+         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, semi_implicit_Tsfc_out, &
+         albedo_type_out, albicev_out, albicei_out, albsnowv_out, vapor_flux_correction_out, &
          albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
          rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, R_gC2molC_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
@@ -1688,6 +1695,9 @@
          calc_Tsfc_out    ,&! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
+         semi_implicit_Tsfc_out    ,&! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat 
+         vapor_flux_correction_out ,&! compute mass/enthalpy correction when evaporation/sublimation
+                            ! computed outside at 0C
          update_ocn_f_out   ! include fresh water and salt fluxes for frazil
 
       real (kind=dbl_kind), intent(out), optional :: &
@@ -2184,6 +2194,8 @@
       if (present(conduct_out)           ) conduct_out      = conduct
       if (present(fbot_xfer_type_out)    ) fbot_xfer_type_out = fbot_xfer_type
       if (present(calc_Tsfc_out)         ) calc_Tsfc_out    = calc_Tsfc
+      if (present(semi_implicit_Tsfc_out)) semi_implicit_Tsfc_out= semi_implicit_Tsfc
+      if (present(vapor_flux_correction_out)) vapor_flux_correction_out= vapor_flux_correction
       if (present(cpl_frazil_out)        ) cpl_frazil_out   = cpl_frazil
       if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
       if (present(ustar_min_out)         ) ustar_min_out    = ustar_min
@@ -2489,6 +2501,8 @@
         write(iounit,*) "  conduct    = ", trim(conduct)
         write(iounit,*) "  fbot_xfer_type = ", trim(fbot_xfer_type)
         write(iounit,*) "  calc_Tsfc  = ", calc_Tsfc
+        write(iounit,*) "  semi_implicit_Tsfc = ", semi_implicit_Tsfc
+        write(iounit,*) "  vapor_flux_correction = ", vapor_flux_correction
         write(iounit,*) "  cpl_frazil = ", cpl_frazil
         write(iounit,*) "  update_ocn_f = ", update_ocn_f
         write(iounit,*) "  ustar_min  = ", ustar_min
