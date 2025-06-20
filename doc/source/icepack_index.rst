@@ -196,7 +196,7 @@ section :ref:`tabnamelist`.
    "fswthru_pardf", "visible photosynthetically active shortwave diffuse radiation 400-700nm penetrating to ocean", "W/m\ :math:`^2`"
    "fswthru_pardr", "visible photosynthetically active shortwave direct radiation 400-700nm penetrating to ocean", "W/m\ :math:`^2`"
    "fswthru_uvrdf", "visible ultraviolet shortwave diffuse radiation > 700nm penetrating to ocean", "W/m\ :math:`^2`"
-   "fswthru_uvrdr", "visible ultraviolet shortwave direct radiation > 7000nm penetrating to ocean", "W/m\ :math:`^2`"
+   "fswthru_uvrdr", "visible ultraviolet shortwave direct radiation > 700nm penetrating to ocean", "W/m\ :math:`^2`"
    "fswthru_vdr", "visible direct shortwave penetrating to ocean", "W/m\ :math:`^2`"
    "fswthru_vdf", "visible diffuse shortwave penetrating to ocean", "W/m\ :math:`^2`"
    "fyear", "current data year", ""
