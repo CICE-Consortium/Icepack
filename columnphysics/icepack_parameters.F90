@@ -361,6 +361,8 @@
          snwgrain      = .false.         ! snow metamorphosis
 
       real (kind=dbl_kind), public :: &
+         S_wet      = 4.22e5_dbl_kind, & ! wet metamorphism parameter (um^3/s)
+                                         ! = 1.e18 * 4.22e-13 (Oleson 2010)
          rsnw_fall  = 54.526_dbl_kind, & ! radius of new snow (10^-6 m)
          rsnw_tmax  = 1500.0_dbl_kind, & ! maximum snow radius (10^-6 m)
          rhosnew    =  100.0_dbl_kind, & ! new snow density (kg/m^3)
@@ -580,7 +582,7 @@
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
          max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
          y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
-         sw_redist_in, sw_frac_in, sw_dtemp_in, snwgrain_in, &
+         sw_redist_in, sw_frac_in, sw_dtemp_in, snwgrain_in, S_wet_in, &
          snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
          rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
@@ -1051,6 +1053,7 @@
          snwgrain_in        ! snow metamorphosis
 
       real (kind=dbl_kind), intent(in), optional :: &
+         S_wet_in, &        ! wet metamorphism parameter (um^3/s)
          rsnw_fall_in, &    ! radius of new snow (10^-6 m)
          rsnw_tmax_in, &    ! maximum snow radius (10^-6 m)
          rhosnew_in, &      ! new snow density (kg/m^3)
@@ -1213,6 +1216,7 @@
       if (present(snw_aging_table_in)   ) snw_aging_table  = snw_aging_table_in
       if (present(snwgrain_in)          ) snwgrain         = snwgrain_in
       if (present(use_smliq_pnd_in)     ) use_smliq_pnd    = use_smliq_pnd_in
+      if (present(S_wet_in)             ) S_wet            = S_wet_in
       if (present(rsnw_fall_in)         ) rsnw_fall        = rsnw_fall_in
       if (present(rsnw_tmax_in)         ) rsnw_tmax        = rsnw_tmax_in
       if (present(rhosnew_in)           ) rhosnew          = rhosnew_in
@@ -1576,7 +1580,7 @@
          fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
          k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, &
          y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
-         sw_redist_out, sw_frac_out, sw_dtemp_out, snwgrain_out, &
+         sw_redist_out, sw_frac_out, sw_dtemp_out, snwgrain_out, S_wet_out, &
          snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
          rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
@@ -2057,6 +2061,7 @@
          snwgrain_out        ! snow metamorphosis
 
       real (kind=dbl_kind), intent(out), optional :: &
+         S_wet_out, &        ! wet metamorphism parameter (um^3/s)
          rsnw_fall_out, &    ! radius of new snow (10^-6 m)
          rsnw_tmax_out, &    ! maximum snow radius (10^-6 m)
          rhosnew_out, &      ! new snow density (kg/m^3)
@@ -2251,6 +2256,7 @@
       if (present(snw_aging_table_out)   ) snw_aging_table_out = snw_aging_table
       if (present(snwgrain_out)          ) snwgrain_out     = snwgrain
       if (present(use_smliq_pnd_out)     ) use_smliq_pnd_out= use_smliq_pnd
+      if (present(S_wet_out)             ) S_wet            = S_wet_out
       if (present(rsnw_fall_out)         ) rsnw_fall_out    = rsnw_fall
       if (present(rsnw_tmax_out)         ) rsnw_tmax_out    = rsnw_tmax
       if (present(rhosnew_out)           ) rhosnew_out      = rhosnew
@@ -2558,6 +2564,7 @@
         write(iounit,*) "  snw_aging_table = ", trim(snw_aging_table)
         write(iounit,*) "  snwgrain   = ", snwgrain
         write(iounit,*) "  use_smliq_pnd = ", use_smliq_pnd
+        write(iounit,*) "  S_wet      = ", S_wet
         write(iounit,*) "  rsnw_fall  = ", rsnw_fall
         write(iounit,*) "  rsnw_tmax  = ", rsnw_tmax
         write(iounit,*) "  rhosnew    = ", rhosnew

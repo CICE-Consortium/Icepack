@@ -140,7 +140,7 @@ In the formation of depth hoar, dry snow kinetic metamorphism (TG metamorphism) 
 
 The tracers :math:`m_{liq}` and :math:`m_{ice}` characterize the snow in each snow layer, for each ice category and horizontal grid cell. The model's meltpond volume covers a fraction of the grid cell and represents liquid in excess of :math:`m_{liq}`. The radiative effects of snow grain radius in the fraction of ice covered by pond volume are only calculated when the pond volume has not yet saturated the snow pack; otherwise, delta-Eddington transfer uses meltpond properties. Therefore, modelled changes in snow grain radii from metamorphism are designed specifically for the fraction without exposed (i.e. effective) melt ponds.
 
-Following :cite:`Oleson10`, the new snow grain radius is computed as a weighted function of existing and new (freshly fallen, ``rsnw_fall``) snow grain radii, using parameters from a look-up table that depends on snow temperature, temperature gradient and (effective) density.  The maximum snow radius is a namelist option, ``rsnw_tmax``.
+Following :cite:`Oleson10`, the new snow grain radius is computed as a weighted function of existing and new (freshly fallen, ``rsnw_fall``) snow grain radii, using parameters from a look-up table that depends on snow temperature, temperature gradient and (effective) density. The parameter ``S_wet`` represents the snow grain growth rate.   The maximum snow radius is a namelist option, ``rsnw_tmax``.
 
 
 
