@@ -16,7 +16,7 @@
       use icepack_parameters, only: isnw_T, isnw_Tgrd, isnw_rhos
       use icepack_parameters, only: snowage_rhos, snowage_Tgrd, snowage_T
       use icepack_parameters, only: snowage_tau, snowage_kappa, snowage_drdt0
-      use icepack_parameters, only: snw_aging_table, use_smliq_pnd
+      use icepack_parameters, only: snw_aging_table, use_smliq_pnd, S_wet
       use icepack_tracers, only: ncat, nilyr, nslyr
 
       use icepack_therm_shared, only: icepack_ice_temperature
@@ -31,9 +31,7 @@
       public :: icepack_step_snow, drain_snow, icepack_init_snow
 
       real (kind=dbl_kind), parameter, public :: &
-         S_r  = 0.033_dbl_kind, & ! irreducible saturation (Anderson 1976)
-         S_wet= 4.22e5_dbl_kind  ! wet metamorphism parameter (um^3/s)
-                                  ! = 1.e18 * 4.22e-13 (Oleson 2010)
+         S_r  = 0.033_dbl_kind ! irreducible saturation (Anderson 1976)
 
       real (kind=dbl_kind) :: &
          min_rhos, &   ! snowtable axis data, assumes linear data

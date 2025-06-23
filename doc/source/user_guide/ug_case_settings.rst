@@ -307,6 +307,7 @@ snow_nml
    "``rhosmin``", "real", "minimum snow density", "100.0"
    "``rhosmax``", "real", "maximum snow density", "450.0"
    "``rhosnew``", "real", "new snow density", "100.0"
+   "``S_wet``", "real", "snow wet metamorphism parameter (um^3/s)", "4.22e5"
    "``rsnw_fall``", "real", "radius of new snow (um)", "54.526"
    "``rsnw_tmax``", "real", "maximum snow radius (um)", "1500.0"
    "``snw_aging_table``", "test", "snow aging lookup table", "test"

@@ -101,7 +101,7 @@
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity, floediam, hfrazilmin, &
-         rsnw_fall, rsnw_tmax, rhosnew, rhosmin, rhosmax, &
+         S_wet, rsnw_fall, rsnw_tmax, rhosnew, rhosmin, rhosmax, &
          windmin, drhosdwind, snwlvlfac
 
       integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
@@ -176,7 +176,8 @@
         rfracmin,       rfracmax,        pndaspect,     hs1,            &
         hp1
       namelist /snow_nml/ &
-        snwredist,      snwgrain,       rsnw_fall,     rsnw_tmax,      &
+        snwredist,      snwgrain,                                      &
+        S_wet,          rsnw_fall,      rsnw_tmax,                     &
         rhosnew,        rhosmin,        rhosmax,       snwlvlfac,      &
         windmin,        drhosdwind,     use_smliq_pnd, snw_aging_table
 
@@ -248,7 +249,8 @@
            wave_spec_type_out=wave_spec_type, &
            sw_redist_out=sw_redist, sw_frac_out=sw_frac, sw_dtemp_out=sw_dtemp, &
            snwredist_out=snwredist, use_smliq_pnd_out=use_smliq_pnd, &
-           snwgrain_out=snwgrain, rsnw_fall_out=rsnw_fall, rsnw_tmax_out=rsnw_tmax, &
+           snwgrain_out=snwgrain, S_wet_out=S_wet, &
+           rsnw_fall_out=rsnw_fall, rsnw_tmax_out=rsnw_tmax, &
            rhosnew_out=rhosnew, rhosmin_out = rhosmin, rhosmax_out=rhosmax, &
            windmin_out=windmin, drhosdwind_out=drhosdwind, snwlvlfac_out=snwlvlfac, &
            snw_aging_table_out=snw_aging_table)
@@ -760,6 +762,7 @@
          write(nu_diag,1010) ' snwgrain                  = ', snwgrain
          write(nu_diag,1010) ' use_smliq_pnd             = ', use_smliq_pnd
          write(nu_diag,1030) ' snw_aging_table           = ', trim(snw_aging_table)
+         write(nu_diag,1000) ' S_wet                     = ', S_wet
          write(nu_diag,1000) ' rsnw_fall                 = ', rsnw_fall
          write(nu_diag,1000) ' rsnw_tmax                 = ', rsnw_tmax
          write(nu_diag,1000) ' rhosnew                   = ', rhosnew
@@ -1027,8 +1030,8 @@
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec, &
            sw_redist_in=sw_redist, sw_frac_in=sw_frac, sw_dtemp_in=sw_dtemp, &
            snwredist_in=snwredist, use_smliq_pnd_in=use_smliq_pnd, &
-           snw_aging_table_in=snw_aging_table, &
-           snwgrain_in=snwgrain, rsnw_fall_in=rsnw_fall, rsnw_tmax_in=rsnw_tmax, &
+           snw_aging_table_in=snw_aging_table, snwgrain_in=snwgrain, &
+           S_wet_in=S_wet, rsnw_fall_in=rsnw_fall, rsnw_tmax_in=rsnw_tmax, &
            rhosnew_in=rhosnew, rhosmin_in=rhosmin, rhosmax_in=rhosmax, &
            windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
