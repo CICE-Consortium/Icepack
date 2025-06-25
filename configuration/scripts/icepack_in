@@ -148,7 +148,9 @@
     atm_data_format = 'bin'
     ocn_data_format = 'bin'
     bgc_data_format = 'bin'
-    precalc_forc  = .false.
+    precalc_forc    = .false.
+    semi_implicit_Tsfc = .false.
+    vapor_flux_correction = .false.
 /
 
 &dynamics_nml

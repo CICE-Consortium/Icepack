@@ -6,7 +6,7 @@
   use icepack_parameters, only: c0, c1, c2, c8, c10
   use icepack_parameters, only: p01, p05, p1, p2, p5, pi, bignum, puny
   use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit, rhofresh
-  use icepack_parameters, only: hs_min, snwgrain
+  use icepack_parameters, only: hs_min, snwgrain, semi_implicit_Tsfc
   use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode, tscale_pnd_drain
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
   use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
@@ -21,6 +21,8 @@
   use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
   use icepack_therm_shared, only: ferrmax
   use icepack_meltpond_sealvl, only: pond_hypsometry, pond_height
+  use icepack_therm_shared, only: fsurf_cpl, flat_cpl, dfsurfdTs_cpl, dflatdTs_cpl
+  use icepack_therm_shared, only: fsurf_cpl0, flat_cpl0
   use icepack_warnings, only: warnstr, icepack_warnings_add
   use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -849,6 +851,11 @@
     else
        ! initially melting
 
+       if (semi_implicit_Tsfc) then  ! update surf/lat hf based on dT
+          fsurf_cpl = fsurf_cpl + dfsurfdTs_cpl * (Tmlt - Tsf)
+          flat_cpl  = flat_cpl  + dflatdTs_cpl  * (Tmlt - Tsf)
+       endif
+
        ! solve the system for melt and no snow
        Tsf = Tmlt
 
@@ -892,6 +899,11 @@
           ! assume surface is cold
           fcondtop1 = fcondtop
           fsurfn1   = fsurfn
+
+          if (semi_implicit_Tsfc) then  ! initialize
+             fsurf_cpl = fsurf_cpl0
+             flat_cpl  = flat_cpl0
+          endif
 
           ! reset the solution to initial values
           Tsf  = Tsf0
@@ -1234,24 +1246,36 @@
     zTsn_prev = zTsn
     zTin_prev = zTin
 
+    if (semi_implicit_Tsfc) then  ! surf/lat hf from coupler, d(surf/lat)/dT computed
+       dfsurfn_dTsf  = dfsurfdTs_cpl
+       dflatn_dTsf   = dflatdTs_cpl
+       fsurfn        = fsurf_cpl
+       flatn         = flat_cpl
+       fsurfn        = fsurfn + fswsfc
+       flwoutn       = c0 !prevent compiler warning
+       fsensn        = c0 !prevent compiler warning
+    endif
+
     ! picard iteration
     picard: do nit = 1, nit_max
 
-       ! surface heat flux
-       call surface_heat_flux(Tsf,     fswsfc, &
-                              rhoa,    flw,    &
-                              potT,    Qa,     &
-                              shcoef,  lhcoef, &
-                              flwoutn, fsensn, &
-                              flatn,   fsurfn)
-       if (icepack_warnings_aborted(subname)) return
+       if (.not.semi_implicit_Tsfc) then  ! no surface heat flux calculation
+          ! surface heat flux
+          call surface_heat_flux(Tsf,     fswsfc, &
+                                 rhoa,    flw,    &
+                                 potT,    Qa,     &
+                                 shcoef,  lhcoef, &
+                                 flwoutn, fsensn, &
+                                 flatn,   fsurfn)
+          if (icepack_warnings_aborted(subname)) return
 
-       ! derivative of heat flux with respect to surface temperature
-       call dsurface_heat_flux_dTsf(Tsf,          rhoa,          &
-                                    shcoef,       lhcoef,        &
-                                    dfsurfn_dTsf, dflwoutn_dTsf, &
-                                    dfsensn_dTsf, dflatn_dTsf)
-       if (icepack_warnings_aborted(subname)) return
+          ! derivative of heat flux with respect to surface temperature
+          call dsurface_heat_flux_dTsf(Tsf,          rhoa,          &
+                                       shcoef,       lhcoef,        &
+                                       dfsurfn_dTsf, dflwoutn_dTsf, &
+                                       dfsensn_dTsf, dflatn_dTsf)
+          if (icepack_warnings_aborted(subname)) return
+       endif
 
        ! tridiagonal solve of new temperatures
        call solve_heat_conduction(lsnow,     lcold,        &
@@ -1297,6 +1321,11 @@
                                      fadvheat_nit)
        if (icepack_warnings_aborted(subname)) return
 
+       if (semi_implicit_Tsfc) then  ! update surf/lat hf based on dT
+          fsurfn = fsurfn + (Tsf - Tsf_prev)*dfsurfn_dTsf
+          flatn  = flatn  + (Tsf - Tsf_prev)*dflatn_dTsf
+       endif
+
        if (lconverged) exit
 
        Tsf_prev  = Tsf
@@ -1320,13 +1349,15 @@
     if (icepack_warnings_aborted(subname)) return
 
     ! final surface heat flux
-    call surface_heat_flux(Tsf,     fswsfc, &
-                           rhoa,    flw,    &
-                           potT,    Qa,     &
-                           shcoef,  lhcoef, &
-                           flwoutn, fsensn, &
-                           flatn,   fsurfn)
-    if (icepack_warnings_aborted(subname)) return
+    if (.not.semi_implicit_Tsfc) then  ! no surface heat flux calculation
+       call surface_heat_flux(Tsf,     fswsfc, &
+                              rhoa,    flw,    &
+                              potT,    Qa,     &
+                              shcoef,  lhcoef, &
+                              flwoutn, fsensn, &
+                              flatn,   fsurfn)
+       if (icepack_warnings_aborted(subname)) return
+    endif
 
     ! if not converged
     if (.not. lconverged) then
