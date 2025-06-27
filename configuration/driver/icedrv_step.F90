@@ -129,6 +129,8 @@
       use icedrv_flux, only: dsnow, dsnown, faero_atm, faero_ocn
       use icedrv_flux, only: fiso_atm, fiso_ocn, fiso_evap
       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
+      use icedrv_flux, only: flpndn, expndn, frpndn, rfpndn, ilpndn
+      use icedrv_flux, only: flpnd, expnd, frpnd, rfpnd, ilpnd
       use icedrv_init, only: lmask_n, lmask_s
       use icedrv_state, only: aice, aicen, aice_init, aicen_init, vicen_init
       use icedrv_state, only: vice, vicen, vsno, vsnon, trcrn, uvel, vvel, vsnon_init
@@ -373,7 +375,12 @@
             afsdn         = trcrn       (i,nt_fsd:nt_fsd+nfsd-1,:), &
             lmask_n  = lmask_n(i),    lmask_s   = lmask_s(i),     &
             mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
-            yday = yday,  prescribed_ice = prescribed_ice)
+            yday = yday,  prescribed_ice = prescribed_ice,        &
+            flpnd    = flpnd(i),      flpndn    = flpndn(i,:),    &
+            expnd    = expnd(i),      expndn    = expndn(i,:),    &
+            frpnd    = frpnd(i),      frpndn   = frpndn(i,:),     &
+            rfpnd    = rfpnd(i),      rfpndn   = rfpndn(i,:),     &
+            ilpnd    = ilpnd(i),      ilpndn   = ilpndn(i,:))
 
         if (tr_aero) then
           do n = 1, ncat
@@ -439,6 +446,7 @@
       use icedrv_flux, only: fsalt, Tf, sss, salinz, fhocn, rsiden, wlat
       use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
+      use icedrv_flux, only: mipnd
       use icedrv_init, only: tmask
       use icedrv_state, only: aice, aicen, aice0, trcr_depend
       use icedrv_state, only: aicen_init, vicen_init, trcrn, vicen, vsnon
@@ -522,7 +530,8 @@
                          d_afsd_latg=d_afsd_latg(i,:),                &
                          d_afsd_newi=d_afsd_newi(i,:),                &
                          d_afsd_latm=d_afsd_latm(i,:),                &
-                         d_afsd_weld=d_afsd_weld(i,:))
+                         d_afsd_weld=d_afsd_weld(i,:),                &
+                         mipnd=mipnd(i))
 
          endif ! tmask
 
@@ -815,6 +824,7 @@
       use icedrv_flux, only: dvirdgdt, opening, closing, fpond, fresh, fhocn
       use icedrv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
       use icedrv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn, fiso_ocn
+      use icedrv_flux, only: rdpnd
       use icedrv_init, only: tmask
       use icedrv_state, only: trcrn, vsnon, aicen, vicen
       use icedrv_state, only: aice, aice0, trcr_depend, n_trcr_strata
@@ -885,7 +895,8 @@
                          aice=aice(i),             fsalt=fsalt(i),           &
                          first_ice=first_ice(i,:),                           &
                          flux_bio=flux_bio(i,1:nbtrcr),                      &
-                         closing=closing(i),       Tf=Tf(i) )
+                         closing=closing(i),       Tf=Tf(i),                 &
+                         rdpnd=rdpnd(i))
 
          endif ! tmask
 
@@ -924,7 +935,8 @@
                          araftn=araftn(i,:),       vraftn=vraftn(i,:),       &
                          aice=aice(i),             fsalt=fsalt(i),           &
                          first_ice=first_ice(i,:),                           &
-                         flux_bio=flux_bio(i,1:nbtrcr), Tf = Tf(i))
+                         flux_bio=flux_bio(i,1:nbtrcr), Tf = Tf(i),          &
+                         rdpnd=rdpnd(i))
 
          endif ! tmask
 
