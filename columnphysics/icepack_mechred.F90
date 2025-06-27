@@ -1400,7 +1400,7 @@
                mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
                                       * trcrn(nt_hpnd,n) &
                                       * trcrn(nt_alvl,n)
-            else
+            elseif (tr_pond_topo .or. tr_pond_sealvl) then
                mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
                                       * trcrn(nt_hpnd,n)
             endif
