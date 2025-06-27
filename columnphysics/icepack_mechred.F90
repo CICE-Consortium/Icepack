@@ -608,6 +608,8 @@
       if (present(fpond)) then
          fpond = fpond - mpond ! units change later
       endif
+      ! For water conservation, mpond = 0 for all non-topo pond schemes, which are currently virtual
+      ! For now, rdpnd is purely diagnostic
       if (present(rdpnd)) rdpnd = mpond
 
       !-----------------------------------------------------------------
@@ -1394,7 +1396,11 @@
                enddo
             endif
 
-            if (tr_pond_topo) then
+            if (tr_pond_lvl) then
+               mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
+                                      * trcrn(nt_hpnd,n) &
+                                      * trcrn(nt_alvl,n)
+            else
                mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
                                       * trcrn(nt_hpnd,n)
             endif
