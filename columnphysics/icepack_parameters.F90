@@ -368,6 +368,8 @@
          drhosdwind =   27.3_dbl_kind, & ! wind compaction factor for snow (kg s/m^4)
          snwlvlfac  =    0.3_dbl_kind, & ! fractional increase in snow
                                          ! depth for bulk redistribution
+         S_wet      = 4.22e5_dbl_kind, & ! wet metamorphism parameter (um^3/s)
+                                         ! 1.e18 * 4.22e-13 (Oleson 2010)
          drsnw_min  =    0.0_dbl_kind, & ! minimum snow grain growth factor
          snwliq_max =    0.033_dbl_kind  ! irreducible saturation fraction
                                          ! 0.033 (Anderson 1976)
@@ -584,7 +586,7 @@
          y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
          sw_redist_in, sw_frac_in, sw_dtemp_in, snwgrain_in, &
          snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
-         drsnw_min_in, snwliq_max_in, &
+         S_wet_in, drsnw_min_in, snwliq_max_in, &
          rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
@@ -1059,6 +1061,7 @@
          windmin_in, &      ! minimum wind speed to compact snow (m/s)
          drhosdwind_in, &   ! wind compaction factor (kg s/m^4)
          snwlvlfac_in, &    ! fractional increase in snow depth
+         S_wet_in, &        ! wet metamorphism parameter (um^3/s)
          drsnw_min_in, &    ! minimum snow grain growth factor
          snwliq_max_in      ! irreducible saturation fraction
 
@@ -1221,6 +1224,7 @@
       if (present(windmin_in)           ) windmin          = windmin_in
       if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
       if (present(snwlvlfac_in)         ) snwlvlfac        = snwlvlfac_in
+      if (present(S_wet_in)             ) S_wet            = S_wet_in
       if (present(drsnw_min_in)         ) drsnw_min        = drsnw_min_in
       if (present(snwliq_max_in)        ) snwliq_max       = snwliq_max_in
 
@@ -1580,7 +1584,7 @@
          y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
          sw_redist_out, sw_frac_out, sw_dtemp_out, snwgrain_out, &
          snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
-         drsnw_min_out, snwliq_max_out, &
+         S_wet_out, drsnw_min_out, snwliq_max_out, &
          rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
          snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
@@ -2065,6 +2069,7 @@
          windmin_out, &      ! minimum wind speed to compact snow (m/s)
          drhosdwind_out, &   ! wind compaction factor (kg s/m^4)
          snwlvlfac_out,  &   ! fractional increase in snow depth
+         S_wet_out, &        ! wet metamorphism parameter (um^3/s)
          drsnw_min_out, &    ! minimum snow grain growth factor
          snwliq_max_out      ! irreducible saturation fraction
 
@@ -2259,6 +2264,7 @@
       if (present(windmin_out)           ) windmin_out      = windmin
       if (present(drhosdwind_out)        ) drhosdwind_out   = drhosdwind
       if (present(snwlvlfac_out)         ) snwlvlfac_out    = snwlvlfac
+      if (present(S_wet_out)             ) S_wet_out        = S_wet
       if (present(drsnw_min_out)         ) drsnw_min_out    = drsnw_min
       if (present(snwliq_max_out)        ) snwliq_max_out   = snwliq_max
       if (present(isnw_T_out)            ) isnw_T_out       = isnw_T
@@ -2566,6 +2572,7 @@
         write(iounit,*) "  windmin    = ", windmin
         write(iounit,*) "  drhosdwind = ", drhosdwind
         write(iounit,*) "  snwlvlfac  = ", snwlvlfac
+        write(iounit,*) "  S_wet      = ", S_wet
         write(iounit,*) "  drsnw_min  = ", drsnw_min
         write(iounit,*) "  snwliq_max = ", snwliq_max
         write(iounit,*) "  isnw_T     = ", isnw_T

@@ -12,7 +12,7 @@
       use icepack_parameters, only: rhos, rhow, rhoi, rhofresh, snwgrain
       use icepack_parameters, only: snwlvlfac, Tffresh, cp_ice, Lfresh
       use icepack_parameters, only: snwredist, rsnw_fall, rsnw_tmax, rhosnew
-      use icepack_parameters, only: drsnw_min, snwliq_max
+      use icepack_parameters, only: S_wet, drsnw_min, snwliq_max
       use icepack_parameters, only: rhosmin, rhosmax, windmin, drhosdwind
       use icepack_parameters, only: isnw_T, isnw_Tgrd, isnw_rhos
       use icepack_parameters, only: snowage_rhos, snowage_Tgrd, snowage_T
@@ -32,8 +32,6 @@
       public :: icepack_step_snow, drain_snow, icepack_init_snow
 
       real (kind=dbl_kind), parameter, public :: &
-         S_wet       = 4.22e5_dbl_kind, & ! wet metamorphism parameter (um^3/s)
-                                          ! 1.e18 * 4.22e-13 (Oleson 2010)
          drsnw_min_o = 1.0186_dbl_kind    ! Bun 1989  (um^3/s)  
                                           ! minimum volume growth rate 1.28x10^-8 mm^3/s/4/pi
 
