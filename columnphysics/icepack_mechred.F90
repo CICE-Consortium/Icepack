@@ -1826,7 +1826,7 @@
          first_ice    ! true until ice forms
 
       real (kind=dbl_kind), intent(inout), optional :: &
-         rdpnd        ! pond drainage due to ridging (m w.e. avg. over cell)
+         rdpnd        ! pond drainage due to ridging
 
      logical (kind=log_kind), intent(in), optional ::   &
          docleanup, & ! if false, do not call cleanup_itd (default true)
