@@ -12,7 +12,7 @@
       use icepack_parameters, only: rhos, rhow, rhoi, rhofresh, snwgrain
       use icepack_parameters, only: snwlvlfac, Tffresh, cp_ice, Lfresh
       use icepack_parameters, only: snwredist, rsnw_fall, rsnw_tmax, rhosnew
-      use icepack_parameters, only: S_wet, drsnw_min, snwliq_max
+      use icepack_parameters, only: snw_growth_wet, drsnw_min, snwliq_max
       use icepack_parameters, only: rhosmin, rhosmax, windmin, drhosdwind
       use icepack_parameters, only: isnw_T, isnw_Tgrd, isnw_rhos
       use icepack_parameters, only: snowage_rhos, snowage_Tgrd, snowage_T
@@ -1106,7 +1106,7 @@
       fliq = c1
       if (smice + smliq > c0 .and. rsnw > c0) then
          fliq = min(smliq/(smice + smliq),p1)
-         dr_wet = S_wet * fliq**3*dt/(c4*pi*rsnw**2)
+         dr_wet = snw_growth_wet * fliq**3*dt/(c4*pi*rsnw**2)
       endif
 
       end subroutine snow_wet_metamorph

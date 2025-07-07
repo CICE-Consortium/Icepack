@@ -102,7 +102,7 @@
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity, floediam, hfrazilmin, &
          rsnw_fall, rsnw_tmax, rhosnew, rhosmin, rhosmax, &
-         windmin, drhosdwind, snwlvlfac, S_wet, drsnw_min, snwliq_max
+         windmin, drhosdwind, snwlvlfac, snw_growth_wet, drsnw_min, snwliq_max
 
       integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
          natmiter, kitd, kcatbound
@@ -179,7 +179,7 @@
         snwredist,      snwgrain,       rsnw_fall,     rsnw_tmax,      &
         rhosnew,        rhosmin,        rhosmax,       snwlvlfac,      &
         windmin,        drhosdwind,     use_smliq_pnd, snw_aging_table, &
-        S_wet,          drsnw_min,      snwliq_max
+        snw_growth_wet, drsnw_min,      snwliq_max
 
       namelist /forcing_nml/ &
         atmbndy,         calc_strair,     calc_Tsfc,       &
@@ -249,7 +249,7 @@
            snwgrain_out=snwgrain, rsnw_fall_out=rsnw_fall, rsnw_tmax_out=rsnw_tmax, &
            rhosnew_out=rhosnew, rhosmin_out = rhosmin, rhosmax_out=rhosmax, &
            windmin_out=windmin, drhosdwind_out=drhosdwind, snwlvlfac_out=snwlvlfac, &
-           snw_aging_table_out=snw_aging_table, S_wet_out=S_wet, &
+           snw_aging_table_out=snw_aging_table, snw_growth_wet_out=snw_growth_wet, &
            drsnw_min_out=drsnw_min, snwliq_max_out=snwliq_max)
 
       call icepack_warnings_flush(nu_diag)
@@ -767,7 +767,7 @@
          write(nu_diag,1000) ' windmin                   = ', windmin
          write(nu_diag,1000) ' drhosdwind                = ', drhosdwind
          write(nu_diag,1000) ' snwlvlfac                 = ', snwlvlfac
-         write(nu_diag,1000) ' S_wet                     = ', S_wet
+         write(nu_diag,1000) ' snw_growth_wet            = ', snw_growth_wet
          write(nu_diag,1000) ' drsnw_min                 = ', drsnw_min
          write(nu_diag,1000) ' snwliq_max                = ', snwliq_max
          endif
@@ -1024,7 +1024,8 @@
            snwgrain_in=snwgrain, rsnw_fall_in=rsnw_fall, rsnw_tmax_in=rsnw_tmax, &
            rhosnew_in=rhosnew, rhosmin_in=rhosmin, rhosmax_in=rhosmax, &
            windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac, &
-           S_wet_in=S_wet, drsnw_min_in=drsnw_min, snwliq_max_in=snwliq_max)
+           snw_growth_wet_in=snw_growth_wet, drsnw_min_in=drsnw_min, &
+           snwliq_max_in=snwliq_max)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
            nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero)
