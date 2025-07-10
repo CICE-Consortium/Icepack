@@ -34,6 +34,7 @@
     tr_lvl       = .true.
     tr_pond_topo = .false.
     tr_pond_lvl  = .true.
+    tr_pond_sealvl = .false.
     tr_snow      = .false.
     tr_aero      = .false.
     tr_fsd       = .false.
@@ -55,6 +56,7 @@
     Tliquidus_max     = -0.1d0
     floediam          = 300.0d0
     hfrazilmin        = 0.05d0
+    tscale_pnd_drain  = 10.0d0
 /
 
 &shortwave_nml
@@ -86,6 +88,7 @@
     rfracmin        = 0.15
     rfracmax        = 1.
     pndaspect       = 0.8
+    apnd_sl         = 0.27d0
 /
 
 &snow_nml
