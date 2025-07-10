@@ -3104,7 +3104,7 @@
   subroutine flushing_velocity(zTin,   phi,   &
                                hin,    hsn,   &
                                hilyr,         &
-                               hpond,  apond,  &
+                               hpond,  apond, &
                                dt,     w)
 
     ! calculate the vertical flushing Darcy velocity (positive downward)
@@ -3275,6 +3275,8 @@
           if (trim(pndmacr) == 'lambda') then
                dhpond = max(-lambda_pond*dt*(hpond + hpond0),-hpond)
           elseif (trim(pndmacr) == 'head') then
+               ! Calling calc_ice_mass here is not bit-for-bit due to optimization, so left inline for now. 
+               ! This will be updated in the future.
                call calc_ice_mass(phi, zTin, hilyr, ice_mass)
                hocn = (ice_mass + hpond*apond*rhofresh + hsn*rhos)/rhow
                call pond_height(apond, hpond, hin, hpsurf)
