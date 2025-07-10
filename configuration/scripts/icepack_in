@@ -104,6 +104,9 @@
     drhosdwind      =   27.3
     snwlvlfac       =    0.3
     snw_aging_table = 'test'
+    snw_growth_wet  = 4.22e5
+    drsnw_min       =  0.0
+    snwliq_max      =  0.033
 /
 
 &forcing_nml
