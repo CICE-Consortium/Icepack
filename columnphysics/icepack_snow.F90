@@ -12,6 +12,7 @@
       use icepack_parameters, only: rhos, rhow, rhoi, rhofresh, snwgrain
       use icepack_parameters, only: snwlvlfac, Tffresh, cp_ice, Lfresh
       use icepack_parameters, only: snwredist, rsnw_fall, rsnw_tmax, rhosnew
+      use icepack_parameters, only: snw_growth_wet, drsnw_min, snwliq_max
       use icepack_parameters, only: rhosmin, rhosmax, windmin, drhosdwind
       use icepack_parameters, only: isnw_T, isnw_Tgrd, isnw_rhos
       use icepack_parameters, only: snowage_rhos, snowage_Tgrd, snowage_T
@@ -31,9 +32,8 @@
       public :: icepack_step_snow, drain_snow, icepack_init_snow
 
       real (kind=dbl_kind), parameter, public :: &
-         S_r  = 0.033_dbl_kind, & ! irreducible saturation (Anderson 1976)
-         S_wet= 4.22e5_dbl_kind  ! wet metamorphism parameter (um^3/s)
-                                  ! = 1.e18 * 4.22e-13 (Oleson 2010)
+         drsnw_min_o = 1.0186_dbl_kind    ! Bun 1989  (um^3/s)  
+                                          ! minimum volume growth rate 1.28x10^-8 mm^3/s/4/pi
 
       real (kind=dbl_kind) :: &
          min_rhos, &   ! snowtable axis data, assumes linear data
@@ -843,6 +843,9 @@
          drsnw_wet, & ! wet metamorphism (10^-6 m)
          drsnw_dry    ! dry (temperature gradient) metamorphism (10^-6 m)
 
+      real (kind=dbl_kind) :: &
+         drsnw_dry_tmp ! snow grain radius growth  (10^-6 m)
+
       character (len=*),parameter :: subname='(update_snow_radius)'
 
       do n = 1, ncat
@@ -867,7 +870,8 @@
                call snow_wet_metamorph (dt, drsnw_wet(k), rsnw(k,n), &
                                         smice(k,n), smliq(k,n))
                if (icepack_warnings_aborted(subname)) return
-               rsnw(k,n) = min(rsnw_tmax, rsnw(k,n) + drsnw_dry(k) + drsnw_wet(k))
+               drsnw_dry_tmp = max(drsnw_dry(k), drsnw_min*drsnw_min_o/rsnw(k,n)**2*dt)
+               rsnw(k,n) = min(rsnw_tmax, rsnw(k,n) + drsnw_dry_tmp + drsnw_wet(k))
             enddo
 
          else ! hsn or hin < puny
@@ -1102,7 +1106,7 @@
       fliq = c1
       if (smice + smliq > c0 .and. rsnw > c0) then
          fliq = min(smliq/(smice + smliq),p1)
-         dr_wet = S_wet * fliq**3*dt/(c4*pi*rsnw**2)
+         dr_wet = snw_growth_wet * fliq**3*dt/(c4*pi*rsnw**2)
       endif
 
       end subroutine snow_wet_metamorph
@@ -1199,7 +1203,7 @@
             massliq(k) = massliq(k) + dlin(k)   ! add liquid in from layer above
             phi_ice(k) = min(c1, massice(k) / (rhoi    *hslyr))
             phi_liq(k) =         massliq(k) / (rhofresh*hslyr)
-            dlout(k)   = max(c0, (phi_liq(k) - S_r*(c1-phi_ice(k))) * rhofresh * hslyr)
+            dlout(k)   = max(c0, (phi_liq(k) - snwliq_max * (c1-phi_ice(k))) * rhofresh * hslyr)
             massliq(k) = massliq(k) - dlout(k)
             if (k < nslyr) then
                dlin(k+1) = dlout(k)
