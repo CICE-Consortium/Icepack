@@ -167,7 +167,7 @@
          fpond      , & ! fresh water flux to ponds (kg/m^2/s)
          fresh      , & ! fresh water flux to ocean (kg/m^2/s)
          fhocn      , & ! net heat flux to ocean (W/m^2)
-         rdpnd          ! pond drainage due to ridging (m w.e. avg. over cell)
+         rdpnd          ! pond drainage due to ridging (m avg. over cell)
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          dardg1ndt  , & ! rate of fractional area loss by ridging ice (1/s)
@@ -605,11 +605,10 @@
             enddo
          endif
       endif
+      ! diagnostic for all non-topo pond schemes, which are virtual
       if (present(fpond)) then
          fpond = fpond - mpond ! units change later
       endif
-      ! For water conservation, mpond = 0 for all non-topo pond schemes, which are currently virtual
-      ! For now, rdpnd is purely diagnostic
       if (present(rdpnd)) rdpnd = mpond
 
       !-----------------------------------------------------------------
@@ -1396,6 +1395,7 @@
                enddo
             endif
 
+            ! diagnostic for all non-topo pond schemes, which are virtual
             if (tr_pond_lvl) then
                mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
                                       * trcrn(nt_hpnd,n) &
