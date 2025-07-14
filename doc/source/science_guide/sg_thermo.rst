@@ -706,20 +706,20 @@ satellite and airborne imagery:
   (:cite:`Eicken04`, :cite:`Polashenski12`, :cite:`Landy14`).
   Therefore melt ponds spend most of their lifespan in Stage III (i.e.,
   pond-air interfaces are at or near sea level and pond-ice interfaces
-  are below sea level)
+  are below sea level).
 * On the scale of a CICE grid cell (> 1 km), melt ponds are
-  simultaneously observed on thicker and thinner ice; and thinner ice
+  simultaneously observed on thicker and thinner ice; thinner ice
   does not need to be saturated with ponds for there to be ponds on
   thicker ice (e.g., :cite:`Webster15`, :cite:`Webster22`).
 * For pack ice in the Arctic, Stage III melt pond fraction is rarely
-  observed to be below 15% or above 45% on the scale of a CICE grid cell.
+  observed to be below 15% or above 45% on the scale of a CICE grid cell
   (e.g., :cite:`Fetterer98`, :cite:`Tschudi01`, :cite:`Webster15`,
-  :cite:`Wright20`). Note, some remote sensing retrievals show higher
-  pond fractions immediately before the ice melts out (e.g.,
-  :cite:`Webster15`), but it is possible that melted-through ponds (i.e.,
+  :cite:`Wright20`). Some remote sensing retrievals show higher
+  pond fractions immediately before the ice melts out (:cite:`Webster15`),
+  but it is possible that melted-through ponds (i.e.,
   open water) are being misclassified as ponds.
 * Ponds are routinely observed on deformed ice (e.g., :cite:`Eicken04`).
-* When MYI and FYI co-occur, observations do not clearly indicate
+* When MYI and FYI coexist, observations do not clearly indicate
   consistent differences in pond fraction, although there may be
   differences in timing (e.g., :cite:`Webster15`, :cite:`Wright20`).
 * Ponded ice albedos do not rapidly increase as pond depth decreases
@@ -737,16 +737,16 @@ parameterized such that when pond surfaces are at sea level and the
 category is snow-free, the pond area fraction is equal to the namelist
 parameter ``apnd_sl`` (notated as :math:`a_{p,sl}` in :eq:`pndasp`).
 Unless otherwise specified, the sealvl parameterization uses the same
-parameterizations as the level-ice pond scheme (e.g., the same approach is
-used to set the effective surface fractions for the Delta-Eddington
-shortwave calculations).
+parameterizations as the level-ice pond scheme. For example, the same
+approach is used to set the effective surface fractions for the Delta-
+Eddington shortwave calculations).
 
 *Hypsometry and Pond Depth-Area Relationship.*
 
 Because sea ice is floating, the intercept of the hypsometric curve is
 determined by buoyancy. In this construction, the slope of the
 hypsometric curve is equal to double the pond aspect ratio
-(:math:`pndasp`), which is defined such that:
+(:math:`pndasp`), which is defined such that
 
 .. math::
    h_p = a_p * pndasp
@@ -759,8 +759,8 @@ fills the category :math:`h_p` may exceed :math:`a_p*pndasp`
 (:math:`h_p` is still subject to a freeboard constraint, see below).
 Unlike in the level-ice parameterization, this use of :math:`pndasp` means
 that when drainage reduces pond volume, both pond area and depth
-decrease (in the level-ice parameterization just depth decreases). In the
-sealvl parameterization, pond aspect is calculated by:
+decrease; in the level-ice parameterization just depth decreases. In the
+sealvl parameterization, pond aspect is calculated by
 
 .. math::
    pndasp = h_{in}*(\rho_w - \rho_{si}) / (\rho_{fresh} * (a_{p,sl})^2 - 2 \rho_w * a_{p,sl} + \rho_w)
@@ -775,8 +775,8 @@ the mushy parameterization.
 The weight of the snow is omitted from the calculation of :math:`pndasp`.
 The impact of this omission is that pond area and depth will tend to be
 slightly higher while the category still has snow on it (i.e., in Stage
-I). Since pond fractions are typically highest in Stage I (e.g.,
-:cite:`Eicken04`, :cite:`Polashenski12`), this was seen as a
+I). Since pond fractions are typically highest in Stage I
+(:cite:`Eicken04`, :cite:`Polashenski12`), this was seen as a
 desirable feature, although future work should explicitly parameterize
 how the hypsometry and drainage evolves at different stages of pond
 evolution.
@@ -784,7 +784,7 @@ evolution.
 The parameterized hypsometric curve is also used to compute the height
 of the pond surfaces above the mean ice draft (:math:`hpsurf`), which is
 then used in the calculation of hydraulic head for the drainage
-parameterizations (below). :math:`hpsurf` is calculated by:
+parameterizations (below). :math:`hpsurf` is calculated by
 
 .. math::
    hpsurf = h_{in} - pndasp + 2 * pndasp * a_{p}
@@ -799,7 +799,7 @@ research should target this limitation.
 
 There are five mechanisms by which water can be lost from melt ponds in
 the sealvl parameterization: percolation through the ice (sub-cm scale
-drainage), drainage through macro-flaws in the ice (super-cm scale), an
+drainage), drainage through macroscopic flaws in the ice (super-cm scale), an
 ice freeboard constraint, drainage during ice deformation, and pond lid
 refreezing. Meltwater is also lost when the ice melts. Unlike in the
 level-ice or topo schemes, the sealvl scheme does not use the 'runoff'
@@ -808,7 +808,7 @@ meltwater before it reaches the ponds via rfrac as in the topo and
 level-ice schemes, this water is handled by the macro-scale drainage
 in the sealvl scheme.
 
-* *Percolation Drainage.* Percolation drainage implemented in the mushy
+* *Percolation Drainage.* Percolation drainage is implemented in the mushy
   thermodynamics scheme. The harmonic mean of the permeability of the
   ice column is estimated, as is the hydraulic head (the height of the
   pond-air interface above sea level, see above). Then the drainage rate
@@ -817,13 +817,13 @@ in the sealvl scheme.
   the hydraulic head.
 
 * *Macro-Flaw Drainage.* Melt water is transported laterally and drains
-  through macro-flaws: cracks, floe edges, enlarged brine channels,
-  seal holes, etc... (:cite:`Eicken04`, :cite:`Polashenski12`). In the
+  through macroscopic flaws: cracks, floe edges, enlarged brine channels,
+  seal holes, etc. (:cite:`Eicken04`, :cite:`Polashenski12`). In the
   real system, the efficiency of this process depends on the
   connectivity of lateral flow networks and the frequency of
-  macro-flaws, both of which evolve with ice conditions. In the sealvl
+  macroscopic flaws, both of which evolve with ice conditions. In the sealvl
   scheme, macro-flaw drainage is parameterized as an exponential decay
-  of pond height relative to sea level (a.k.a., the hydraulic head). So
+  of pond height relative to sea level (a.k.a., the hydraulic head), so
   macro-flaw drainage cannot remove pond water that sits below sea
   level. The level-ice pond scheme is identical except that the exponential
   decay is applied to the entire pond height. The decay constant is
@@ -857,14 +857,14 @@ in the sealvl scheme.
 *Pond Depth and Optical Property Relationship.*
 
 When the Delta-Eddington radiation transport scheme
-(:cite:`Briegleb07`) was implemented, there were not observations of
+(:cite:`Briegleb07`) was implemented, there were no observations of
 albedo in ponds shallower than 20 cm. For ponds shallower than a
 transition depth (``hp0``, default 0.2 m), it was assumed that the
 inherent optical properties (IOPs) were represented by a mixture of
 ponded ice IOPs and bare ice IOPs, in proportions determined by the pond
 depth. Additionally, if ponds are shallower than a cutoff depth
 (``hpmin``, default 0.005 m) they are assumed to have no impact on the
-optical properties (i.e., bare ice IOPs are used). Subsequent research
+optical properties (bare ice IOPs are used). Subsequent research
 (e.g., :cite:`Light22`) does not support the assumption of a gradual
 transition to bare ice IOPs below 20 cm pond depth. The presence of a
 pond of any measured depth was sufficient to change the apparent optical
