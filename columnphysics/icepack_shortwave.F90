@@ -2681,7 +2681,9 @@
                enddo       ! k
             endif
             ! adjust pond iops if pond depth within specified range
-            if( hpmin <= hp .and. hp < hp0 ) then
+            ! turn off for sea level ponds
+            if(.not. tr_pond_sealvl .and. &
+               hpmin <= hp .and. hp < hp0 ) then
                k = kii
                sig_i  = ki_ssl  (ns) * wi_ssl  (ns)
                sig_p  = ki_p_ssl(ns) * wi_p_ssl(ns)
