@@ -9,6 +9,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, puny, rhos, rsnw_fall, rhosnew
       use icepack_parameters, only: snwredist, snwgrain
+      use icepack_parameters, only: pndhyps, pndfrbd, pndhead, pndmacr
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -266,6 +267,29 @@
         if (present(tr_bgc_Fe_in )) tr_bgc_Fe  = tr_bgc_Fe_in
         if (present(tr_bgc_hum_in)) tr_bgc_hum = tr_bgc_hum_in
         if (present(tr_bgc_PON_in)) tr_bgc_PON = tr_bgc_PON_in
+
+        ! tcraig, July, 2025
+        ! This should not be here.  These options should either
+        ! - be moved to namelist
+        ! - be removed and have all the features selected by tr_pond_* values
+        !
+        ! Because we don't actually know what options work for the various
+        ! pond schemes (beyond the settings below), and we don't know which
+        ! options we want to be chooseable overall, we are leaving the declarations
+        ! in icepack_parameters and we are hardwiring them here so they will
+        ! be consistent with the tr_pond_sealvl settings as best as we know.
+
+        if (tr_pond_sealvl) then
+           pndhyps = 'sealevel'
+           pndfrbd = 'category'
+           pndhead = 'hyps'
+           pndmacr = 'head'
+        else
+           pndhyps = 'sealevel'
+           pndfrbd = 'floor'
+           pndhead = 'perched'
+           pndmacr = 'lambda'
+        endif
 
       end subroutine icepack_init_tracer_flags
 

@@ -3182,6 +3182,7 @@
        ! calculate brine height above bottom of ice
        if (tr_pond_sealvl) then
           call pond_height(apond, hpond, hin, hbrine)
+          if (icepack_warnings_aborted(subname)) return
        else
           hbrine = hin + hpond
        endif
@@ -3262,6 +3263,7 @@
           ! update pond depth (and area)
           if (tr_pond_sealvl) then
                call pond_hypsometry(hpond, apond, dhpond=dhpond, hin=hin)
+               if (icepack_warnings_aborted(subname)) return
           else
                hpond = hpond - w * dt / apond
           endif
@@ -3278,8 +3280,10 @@
                ! Calling calc_ice_mass here is not bit-for-bit due to optimization, so left inline for now. 
                ! This will be updated in the future.
                call calc_ice_mass(phi, zTin, hilyr, ice_mass)
+               if (icepack_warnings_aborted(subname)) return
                hocn = (ice_mass + hpond*apond*rhofresh + hsn*rhos)/rhow
                call pond_height(apond, hpond, hin, hpsurf)
+               if (icepack_warnings_aborted(subname)) return
                head = hpsurf - hocn
                dhpond = max(min(c0, -lambda_pond*dt*head), -hpond)
           else
@@ -3292,6 +3296,7 @@
           ! update pond depth (and area)
           if (tr_pond_sealvl) then
                call pond_hypsometry(hpond, apond, dhpond=dhpond, hin=hin)
+               if (icepack_warnings_aborted(subname)) return
           else
                if (trim(pndmacr) == 'lambda') then
                   hpond = hpond - lambda_pond * dt * (hpond + hpond0)

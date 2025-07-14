@@ -37,7 +37,6 @@
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_init_fsd_bounds
       use icepack_intfc, only: icepack_init_snow
-      use icepack_intfc, only: icepack_init_sealvlpnd
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
@@ -117,7 +116,6 @@
       if (icepack_warnings_aborted(subname)) then
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
-      if (tr_pond_sealvl) call icepack_init_sealvlpnd   ! sealvl ponds
 
       if (restart) &
          call init_shortwave    ! initialize radiative transfer
