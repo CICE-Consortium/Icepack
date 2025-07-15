@@ -12,7 +12,7 @@
       use icepack_parameters, only: c1, emissivity, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-      use icepack_tracers, only: tr_iso
+      use icepack_tracers, only: tr_iso, tr_pond
 
       implicit none
       private
@@ -68,7 +68,12 @@
                                Uref,     Urefn,      &
                                Qref_iso, Qrefn_iso,  &
                                fiso_ocn, fiso_ocnn,  &
-                               fiso_evap, fiso_evapn)
+                               fiso_evap, fiso_evapn,&
+                               flpnd,  flpndn,       &
+                               expnd,  expndn,       &
+                               frpnd,  frpndn,       &
+                               rfpnd,  rfpndn,       &
+                               ilpnd,  ilpndn)
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in) :: &
@@ -102,6 +107,11 @@
           dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
           snoicen , & ! snow-ice growth                 (m)
+          flpndn  , & ! pond flushing rate due to ice permeability (m/step)
+          expndn  , & ! exponential pond drainage rate (m/step)
+          frpndn  , & ! pond drainage rate due to freeboard constraint (m/step)
+          rfpndn  , & ! runoff rate due to rfrac (m/step)
+          ilpndn  , & ! pond loss/gain due to ice lid (m/step)
           fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
           fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
@@ -139,6 +149,11 @@
           meltsliq, & ! mass of snow melt               (kg/m^2)
           congel  , & ! congelation ice growth          (m)
           snoice  , & ! snow-ice growth                 (m)
+          flpnd   , & ! pond flushing rate due to ice permeability (m/step)
+          expnd   , & ! exponential pond drainage rate (m/step)
+          frpnd   , & ! pond drainage rate due to freeboard constraint (m/step)
+          rfpnd   , & ! runoff rate due to rfrac (m/step)
+          ilpnd   , & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
           fswthru_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
           fswthru_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthru_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
@@ -268,6 +283,19 @@
          congel    = congel    + congeln   * aicen
       if (present(snoicen) .and. present(snoice)) &
          snoice    = snoice    + snoicen   * aicen
+      ! Meltwater fluxes
+      if (tr_pond) then
+         if (present(flpndn) .and. present(flpnd)) &
+            flpnd     = flpnd     + flpndn    * aicen
+         if (present(expndn) .and. present(expnd)) &
+            expnd     = expnd     + expndn    * aicen
+         if (present(frpndn) .and. present(frpnd)) &
+            frpnd     = frpnd     + frpndn    * aicen
+         if (present(rfpndn) .and. present(rfpnd)) &
+            rfpnd     = rfpnd     + rfpndn    * aicen
+         if (present(ilpndn) .and. present(ilpnd)) &
+            ilpnd     = ilpnd     + ilpndn    * aicen
+      endif
 
       end subroutine merge_fluxes
 

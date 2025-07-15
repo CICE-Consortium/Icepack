@@ -235,6 +235,12 @@
       character (len=char_len), public :: &
          snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test'
 
+      ! Parameters for the impact of pond depth on shortwave
+      real (kind=dbl_kind), public :: &
+         hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
+         hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
+
+
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
 !-----------------------------------------------------------------------
@@ -331,18 +337,27 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
-         hs0       = 0.03_dbl_kind    ! snow depth for transition to bare sea ice (m)
-
-      ! level-ice ponds
-      character (len=char_len), public :: &
-         frzpnd    = 'cesm'           ! pond refreezing parameterization
+         hs0       = 0.03_dbl_kind, & ! snow depth for transition to bare sea ice (m)
+         hs1       = 0.03_dbl_kind    ! snow depth for transition to bare pond ice (m)
 
       real (kind=dbl_kind), public :: &
          dpscale   = 0.001_dbl_kind,& ! alter e-folding time scale for flushing (ktherm=1)
          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
-         pndaspect = 0.8_dbl_kind, &  ! ratio of pond depth to area fraction
-         hs1       = 0.03_dbl_kind    ! snow depth for transition to bare pond ice (m)
+         pndaspect = 0.8_dbl_kind     ! ratio of pond depth to area fraction
+
+      character (len=char_len), public :: &
+         frzpnd    = 'cesm'           ! pond refreezing parameterization
+
+      ! sealvl ponds
+      real (kind=dbl_kind), public :: &
+         apnd_sl   = 0.27_dbl_kind    ! equilibrium pond fraction for sea level parameterization
+
+      character (len=char_len), public :: &
+         pndhyps   = 'sealevel' , &   ! pond hypsometry option
+         pndfrbd   = 'floor'    , &   ! over what domain to calculate freeboard constraint
+         pndhead   = 'perched'  , &   ! geometry for computing pond pressure head
+         pndmacr   = 'lambda'         ! driving force for macro-flaw pond drainage
 
       ! topo ponds
       real (kind=dbl_kind), public :: &
@@ -574,7 +589,7 @@
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
          atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
-         saltflux_option_in, congel_freeze_in, &
+         apnd_sl_in, saltflux_option_in, congel_freeze_in, &
          floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
          dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
          bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
@@ -1030,7 +1045,7 @@
       real (kind=dbl_kind), intent(in), optional :: &
          hs0_in             ! snow depth for transition to bare sea ice (m)
 
-      ! level-ice ponds
+      ! level-ice and sealvl ponds
       character (len=*), intent(in), optional :: &
          frzpnd_in          ! pond refreezing parameterization
 
@@ -1040,6 +1055,10 @@
          rfracmax_in, &     ! maximum retained fraction of meltwater
          pndaspect_in, &    ! ratio of pond depth to pond fraction
          hs1_in             ! tapering parameter for snow on pond ice
+
+      ! sealvl ponds
+      real (kind=dbl_kind), intent(in), optional :: &
+         apnd_sl_in         ! equilibrium pond fraction for sea level parameterization
 
       ! topo ponds
       real (kind=dbl_kind), intent(in), optional :: &
@@ -1217,6 +1236,7 @@
       if (present(rfracmin_in)          ) rfracmin         = rfracmin_in
       if (present(rfracmax_in)          ) rfracmax         = rfracmax_in
       if (present(pndaspect_in)         ) pndaspect        = pndaspect_in
+      if (present(apnd_sl_in)           ) apnd_sl          = apnd_sl_in
       if (present(hs1_in)               ) hs1              = hs1_in
       if (present(hp1_in)               ) hp1              = hp1_in
       if (present(snwredist_in)         ) snwredist        = snwredist_in
@@ -1577,7 +1597,7 @@
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
          atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
-         saltflux_option_out, congel_freeze_out, &
+         apnd_sl_out, saltflux_option_out, congel_freeze_out, &
          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
@@ -2043,7 +2063,7 @@
       real (kind=dbl_kind), intent(out), optional :: &
          hs0_out             ! snow depth for transition to bare sea ice (m)
 
-      ! level-ice ponds
+      ! level-ice and sealvl ponds
       character (len=*), intent(out), optional :: &
          frzpnd_out          ! pond refreezing parameterization
 
@@ -2053,6 +2073,10 @@
          rfracmax_out, &     ! maximum retained fraction of meltwater
          pndaspect_out, &    ! ratio of pond depth to pond fraction
          hs1_out             ! tapering parameter for snow on pond ice
+
+      ! sealvl ponds
+      real (kind=dbl_kind), intent(out), optional :: &
+         apnd_sl_out         ! equilibrium pond fraction for sea level parameterization
 
       ! topo ponds
       real (kind=dbl_kind), intent(out), optional :: &
@@ -2262,6 +2286,7 @@
       if (present(rfracmin_out)          ) rfracmin_out     = rfracmin
       if (present(rfracmax_out)          ) rfracmax_out     = rfracmax
       if (present(pndaspect_out)         ) pndaspect_out    = pndaspect
+      if (present(apnd_sl_out)           ) apnd_sl_out      = apnd_sl
       if (present(hs1_out)               ) hs1_out          = hs1
       if (present(hp1_out)               ) hp1_out          = hp1
       if (present(snwredist_out)         ) snwredist_out    = snwredist
@@ -2572,6 +2597,7 @@
         write(iounit,*) "  rfracmin   = ", rfracmin
         write(iounit,*) "  rfracmax   = ", rfracmax
         write(iounit,*) "  pndaspect  = ", pndaspect
+        write(iounit,*) "  apnd_sl    = ", apnd_sl
         write(iounit,*) "  hs1        = ", hs1
         write(iounit,*) "  hp1        = ", hp1
         write(iounit,*) "  snwredist  = ", trim(snwredist)

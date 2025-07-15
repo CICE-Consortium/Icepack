@@ -42,7 +42,8 @@
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: conserv_check, z_tracers
       use icepack_tracers, only: ncat, nilyr, nslyr, nblyr, n_aero
-      use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
+      use icepack_tracers, only: tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
+      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
       use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_apnd, nt_hpnd
@@ -108,7 +109,7 @@
                             dardg1ndt,   dardg2ndt,  &
                             dvirdgndt,   Tf,         &
                             araftn,      vraftn,     &
-                            closing )
+                            closing,     rdpnd)
 
       integer (kind=int_kind), intent(in) :: &
          ndtd       ! number of dynamics subcycles
@@ -165,7 +166,8 @@
          closing    , & ! rate of closing due to divergence/shear (1/s)
          fpond      , & ! fresh water flux to ponds (kg/m^2/s)
          fresh      , & ! fresh water flux to ocean (kg/m^2/s)
-         fhocn          ! net heat flux to ocean (W/m^2)
+         fhocn      , & ! net heat flux to ocean (W/m^2)
+         rdpnd          ! pond drainage due to ridging (m avg. over cell)
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          dardg1ndt  , & ! rate of fractional area loss by ridging ice (1/s)
@@ -202,7 +204,8 @@
          aksum      , & ! ratio of area removed to area ridged
          msnow_mlt  , & ! mass of snow added to ocean (kg m-2)
          esnow_mlt  , & ! energy needed to melt snow in ocean (J m-2)
-         mpond      , & ! mass of pond added to ocean (kg m-2)
+         mpond      , & ! thickness of pond water (avg. over grid cell) lost
+                        ! due to ridging (m)
          closing_net, & ! net rate at which area is removed    (1/s)
                         ! (ridging ice area - area of new ridges) / dt
          divu_adv   , & ! divu as implied by transport scheme  (1/s)
@@ -602,9 +605,11 @@
             enddo
          endif
       endif
+      ! diagnostic for all non-topo pond schemes, which are virtual
       if (present(fpond)) then
          fpond = fpond - mpond ! units change later
       endif
+      if (present(rdpnd)) rdpnd = mpond
 
       !-----------------------------------------------------------------
       ! Check for fractional ice area > 1.
@@ -1143,7 +1148,8 @@
       real (kind=dbl_kind), intent(inout) :: &
          msnow_mlt  , & ! mass of snow added to ocean (kg m-2)
          esnow_mlt  , & ! energy needed to melt snow in ocean (J m-2)
-         mpond          ! mass of pond added to ocean (kg m-2)
+         mpond          ! thickness of pond water, averaged over entire grid
+                        ! cell area, lost to ridging (m)
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          maero          ! aerosol mass added to ocean (kg m-2)
@@ -1389,7 +1395,12 @@
                enddo
             endif
 
-            if (tr_pond_topo) then
+            ! diagnostic for all non-topo pond schemes, which are virtual
+            if (tr_pond_lvl) then
+               mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
+                                      * trcrn(nt_hpnd,n) &
+                                      * trcrn(nt_alvl,n)
+            elseif (tr_pond_topo .or. tr_pond_sealvl) then
                mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
                                       * trcrn(nt_hpnd,n)
             endif
@@ -1741,7 +1752,7 @@
                                     aice,         fsalt,         &
                                     first_ice,                   &
                                     flux_bio,     closing,       &
-                                    Tf,                          &
+                                    Tf,           rdpnd,         &
                                     docleanup,    dorebin)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1813,6 +1824,9 @@
 
       logical (kind=log_kind), dimension(:), intent(inout) :: &
          first_ice    ! true until ice forms
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+         rdpnd        ! pond drainage due to ridging
 
      logical (kind=log_kind), intent(in), optional ::   &
          docleanup, & ! if false, do not call cleanup_itd (default true)
@@ -1890,7 +1904,7 @@
                       dardg1ndt,    dardg2ndt,      &
                       dvirdgndt,    Tf,             &
                       araftn,       vraftn,         &
-                      closing )
+                      closing,      rdpnd )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------

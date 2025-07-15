@@ -1424,6 +1424,8 @@
       end do
       data_sections(ntime, 2) = i
 
+      model_var_arr(:) = model_miss_val
+
       ! Moving average forcing values into model arrays
       call MDF_average(data_var_name, model_var_arr, dimlen, ncid, &
          data_sections, model_miss_val)

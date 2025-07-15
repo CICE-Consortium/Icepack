@@ -29,6 +29,7 @@ smoke          col     1x1        debug,ionetcdf,atmmosaic,ocnmosaic
 restart        col     1x1        debug
 restart        col     1x1        diag1
 restart        col     1x1        pondlvl
+restart        col     1x1        pondsealvl
 restart        col     1x1        pondtopo
 restart        col     1x1        bgcispol
 restart        col     1x1        bgcnice

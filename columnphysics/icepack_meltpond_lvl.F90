@@ -42,7 +42,9 @@
                                    qicen,  sicen,        &
                                    Tsfcn,  alvl,         &
                                    apnd,   hpnd,  ipnd,  &
-                                   meltsliqn)
+                                   meltsliqn, frpndn,    &
+                                   rfpndn, ilpndn,       &
+                                   flpndn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          ! time step (s)
@@ -62,7 +64,11 @@
          meltsliqn   ! liquid contribution to meltponds in dt (kg/m^2)
 
       real (kind=dbl_kind), intent(inout) :: &
-         apnd, hpnd, ipnd
+         apnd, hpnd, ipnd, &
+         frpndn, &   ! pond drainage rate due to freeboard constraint (m/step)
+         rfpndn, &   ! runoff rate due to rfrac (m/step)
+         ilpndn, &   ! pond loss/gain due to ice lid (m/step)
+         flpndn      ! pond flushing rate due to ice permeability (m/s)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          qicen, &  ! ice layer enthalpy (J m-3)
@@ -77,7 +83,9 @@
       ! local temporary variables
 
       real (kind=dbl_kind) :: &
-         volpn     ! pond volume per unit area (m)
+         volpn, &     ! pond volume per unit area (m)
+         hpond_tmp, & ! local variable for hpond before flushing
+         dvn_temp     ! local variable for change in volume due to rfrac
 
       real (kind=dbl_kind), dimension (nilyr) :: &
          Tmlt      ! melting temperature (C)
@@ -149,6 +157,13 @@
                    +                 melts*rhos &
                    +                 frain*  dt)*aicen
             endif
+            ! Track meltwater runoff fraction. Here dvn is volume of 
+            ! meltwater (m3/m2) captured over entire grid cell area. 
+            ! Multiply by (1-rfrac)/rfrac to get loss over entire area. 
+            ! Divide by aicen to get loss per unit category area 
+            ! (for consistency with melttn, frpndn, etc)
+            rfpndn = dvn * (c1-rfrac) / (rfrac * aicen)
+            dvn_temp = dvn
 
             ! shrink pond volume under freezing conditions
             if (trim(frzpnd) == 'cesm') then
@@ -188,6 +203,9 @@
             endif
 
             volpn = volpn + dvn
+            ! Track lost/gained meltwater per unit category area from pond 
+            ! lid freezing/melting. Note sign flip relative to dvn convention
+            ilpndn = (dvn_temp - dvn) / aicen
 
             !-----------------------------------------------------------
             ! update pond area and depth
@@ -206,21 +224,25 @@
 
             elseif (alvl_tmp*aicen > c10*puny) then ! new ponds
                apondn = min (sqrt(volpn/(pndaspect*aicen)), alvl_tmp)
-               hpondn = pndaspect * apondn
+               hpondn = pndaspect * apondn ! Possible loss of meltwater if apondn == alvl_tmp
 
             else           ! melt water runs off deformed ice
                apondn = c0
-               hpondn = c0
+               hpondn = c0 ! Loss of meltwater for very deformed ice
             endif
             apondn = max(apondn, c0)
 
             ! limit pond depth to maintain nonnegative freeboard
+            hpond_tmp = hpondn
             hpondn = min(hpondn, ((rhow-rhoi)*hi - rhos*hs)/rhofresh)
+            frpndn = (hpond_tmp - hpondn) * apondn
 
             ! fraction of grid cell covered by ponds
             apondn = apondn * aicen
 
             volpn = hpondn*apondn
+            ! note, this implies that if ponds fully drain or freeze their
+            ! depressions cease to exist and the lid ice also ceases to exist
             if (volpn <= c0) then
                volpn = c0
                apondn = c0
@@ -250,6 +272,7 @@
                     + 0.5*dvn/(pndaspect*apondn), alvl_tmp*aicen))
                hpondn = c0
                if (apondn > puny) hpondn = volpn/apondn
+               flpndn = -dvn/aicen
             endif
 
          endif

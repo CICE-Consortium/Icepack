@@ -35,7 +35,7 @@
 
       use icepack_tracers, only: ncat, nilyr, nslyr, nfsd
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
-      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
       use icepack_tracers, only: n_aero, n_iso
 
       use icepack_therm_shared, only: ferrmax, l_brine
@@ -62,6 +62,7 @@
       use icepack_flux, only: set_sfcflux, merge_fluxes
       use icepack_meltpond_lvl, only: compute_ponds_lvl
       use icepack_meltpond_topo, only: compute_ponds_topo
+      use icepack_meltpond_sealvl, only: compute_ponds_sealvl
       use icepack_snow, only: drain_snow
 
       implicit none
@@ -109,7 +110,8 @@
                                   congel,      snoice,    &
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
-                                  prescribed_ice)
+                                  prescribed_ice,         &
+                                  flpnd,       expnd)
 
       real (kind=dbl_kind), intent(in) :: &
          dt      , & ! time step
@@ -201,7 +203,9 @@
          snoice   , & ! snow-ice formation       (m/step-->cm/day)
          dsnow    , & ! change in snow thickness (m/step-->cm/day)
          mlt_onset, & ! day of year that sfc melting begins
-         frz_onset    ! day of year that freezing begins (congel or frazil)
+         frz_onset, & ! day of year that freezing begins (congel or frazil)
+         flpnd    , & ! pond flushing rate due to ice permeability (m/s)
+         expnd        ! exponential pond drainage rate (m/s)
 
       real (kind=dbl_kind), intent(in) :: &
          yday         ! day of year
@@ -268,6 +272,10 @@
       meltsliq= c0
       massice(:) = c0
       massliq(:) = c0
+      if (tr_pond) then
+         flpnd   = c0
+         expnd   = c0
+      endif
 
       if (calc_Tsfc) then
          fsensn  = c0
@@ -326,7 +334,8 @@
                                               flwoutn,   fsurfn,    &
                                               fcondtopn, fcondbotn, &
                                               fadvocn,   snoice,    &
-                                              smice,     smliq)
+                                              smice,     smliq,     &
+                                              flpnd,     expnd)
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
@@ -2255,7 +2264,12 @@
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice, &
-                                    zlvs        , afsdn)
+                                    zlvs        , afsdn       , &
+                                    flpnd       , flpndn      , &
+                                    expnd       , expndn      , &
+                                    frpnd       , frpndn      , &
+                                    rfpnd       , rfpndn      , &
+                                    ilpnd       , ilpndn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2342,6 +2356,13 @@
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
+      real (kind=dbl_kind), intent(inout), optional :: &
+         flpnd       , & ! pond flushing rate due to ice permeability (m/step)
+         expnd       , & ! exponential pond drainage rate (m/step)
+         frpnd       , & ! pond drainage rate due freeboard constraint (m/step)
+         rfpnd       , & ! runoff rate due to rfrac (m/step)
+         ilpnd           ! pond loss/gain (+/-) to ice lid (m/step)
+
       real (kind=dbl_kind), intent(out), optional :: &
          wlat            ! lateral melt rate (m/s)
 
@@ -2420,6 +2441,13 @@
          meltbn      , & ! bottom ice melt                        (m)
          congeln     , & ! congelation ice growth                 (m)
          snoicen         ! snow-ice growth                        (m)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         flpndn      , & ! category pond flushing rate          (m/step)
+         expndn      , & ! exponential pond drainage rate       (m/step)
+         frpndn      , & ! pond drainage rate due to freeboard  (m/step)
+         rfpndn      , & ! runoff rate due to rfrac (m/step)
+         ilpndn          ! category pond loss/gain due to ice lid (m/step)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          fswthrun        ! SW through ice to ocean            (W/m^2)
@@ -2515,7 +2543,14 @@
          l_fswthrun_pardf,& ! vis par dif SW through ice to ocean (W/m^2)
          l_dsnow,        & ! local snow change
          l_dsnown,       & ! local snow change category
-         l_meltsliq      ! mass of snow melt local           (kg/m^2)
+         l_meltsliq        ! mass of snow melt local           (kg/m^2)
+
+      real (kind=dbl_kind) :: &
+         l_flpndn      , & ! category pond flushing rate          (m/step)
+         l_expndn      , & ! exponential pond drainage rate       (m/step)
+         l_frpndn      , & ! pond drainage rate due to freeboard  (m/step)
+         l_rfpndn      , & ! runoff rate due to rfrac (m/step)
+         l_ilpndn          ! category pond loss/gain due to ice lid (m/step)
 
       real (kind=dbl_kind) :: &
          pond            ! water retained in ponds                (m)
@@ -2696,6 +2731,19 @@
          meltbn (n) = c0
          congeln(n) = c0
          snoicen(n) = c0
+         l_flpndn = c0
+         l_expndn = c0
+         l_frpndn = c0
+         l_rfpndn = c0
+         l_ilpndn = c0
+         if (tr_pond .and. present(flpndn) .and. present(expndn) .and. &
+             present(frpndn) .and. present(rfpndn) .and. present(ilpndn)) then
+            l_flpndn = flpndn (n)
+            l_expndn = expndn (n) 
+            l_frpndn = frpndn (n)
+            l_rfpndn = rfpndn (n)
+            l_ilpndn = ilpndn (n)
+         endif
          l_dsnown   = c0
 
          Trefn  = c0
@@ -2830,9 +2878,10 @@
                                  smice=smice,         massice=massicen  (:,n), &
                                  smliq=smliq,         massliq=massliqn  (:,n), &
                                  congel=congeln  (n), snoice=snoicen      (n), &
-                                 mlt_onset=mlt_onset, frz_onset=frz_onset    , &
+                                 mlt_onset=mlt_onset, frz_onset=frz_onset,     &
                                  yday=yday,           dsnow=l_dsnown         , &
-                                 prescribed_ice=prescribed_ice)
+                                 prescribed_ice=prescribed_ice,                &
+                                 flpnd=l_flpndn     , expnd=l_expndn )
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
@@ -2945,7 +2994,35 @@
                                        apnd=apnd    (n), &
                                        hpnd=hpnd    (n), &
                                        ipnd=ipnd    (n), &
-                                       meltsliqn=l_meltsliqn(n))
+                                       meltsliqn=l_meltsliqn(n), &
+                                       frpndn=l_frpndn, &
+                                       rfpndn=l_rfpndn, &
+                                       ilpndn=l_ilpndn, &
+                                       flpndn=l_flpndn)
+               if (icepack_warnings_aborted(subname)) return
+
+            elseif (tr_pond_sealvl) then
+               call compute_ponds_sealvl(dt=dt,           &
+                                       meltt=melttn (n), &
+                                       melts=meltsn (n), &
+                                       frain=frain,      &
+                                       Tair=Tair,        &
+                                       fsurfn=fsurfn(n), &
+                                       dhs=dhsn     (n), &
+                                       ffrac=ffracn (n), &
+                                       aicen=aicen  (n), &
+                                       vicen=vicen  (n), &
+                                       vsnon=vsnon  (n), &
+                                       qicen=zqin (:,n), &
+                                       sicen=zSin (:,n), &
+                                       Tsfcn=Tsfc   (n), &
+                                       apnd=apnd    (n), &
+                                       hpnd=hpnd    (n), &
+                                       ipnd=ipnd    (n), &
+                                       meltsliqn=l_meltsliqn(n), &
+                                       frpndn=l_frpndn, &
+                                       ilpndn=l_ilpndn, &
+                                       flpndn=l_flpndn)
                if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_pond_topo) then
@@ -3056,7 +3133,12 @@
                                fiso_ocn=fiso_ocn,                   &
                                fiso_ocnn=fiso_ocnn,                 &
                                fiso_evap=fiso_evap,                 &
-                               fiso_evapn=fiso_evapn)
+                               fiso_evapn=fiso_evapn,               &
+                               flpnd=flpnd,       flpndn=l_flpndn, &
+                               expnd=expnd,       expndn=l_expndn, &
+                               frpnd=frpnd,       frpndn=l_frpndn, &
+                               rfpnd=rfpnd,       rfpndn=l_rfpndn, &
+                               ilpnd=ilpnd,       ilpndn=l_ilpndn)
 
             if (icepack_warnings_aborted(subname)) return
 
