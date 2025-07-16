@@ -116,7 +116,7 @@
          zSin        , & ! internal ice layer salinities
          zqsn        , & ! snow layer enthalpy (J m-3)
          zTsn            ! internal snow layer temperatures
-     
+
      real (kind=dbl_kind), intent(inout):: &
          dpnd_flush  , & ! pond flushing rate due to ice permeability (m/s)
          dpnd_expon      ! exponential pond drainage rate (m/s)
@@ -3238,7 +3238,7 @@
          apond     , & ! melt pond area fraction of category (-)
          dpnd_flush, & ! pond flushing rate due to ice permeability (m/s)
          dpnd_expon    ! exponential pond drainage rate (m/s)
-     
+
     real(kind=dbl_kind) :: &
          dhpond   , & ! change in pond depth per unit pond area (m)
          ice_mass , & ! mass of ice (kg m-2)
@@ -3270,7 +3270,7 @@
           endif
           hpond = max(hpond, c0)
 
-          !-------------------------------------------------------------          
+          !-------------------------------------------------------------
           ! exponential decay of pond (macro-flaw drainage)
           !-------------------------------------------------------------
           lambda_pond = c1 / (tscale_pnd_drain*24.0_dbl_kind &
@@ -3278,7 +3278,7 @@
           if (trim(pndmacr) == 'lambda') then
                dhpond = max(-lambda_pond*dt*(hpond + hpond0),-hpond)
           elseif (trim(pndmacr) == 'head') then
-               ! Calling calc_ice_mass here is not bit-for-bit due to optimization, so left inline for now. 
+               ! Calling calc_ice_mass here is not bit-for-bit due to optimization, so left inline for now.
                ! This will be updated in the future.
                call calc_ice_mass(phi, zTin, hilyr, ice_mass)
                if (icepack_warnings_aborted(subname)) return
@@ -3681,7 +3681,7 @@
 !=======================================================================
 
   subroutine calc_ice_mass(phi, zTin, hilyr, ice_mass)
-     
+
      ! Calculate the mass of the ice per unit category area
      real(kind=dbl_kind), dimension(:), intent(in) :: &
           zTin      , & ! ice layer temperature (C)
@@ -3692,11 +3692,11 @@
 
      real(kind=dbl_kind), intent(out) :: &
           ice_mass      ! mass per unit category area (kg m-2)
-     
+
      ! local variables
      integer(kind=int_kind) :: &
           k             ! ice layer index
-     
+
      character(len=*),parameter :: subname='(calc_ice_mass)'
 
      ice_mass = c0

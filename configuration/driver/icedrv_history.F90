@@ -98,7 +98,7 @@
             'dsnow           ', 'congel          ', 'sst             ', &
             'sss             ', 'Tf              ', 'fhocn           ', &
             'melts           ' /)
-            
+
       integer (kind=dbl_kind), parameter :: num_2d_pond = 10
       character(len=16), parameter :: fld_2d_pond(num_2d_pond) = &
          (/ 'apnd            ', 'hpnd            ', 'ipnd            ', &
@@ -118,7 +118,7 @@
       character(len=16), parameter :: fld_3d_nfsd(num_3d_nfsd) = &
          (/ 'd_afsd_newi     ', 'd_afsd_latg     ', 'd_afsd_latm     ', &
             'd_afsd_wave     ', 'd_afsd_weld     ' /)
-      
+
       integer (kind=dbl_kind), parameter :: num_3d_pond = 8
       character(len=16), parameter :: fld_3d_pond(num_3d_pond) = &
          (/ 'apndn           ', 'hpndn           ', 'ipndn           ', &
@@ -242,7 +242,7 @@
                if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_3d_pond(n)))
             enddo
          endif ! tr_pnd
-   
+
          if (tr_fsd) then
             ! 3d nfsd fields
 

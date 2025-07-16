@@ -19,10 +19,10 @@
 ! authors David Clemens-Sewall (NCAR/NOAA)
 
       module icepack_meltpond_sealvl
-      
+
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, c10, p01, p5, puny
-      use icepack_parameters, only: viscosity_dyn, rhoi, rhos, rhow 
+      use icepack_parameters, only: viscosity_dyn, rhoi, rhos, rhow
       use icepack_parameters, only: Timelt, Tffresh, Lfresh, rhofresh
       use icepack_parameters, only: gravit, depressT, rhofresh, kice
       use icepack_parameters, only: rhosi, use_smliq_pnd
@@ -36,7 +36,7 @@
 
       implicit none
 
-      private 
+      private
       public ::   compute_ponds_sealvl,   &
                   pond_hypsometry,        &
                   pond_height
@@ -187,7 +187,7 @@
                   hlid = max(hlid + dhlid, c0)
                   if (hs - dhs < puny) then ! pond ice is snow-free
                      ! fraction of fsurfn over pond used to melt ipond
-                     ffrac = c1 
+                     ffrac = c1
                      if (fsurfn > puny) &
                         ffrac = min(-dhlid*rhoi*Lfresh/(dt*fsurfn), c1)
                   endif
@@ -195,10 +195,10 @@
                dvpondn = dvpondn - dhlid*apnd*rhoi/rhofresh
             endif
 
-            ! Track lost/gained meltwater per unit category area from 
+            ! Track lost/gained meltwater per unit category area from
             ! pond lid freezing/melting. Note sign flip relative to dvn
             dpnd_dlidn = dvn_temp - dvpondn
-            
+
             !-----------------------------------------------------------
             ! update pond area and depth
             !-----------------------------------------------------------
@@ -223,8 +223,8 @@
             dpnd_freebdn = - dhpond * apnd
             call pond_hypsometry(hpnd, apnd, dhpond=dhpond, hin=hi)
             if (icepack_warnings_aborted(subname)) return
-            
-            ! clean up empty ponds. Note, this implies that if ponds 
+
+            ! clean up empty ponds. Note, this implies that if ponds
             ! fully drain or freeze, the lid ice also ceases to exist
             if (hpnd <= puny .or. apnd <= puny) then
                apnd = c0
@@ -249,7 +249,7 @@
                if (icepack_warnings_aborted(subname)) return
                drain = perm*pressure_head*dt/(viscosity_dyn*hi)*dpscale
                dhpond = -min(drain, hpnd)
-               dpnd_flushn = -dhpond * apnd               
+               dpnd_flushn = -dhpond * apnd
                call pond_hypsometry(hpnd, apnd, dhpond=dhpond, hin=hi)
                if (icepack_warnings_aborted(subname)) return
             endif
@@ -328,14 +328,14 @@
       real (kind=dbl_kind), intent(inout) :: &
          hpnd, &   ! pond depth of ponded area tracer
          apnd      ! pond fractional area of category tracer
-         
+
       real (kind=dbl_kind), intent(in), optional :: &
          dvpond, & ! incoming change in pond volume per category area
          dhpond, & ! incoming change in pond depth
          hin       ! category ice thickness
-      
+
       ! local variables
-      
+
       real (kind=dbl_kind) :: &
          dv, &     ! local variable for change in pond volume
          vp, &     ! local variable for pond volume per category area
@@ -364,7 +364,7 @@
             " hin needed for sealevel ponds")
          return
       endif
-      
+
       ! Get the change in volume
       if (present(dvpond)) then
          dv = dvpond
@@ -399,7 +399,7 @@
             hpnd = vp ! conserve volume
          endif
       endif
-      
+
       end subroutine pond_hypsometry
 
 !=======================================================================
@@ -412,25 +412,25 @@
             hin  , & ! category mean ice thickness
             apond , & ! pond area fraction of the category
             hpnd     ! mean pond depth (m)
-   
+
          real (kind=dbl_kind), intent(out) :: &
             hpsurf   ! height of pond surface above base of the ice (m)
 
          ! local variables
          real (kind=dbl_kind) :: &
             pndasp   ! pond aspect ratio
-         
+
          character(len=*),parameter :: subname='(pond_height)'
-   
+
          if (trim(pndhead) == 'perched') then
             hpsurf = hin + hpnd
          elseif (trim(pndhead) == 'hyps') then
             if ((trim(pndhyps) == 'fixed') .or. &
                (trim(pndhyps) == 'sealevel')) then
-               ! Applying a fixed aspect ratio to the ponds implicitly 
+               ! Applying a fixed aspect ratio to the ponds implicitly
                ! assumes that the hypsometric curve has a constant slope
                ! of double the aspect ratio.
-               ! If ponds occupy lowest elevations first. 
+               ! If ponds occupy lowest elevations first.
                if (trim(pndhyps) == 'sealevel') then
                   pndasp = calc_pndasp(hin)
                else
@@ -453,7 +453,7 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             if (icepack_warnings_aborted(subname)) return
          endif
-   
+
       end subroutine pond_height
 
 !=======================================================================

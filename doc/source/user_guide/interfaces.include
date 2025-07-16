@@ -464,7 +464,7 @@ icepack_step_ridge
                                       aice,         fsalt,         &
                                       first_ice,                   &
                                       flux_bio,     closing,       &
-                                      Tf,                          &
+                                      Tf,           dpnd_ridge,    &
                                       docleanup,    dorebin)
   
         real (kind=dbl_kind), intent(in) :: &
@@ -536,6 +536,9 @@ icepack_step_ridge
   
         logical (kind=log_kind), dimension(:), intent(inout) :: &
            first_ice    ! true until ice forms
+  
+        real (kind=dbl_kind), intent(inout), optional :: &
+           dpnd_ridge   ! pond drainage due to ridging
   
        logical (kind=log_kind), intent(in), optional ::   &
            docleanup, & ! if false, do not call cleanup_itd (default true)
@@ -785,7 +788,7 @@ icepack_init_parameters
            qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
            ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, &
            update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
-           cpl_frazil_in, &
+           cpl_frazil_in, semi_implicit_Tsfc_in, vapor_flux_correction_in, &
            Rac_rapid_mode_in, aspect_rapid_mode_in, &
            dSdt_slow_mode_in, phi_c_slow_mode_in, &
            phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
@@ -795,7 +798,7 @@ icepack_init_parameters
            atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
            atmiter_conv_in, calc_dragio_in, &
            tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
-           saltflux_option_in, congel_freeze_in, &
+           apnd_sl_in, saltflux_option_in, congel_freeze_in, &
            floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
            dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
            bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
@@ -809,6 +812,7 @@ icepack_init_parameters
            y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
            sw_redist_in, sw_frac_in, sw_dtemp_in, snwgrain_in, &
            snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
+           snw_growth_wet_in, drsnw_min_in, snwliq_max_in, &
            rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
            snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
            snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
@@ -918,6 +922,9 @@ icepack_init_parameters
            calc_Tsfc_in    , &! if true, calculate surface temperature
                               ! if false, Tsfc is computed elsewhere and
                               ! atmos-ice fluxes are provided to CICE
+           semi_implicit_Tsfc_in   , &! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat
+           vapor_flux_correction_in, &! compute mass/enthalpy correction when evaporation/sublimation
+                              ! computed outside at 0C
            update_ocn_f_in    ! include fresh water and salt fluxes for frazil
   
         real (kind=dbl_kind), intent(in), optional :: &
@@ -1247,7 +1254,7 @@ icepack_init_parameters
         real (kind=dbl_kind), intent(in), optional :: &
            hs0_in             ! snow depth for transition to bare sea ice (m)
   
-        ! level-ice ponds
+        ! level-ice and sealvl ponds
         character (len=*), intent(in), optional :: &
            frzpnd_in          ! pond refreezing parameterization
   
@@ -1257,6 +1264,10 @@ icepack_init_parameters
            rfracmax_in, &     ! maximum retained fraction of meltwater
            pndaspect_in, &    ! ratio of pond depth to pond fraction
            hs1_in             ! tapering parameter for snow on pond ice
+  
+        ! sealvl ponds
+        real (kind=dbl_kind), intent(in), optional :: &
+           apnd_sl_in         ! equilibrium pond fraction for sea level parameterization
   
         ! topo ponds
         real (kind=dbl_kind), intent(in), optional :: &
@@ -1282,7 +1293,10 @@ icepack_init_parameters
            rhosmax_in, &      ! maximum snow density (kg/m^3)
            windmin_in, &      ! minimum wind speed to compact snow (m/s)
            drhosdwind_in, &   ! wind compaction factor (kg s/m^4)
-           snwlvlfac_in       ! fractional increase in snow depth
+           snwlvlfac_in, &    ! fractional increase in snow depth
+           snw_growth_wet_in,&! wet metamorphism parameter (um^3/s)
+           drsnw_min_in, &    ! minimum snow grain growth factor
+           snwliq_max_in      ! irreducible saturation fraction
   
         integer (kind=int_kind), intent(in), optional :: &
            isnw_T_in, &       ! maxiumum temperature index
@@ -1336,15 +1350,15 @@ icepack_query_parameters
            Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
            ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, &
            Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
-           phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
-           albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
+           phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, semi_implicit_Tsfc_out, &
+           albedo_type_out, albicev_out, albicei_out, albsnowv_out, vapor_flux_correction_out, &
            albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
            rsnw_mlt_out, dEdd_algae_out, &
            kalg_out, R_gC2molC_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
            atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
            atmiter_conv_out, calc_dragio_out, &
            tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
-           saltflux_option_out, congel_freeze_out, &
+           apnd_sl_out, saltflux_option_out, congel_freeze_out, &
            floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
            dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
            bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
@@ -1358,6 +1372,7 @@ icepack_query_parameters
            y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
            sw_redist_out, sw_frac_out, sw_dtemp_out, snwgrain_out, &
            snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
+           snw_growth_wet_out, drsnw_min_out, snwliq_max_out, &
            rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
            snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
            snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
@@ -1475,6 +1490,9 @@ icepack_query_parameters
            calc_Tsfc_out    ,&! if true, calculate surface temperature
                               ! if false, Tsfc is computed elsewhere and
                               ! atmos-ice fluxes are provided to CICE
+           semi_implicit_Tsfc_out    ,&! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat
+           vapor_flux_correction_out ,&! compute mass/enthalpy correction when evaporation/sublimation
+                              ! computed outside at 0C
            update_ocn_f_out   ! include fresh water and salt fluxes for frazil
   
         real (kind=dbl_kind), intent(out), optional :: &
@@ -1806,7 +1824,7 @@ icepack_query_parameters
         real (kind=dbl_kind), intent(out), optional :: &
            hs0_out             ! snow depth for transition to bare sea ice (m)
   
-        ! level-ice ponds
+        ! level-ice and sealvl ponds
         character (len=*), intent(out), optional :: &
            frzpnd_out          ! pond refreezing parameterization
   
@@ -1816,6 +1834,10 @@ icepack_query_parameters
            rfracmax_out, &     ! maximum retained fraction of meltwater
            pndaspect_out, &    ! ratio of pond depth to pond fraction
            hs1_out             ! tapering parameter for snow on pond ice
+  
+        ! sealvl ponds
+        real (kind=dbl_kind), intent(out), optional :: &
+           apnd_sl_out         ! equilibrium pond fraction for sea level parameterization
   
         ! topo ponds
         real (kind=dbl_kind), intent(out), optional :: &
@@ -1841,7 +1863,10 @@ icepack_query_parameters
            rhosmax_out, &      ! maximum snow density (kg/m^3)
            windmin_out, &      ! minimum wind speed to compact snow (m/s)
            drhosdwind_out, &   ! wind compaction factor (kg s/m^4)
-           snwlvlfac_out       ! fractional increase in snow depth
+           snwlvlfac_out,  &   ! fractional increase in snow depth
+           snw_growth_wet_out,&! wet metamorphism parameter (um^3/s)
+           drsnw_min_out, &    ! minimum snow grain growth factor
+           snwliq_max_out      ! irreducible saturation fraction
   
         integer (kind=int_kind), intent(out), optional :: &
            isnw_T_out, &       ! maxiumum temperature index
@@ -1995,6 +2020,8 @@ icepack_step_radiation
                                           yday,     sec,       &
                                           swvdr,    swvdf,     &
                                           swidr,    swidf,     &
+                                          swuvrdr,  swuvrdf,   &
+                                          swpardr,  swpardf,   &
                                           coszen,   fsnow,     &
                                           alvdrn,   alvdfn,    &
                                           alidrn,   alidfn,    &
@@ -2004,6 +2031,10 @@ icepack_step_radiation
                                           fswthrun_vdf,        &
                                           fswthrun_idr,        &
                                           fswthrun_idf,        &
+                                          fswthrun_uvrdr,      &
+                                          fswthrun_uvrdf,      &
+                                          fswthrun_pardr,      &
+                                          fswthrun_pardf,      &
                                           fswpenln,            &
                                           Sswabsn,  Iswabsn,   &
                                           albicen,  albsnon,   &
@@ -2023,6 +2054,12 @@ icepack_step_radiation
            fsnow     , & ! snowfall rate (kg/m^2 s)
            TLAT, TLON    ! latitude and longitude (radian)
   
+        real (kind=dbl_kind), intent(in), optional :: &
+           swuvrdr   , & ! sw down, vis uvr dir (W/m^2)
+           swuvrdf   , & ! sw down, vis uvr dif (W/m^2)
+           swpardr   , & ! sw down, vis par dir (W/m^2)
+           swpardf       ! sw down, vis par dif (W/m^2)
+  
         integer (kind=int_kind), intent(in) :: &
            sec           ! elapsed seconds into date
   
@@ -2030,7 +2067,7 @@ icepack_step_radiation
            yday          ! day of the year
   
         character (len=char_len), intent(in), optional :: &
-           calendar_type ! differentiates Gregorian from other calendars
+           calendar_type ! differentiates proleptic_gregorian from other calendars
   
         integer (kind=int_kind), intent(in), optional :: &
            days_per_year ! number of days in one year
@@ -2081,7 +2118,11 @@ icepack_step_radiation
            fswthrun_vdr , & ! vis dir SW through ice to ocean (W/m^2)
            fswthrun_vdf , & ! vis dif SW through ice to ocean (W/m^2)
            fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
-           fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
+           fswthrun_idf , & ! nir dif SW through ice to ocean (W/m^2)
+           fswthrun_uvrdr,& ! vis uvr dir SW through ice to ocean (W/m^2)
+           fswthrun_uvrdf,& ! vis uvr dif SW through ice to ocean (W/m^2)
+           fswthrun_pardr,& ! vis par dir SW through ice to ocean (W/m^2)
+           fswthrun_pardf   ! vis par dif SW through ice to ocean (W/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            fswpenln  , & ! visible SW entering ice layers (W m-2)
@@ -2216,7 +2257,8 @@ icepack_step_therm2
                                        wavefreq,                    &
                                        dwavefreq,                   &
                                        d_afsd_latg,  d_afsd_newi,   &
-                                       d_afsd_latm,  d_afsd_weld)
+                                       d_afsd_latm,  d_afsd_weld,   &
+                                       dpnd_melt)
   
         use icepack_parameters, only: icepack_init_parameters
   
@@ -2259,6 +2301,9 @@ icepack_step_therm2
            meltl    , & ! lateral ice melt         (m/step-->cm/day)
            frazil   , & ! frazil ice growth        (m/step-->cm/day)
            frazil_diag  ! frazil ice growth diagnostic (m/step-->cm/day)
+  
+        real (kind=dbl_kind), intent(inout), optional :: &
+           dpnd_melt    ! pond 'drainage' due to ice melting (m / step)
   
         real (kind=dbl_kind), intent(in), optional :: &
            wlat         ! lateral melt rate (m/s)
@@ -2512,6 +2557,10 @@ icepack_step_therm1
                                       fswthrun_vdf,               &
                                       fswthrun_idr,               &
                                       fswthrun_idf,               &
+                                      fswthrun_uvrdr,             &
+                                      fswthrun_uvrdf,             &
+                                      fswthrun_pardr,             &
+                                      fswthrun_pardf,             &
                                       fswabs      ,               &
                                       flwout      ,               &
                                       Sswabsn     , Iswabsn     , &
@@ -2527,8 +2576,13 @@ icepack_step_therm1
                                       fswthru_vdf ,               &
                                       fswthru_idr ,               &
                                       fswthru_idf ,               &
+                                      fswthru_uvrdr ,             &
+                                      fswthru_uvrdf ,             &
+                                      fswthru_pardr ,             &
+                                      fswthru_pardf ,             &
                                       flatn_f     , fsensn_f    , &
                                       fsurfn_f    , fcondtopn_f , &
+                                      dfsurfdT    , dflatdT     , &
                                       faero_atm   , faero_ocn   , &
                                       fiso_atm    , fiso_ocn    , &
                                       fiso_evap   , &
@@ -2547,7 +2601,12 @@ icepack_step_therm1
                                       lmask_n     , lmask_s     , &
                                       mlt_onset   , frz_onset   , &
                                       yday        , prescribed_ice, &
-                                      zlvs        , afsdn)
+                                      zlvs        , afsdn       , &
+                                      dpnd_flush  , dpnd_flushn , &
+                                      dpnd_expon  , dpnd_exponn , &
+                                      dpnd_freebd , dpnd_freebdn, &
+                                      dpnd_initial, dpnd_initialn, &
+                                      dpnd_dlid   , dpnd_dlidn)
   
         real (kind=dbl_kind), intent(in) :: &
            dt          , & ! time step
@@ -2634,6 +2693,13 @@ icepack_step_therm1
            mlt_onset   , & ! day of year that sfc melting begins
            frz_onset       ! day of year that freezing begins (congel or frazil)
   
+        real (kind=dbl_kind), intent(inout), optional :: &
+           dpnd_flush  , & ! pond flushing rate due to ice permeability (m/step)
+           dpnd_expon  , & ! exponential pond drainage rate (m/step)
+           dpnd_freebd , & ! pond drainage rate due freeboard constraint (m/step)
+           dpnd_initial, & ! runoff rate due to rfrac (m/step)
+           dpnd_dlid       ! pond loss/gain (+/-) to ice lid (m/step)
+  
         real (kind=dbl_kind), intent(out), optional :: &
            wlat            ! lateral melt rate (m/s)
   
@@ -2642,6 +2708,10 @@ icepack_step_therm1
            fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
            fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
            fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
+           fswthru_uvrdr,& ! vis uvr dir shortwave penetrating to ocean (W/m^2)
+           fswthru_uvrdf,& ! vis uvr dif shortwave penetrating to ocean (W/m^2)
+           fswthru_pardr,& ! vis par dir shortwave penetrating to ocean (W/m^2)
+           fswthru_pardf,& ! vis par dif shortwave penetrating to ocean (W/m^2)
            dsnow       , & ! change in snow depth     (m/step-->cm/day)
            fsloss          ! rate of snow loss to leads      (kg/m^2/s)
   
@@ -2709,6 +2779,13 @@ icepack_step_therm1
            congeln     , & ! congelation ice growth                 (m)
            snoicen         ! snow-ice growth                        (m)
   
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+           dpnd_flushn , & ! category pond flushing rate          (m/step)
+           dpnd_exponn , & ! exponential pond drainage rate       (m/step)
+           dpnd_freebdn, & ! pond drainage rate due to freeboard  (m/step)
+           dpnd_initialn,& ! runoff rate due to rfrac (m/step)
+           dpnd_dlidn      ! category pond loss/gain due to ice lid (m/step)
+  
         real (kind=dbl_kind), dimension(:), intent(in) :: &
            fswthrun        ! SW through ice to ocean            (W/m^2)
   
@@ -2716,10 +2793,16 @@ icepack_step_therm1
            dsnown          ! change in snow thickness (m/step-->cm/day)
   
         real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+           dfsurfdT     , & ! derivative of fsurfn with respect to temperatur (W m-2 K-1)
+           dflatdT      , & ! derivative of flatn with respect to temperature (W m-2 K-1)
            fswthrun_vdr , & ! vis dir SW through ice to ocean   (W/m^2)
            fswthrun_vdf , & ! vis dif SW through ice to ocean   (W/m^2)
            fswthrun_idr , & ! nir dir SW through ice to ocean   (W/m^2)
-           fswthrun_idf     ! nir dif SW through ice to ocean   (W/m^2)
+           fswthrun_idf , & ! nir dif SW through ice to ocean   (W/m^2)
+           fswthrun_uvrdr,& ! vis uvr dir SW through ice to ocean (W/m^2)
+           fswthrun_uvrdf,& ! vis uvr dif SW through ice to ocean (W/m^2)
+           fswthrun_pardr,& ! vis par dir SW through ice to ocean (W/m^2)
+           fswthrun_pardf   ! via par dif SW through ice to ocean (W/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            zqsn        , & ! snow layer enthalpy                (J m-3)
@@ -2750,7 +2833,7 @@ icepack_init_tracer_flags
   
         subroutine icepack_init_tracer_flags(&
              tr_iage_in, tr_FY_in, tr_lvl_in, tr_snow_in, &
-             tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, &
+             tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, tr_pond_sealvl_in, &
              tr_fsd_in, tr_aero_in, tr_iso_in, tr_brine_in, tr_zaero_in, &
              tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
              tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
@@ -2763,6 +2846,7 @@ icepack_init_tracer_flags
                tr_pond_in      , & ! if .true., use melt pond tracer
                tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
+               tr_pond_sealvl_in,& ! if .true., use sealvl pond parameteriztion
                tr_snow_in      , & ! if .true., use snow redistribution or metamorphosis tracers
                tr_fsd_in       , & ! if .true., use floe size distribution tracers
                tr_iso_in       , & ! if .true., use isotope tracers
@@ -2793,7 +2877,7 @@ icepack_query_tracer_flags
   
         subroutine icepack_query_tracer_flags(&
              tr_iage_out, tr_FY_out, tr_lvl_out, tr_snow_out, &
-             tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, &
+             tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, tr_pond_sealvl_out, &
              tr_fsd_out, tr_aero_out, tr_iso_out, tr_brine_out, tr_zaero_out, &
              tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
              tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
@@ -2806,6 +2890,7 @@ icepack_query_tracer_flags
                tr_pond_out      , & ! if .true., use melt pond tracer
                tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
+               tr_pond_sealvl_out,& ! if .true., use sealvl pond parameterization
                tr_snow_out      , & ! if .true., use snow redistribution or metamorphosis tracers
                tr_fsd_out       , & ! if .true., use floe size distribution
                tr_iso_out       , & ! if .true., use isotope tracers

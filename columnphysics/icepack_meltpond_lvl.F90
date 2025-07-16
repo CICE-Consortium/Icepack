@@ -159,10 +159,10 @@
                    +                 melts*rhos &
                    +                 frain*  dt)*aicen
             endif
-            ! Track meltwater runoff fraction. Here dvn is volume of 
-            ! meltwater (m3/m2) captured over entire grid cell area. 
-            ! Multiply by (1-rfrac)/rfrac to get loss over entire area. 
-            ! Divide by aicen to get loss per unit category area 
+            ! Track meltwater runoff fraction. Here dvn is volume of
+            ! meltwater (m3/m2) captured over entire grid cell area.
+            ! Multiply by (1-rfrac)/rfrac to get loss over entire area.
+            ! Divide by aicen to get loss per unit category area
             ! (for consistency with melttn, dpnd_freebdn, etc)
             dpnd_initialn = dvn * (c1-rfrac) / (rfrac * aicen)
             dvn_temp = dvn
@@ -205,7 +205,7 @@
             endif
 
             volpn = volpn + dvn
-            ! Track lost/gained meltwater per unit category area from pond 
+            ! Track lost/gained meltwater per unit category area from pond
             ! lid freezing/melting. Note sign flip relative to dvn convention
             dpnd_dlidn = (dvn_temp - dvn) / aicen
 

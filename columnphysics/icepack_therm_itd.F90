@@ -469,7 +469,7 @@
                                           * trcrn(nt_hpnd,1))
                   if (tr_pond .and. present(dpnd_melt)) then
                      if (tr_pond_lvl) then
-                        dpnd_melt = dpnd_melt + da0 * trcrn(nt_apnd,1)  & 
+                        dpnd_melt = dpnd_melt + da0 * trcrn(nt_apnd,1)  &
                                  * trcrn(nt_hpnd,1) * trcrn(nt_alvl,1)
                      else
                         dpnd_melt = dpnd_melt + da0*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)
