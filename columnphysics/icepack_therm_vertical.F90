@@ -2609,8 +2609,24 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
-         if ((present(dsnow) .and. .not.present(dsnown)) .or. &
-             (present(dsnown) .and. .not.present(dsnow))) then
+         if (tr_pond) then
+            if ((present(flpndn) .and. .not.present(flpnd )) .or. &
+                (present(flpnd ) .and. .not.present(flpndn)) .or. &
+                (present(expndn) .and. .not.present(expnd )) .or. &
+                (present(expnd ) .and. .not.present(expndn)) .or. &
+                (present(frpndn) .and. .not.present(frpnd )) .or. &
+                (present(frpnd ) .and. .not.present(frpndn)) .or. &
+                (present(rfpndn) .and. .not.present(rfpnd )) .or. &
+                (present(rfpnd ) .and. .not.present(rfpndn)) .or. &
+                (present(ilpndn) .and. .not.present(ilpnd )) .or. &
+                (present(ilpnd ) .and. .not.present(ilpndn))) then
+               call icepack_warnings_add(subname//' error in pond arguments')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            endif
+         endif
+         if ((present(dsnow ) .and. .not.present(dsnown)) .or. &
+             (present(dsnown) .and. .not.present(dsnow ))) then
             call icepack_warnings_add(subname//' error in dsnow arguments')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
@@ -2736,13 +2752,12 @@
          l_frpndn = c0
          l_rfpndn = c0
          l_ilpndn = c0
-         if (tr_pond .and. present(flpndn) .and. present(expndn) .and. &
-             present(frpndn) .and. present(rfpndn) .and. present(ilpndn)) then
-            l_flpndn = flpndn (n)
-            l_expndn = expndn (n) 
-            l_frpndn = frpndn (n)
-            l_rfpndn = rfpndn (n)
-            l_ilpndn = ilpndn (n)
+         if (tr_pond) then
+            if (present(flpndn)) l_flpndn = flpndn(n)
+            if (present(expndn)) l_expndn = expndn(n)
+            if (present(frpndn)) l_frpndn = frpndn(n)
+            if (present(rfpndn)) l_rfpndn = rfpndn(n)
+            if (present(ilpndn)) l_ilpndn = ilpndn(n)
          endif
          l_dsnown   = c0
 
@@ -3144,7 +3159,12 @@
 
          endif
 
-         if (present(dsnown      )) dsnown(n)    = l_dsnown
+         if (present(dsnown)) dsnown(n) = l_dsnown
+         if (present(flpndn)) flpndn(n) = l_flpndn
+         if (present(expndn)) expndn(n) = l_expndn
+         if (present(frpndn)) frpndn(n) = l_frpndn
+         if (present(rfpndn)) rfpndn(n) = l_rfpndn
+         if (present(ilpndn)) ilpndn(n) = l_ilpndn
 
       enddo                  ! ncat
 

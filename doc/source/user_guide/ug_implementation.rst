@@ -267,6 +267,9 @@ is done by setting ``ICE_IOTYPE`` to ``netcdf`` in **icepack.settings** or using
 ``icepack.setup -s`` option ``ionetcdf``.  If netCDF is used on a particular machine, 
 the machine env and Macros file must support compilation with netCDF.
 
+Note that some of the ponds history fields are not yet implemented for the topo
+ponds option.
+
 .. _bgc-hist:
 
 Biogeochemistry History Fields
