@@ -74,6 +74,7 @@
          varid, &                        ! cdf varid
          status, &                       ! cdf status flag
          iflag, &                        ! history file attributes
+         numvars, &                      ! temporary for writing fields
          nt_apnd, nt_hpnd, nt_ipnd       ! pond tracer indices
 
       character (len=8) :: &
@@ -112,7 +113,8 @@
 
       logical (kind=log_kind) :: &
          tr_fsd, &                        ! flag for tracing fsd
-         tr_pnd                           ! flag for tracing ponds
+         tr_pnd, &                        ! flag for tracing ponds
+         tr_pnd_topo                      ! flag for tracing topo ponds
 
       integer (kind=dbl_kind), parameter :: num_3d_nfsd = 5
       character(len=16), parameter :: fld_3d_nfsd(num_3d_nfsd) = &
@@ -139,7 +141,8 @@
 
 #ifdef USE_NETCDF
       call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
-      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd, tr_pond_out=tr_pnd)
+      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd, tr_pond_out=tr_pnd, &
+         tr_pond_topo_out=tr_pnd_topo)
       if (first_call) then
          timcnt = 0
          write(hist_file,'(a,i8.8,a)') './history/icepack.h.',idate,'.nc'
@@ -219,7 +222,11 @@
          enddo
 
          if (tr_pnd) then
-            do n = 1,num_2d_pond
+            numvars = num_2d_pond
+            ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+            ! this is a temporary implementation, hardcode to write the first 3 fields only
+            if (tr_pnd_topo) numvars=3
+            do n = 1,numvars
                status = nf90_def_var(ncid,trim(fld_2d_pond(n)),NF90_DOUBLE,dimid2,varid)
                if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_2d_pond(n)))
             enddo
@@ -237,7 +244,11 @@
          enddo
 
          if (tr_pnd) then
-            do n = 1,num_3d_pond
+            numvars = num_3d_pond
+            ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+            ! this is a temporary implementation, hardcode to write the first 3 fields only
+            if (tr_pnd_topo) numvars=3
+            do n = 1,numvars
                status = nf90_def_var(ncid,trim(fld_3d_pond(n)),NF90_DOUBLE,dimid3,varid)
                if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_3d_pond(n)))
             enddo
@@ -396,7 +407,11 @@
          start2(2) = timcnt
          count2(2) = 1
 
-         do n = 1,num_2d_pond
+         numvars = num_2d_pond
+         ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+         ! this is a temporary implementation, hardcode to write the first 3 fields only
+         if (tr_pnd_topo) numvars=3
+         do n = 1,numvars
             allocate(value2(count2(1),1))
 
             value2 = -9999._dbl_kind
@@ -457,7 +472,11 @@
          start3(3) = timcnt
          count3(3) = 1
 
-         do n = 1,num_3d_pond
+         numvars = num_3d_pond
+         ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+         ! this is a temporary implementation, hardcode to write the first 3 fields only
+         if (tr_pnd_topo) numvars=3
+         do n = 1,numvars
             allocate(value3(count3(1),count3(2),1))
 
             value3 = -9999._dbl_kind
