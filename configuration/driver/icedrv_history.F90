@@ -51,8 +51,9 @@
       use icedrv_flux, only: fswabs, flw, flwout, fsens, fsurf, flat
       use icedrv_flux, only: Tair, Qa, fsw, fcondtop
       use icedrv_flux, only: meltt, meltb, meltl, melts, snoice
-      use icedrv_flux, only: flpndn, expndn, frpndn, rfpndn, ilpndn
-      use icedrv_flux, only: flpnd, expnd, frpnd, rfpnd, ilpnd, mipnd, rdpnd
+      use icedrv_flux, only: dpnd_flushn, dpnd_exponn, dpnd_freebdn, dpnd_initialn, dpnd_dlidn
+      use icedrv_flux, only: dpnd_flush, dpnd_expon, dpnd_freebd, dpnd_initial, dpnd_dlid
+      use icedrv_flux, only: dpnd_melt, dpnd_ridge
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
       use icedrv_arrays_column, only: d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
 #ifdef USE_NETCDF
@@ -73,6 +74,7 @@
          varid, &                        ! cdf varid
          status, &                       ! cdf status flag
          iflag, &                        ! history file attributes
+         numvars, &                      ! temporary for writing fields
          nt_apnd, nt_hpnd, nt_ipnd       ! pond tracer indices
 
       character (len=8) :: &
@@ -97,32 +99,33 @@
             'dsnow           ', 'congel          ', 'sst             ', &
             'sss             ', 'Tf              ', 'fhocn           ', &
             'melts           ' /)
-            
+
       integer (kind=dbl_kind), parameter :: num_2d_pond = 10
       character(len=16), parameter :: fld_2d_pond(num_2d_pond) = &
          (/ 'apnd            ', 'hpnd            ', 'ipnd            ', &
-            'flpnd           ', 'expnd           ', 'frpnd           ', &
-            'rfpnd           ', 'ilpnd           ', 'mipnd           ', &
-            'rdpnd           '  /)
-            
+            'dpnd_flush      ', 'dpnd_expon      ', 'dpnd_freebd     ', &
+            'dpnd_initial    ', 'dpnd_dlid       ', 'dpnd_melt       ', &
+            'dpnd_ridge      '  /)
+
       integer (kind=dbl_kind), parameter :: num_3d_ncat = 3
       character(len=16), parameter :: fld_3d_ncat(num_3d_ncat) = &
          (/ 'aicen           ', 'vicen           ', 'vsnon           ' /)
 
       logical (kind=log_kind) :: &
          tr_fsd, &                        ! flag for tracing fsd
-         tr_pnd                           ! flag for tracing ponds
+         tr_pnd, &                        ! flag for tracing ponds
+         tr_pnd_topo                      ! flag for tracing topo ponds
 
       integer (kind=dbl_kind), parameter :: num_3d_nfsd = 5
       character(len=16), parameter :: fld_3d_nfsd(num_3d_nfsd) = &
          (/ 'd_afsd_newi     ', 'd_afsd_latg     ', 'd_afsd_latm     ', &
             'd_afsd_wave     ', 'd_afsd_weld     ' /)
-      
+
       integer (kind=dbl_kind), parameter :: num_3d_pond = 8
       character(len=16), parameter :: fld_3d_pond(num_3d_pond) = &
          (/ 'apndn           ', 'hpndn           ', 'ipndn           ', &
-            'flpndn          ', 'expndn          ', 'frpndn          ', &
-            'rfpndn          ', 'ilpndn          ' /)
+            'dpnd_flushn     ', 'dpnd_exponn     ', 'dpnd_freebdn    ', &
+            'dpnd_initialn   ', 'dpnd_dlidn      ' /)
 
       integer (kind=dbl_kind), parameter :: num_3d_ntrcr = 1
       character(len=16), parameter :: fld_3d_ntrcr(num_3d_ntrcr) = &
@@ -138,7 +141,8 @@
 
 #ifdef USE_NETCDF
       call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
-      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd, tr_pond_out=tr_pnd)
+      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd, tr_pond_out=tr_pnd, &
+         tr_pond_topo_out=tr_pnd_topo)
       if (first_call) then
          timcnt = 0
          write(hist_file,'(a,i8.8,a)') './history/icepack.h.',idate,'.nc'
@@ -218,7 +222,11 @@
          enddo
 
          if (tr_pnd) then
-            do n = 1,num_2d_pond
+            numvars = num_2d_pond
+            ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+            ! this is a temporary implementation, hardcode to write the first 3 fields only
+            if (tr_pnd_topo) numvars=3
+            do n = 1,numvars
                status = nf90_def_var(ncid,trim(fld_2d_pond(n)),NF90_DOUBLE,dimid2,varid)
                if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_2d_pond(n)))
             enddo
@@ -236,12 +244,16 @@
          enddo
 
          if (tr_pnd) then
-            do n = 1,num_3d_pond
+            numvars = num_3d_pond
+            ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+            ! this is a temporary implementation, hardcode to write the first 3 fields only
+            if (tr_pnd_topo) numvars=3
+            do n = 1,numvars
                status = nf90_def_var(ncid,trim(fld_3d_pond(n)),NF90_DOUBLE,dimid3,varid)
                if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_3d_pond(n)))
             enddo
          endif ! tr_pnd
-   
+
          if (tr_fsd) then
             ! 3d nfsd fields
 
@@ -395,20 +407,24 @@
          start2(2) = timcnt
          count2(2) = 1
 
-         do n = 1,num_2d_pond
+         numvars = num_2d_pond
+         ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+         ! this is a temporary implementation, hardcode to write the first 3 fields only
+         if (tr_pnd_topo) numvars=3
+         do n = 1,numvars
             allocate(value2(count2(1),1))
 
             value2 = -9999._dbl_kind
             if (trim(fld_2d_pond(n)) == 'apnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_apnd)
             if (trim(fld_2d_pond(n)) == 'hpnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_hpnd)
             if (trim(fld_2d_pond(n)) == 'ipnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_ipnd)
-            if (trim(fld_2d_pond(n)) == 'flpnd') value2(1:count2(1),1) = flpnd(1:count2(1))
-            if (trim(fld_2d_pond(n)) == 'expnd') value2(1:count2(1),1) = expnd(1:count2(1))
-            if (trim(fld_2d_pond(n)) == 'frpnd') value2(1:count2(1),1) = frpnd(1:count2(1))
-            if (trim(fld_2d_pond(n)) == 'rfpnd') value2(1:count2(1),1) = rfpnd(1:count2(1))
-            if (trim(fld_2d_pond(n)) == 'ilpnd') value2(1:count2(1),1) = ilpnd(1:count2(1))
-            if (trim(fld_2d_pond(n)) == 'mipnd') value2(1:count2(1),1) = mipnd(1:count2(1))
-            if (trim(fld_2d_pond(n)) == 'rdpnd') value2(1:count2(1),1) = rdpnd(1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'dpnd_flush'  ) value2(1:count2(1),1) = dpnd_flush  (1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'dpnd_expon'  ) value2(1:count2(1),1) = dpnd_expon  (1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'dpnd_freebd' ) value2(1:count2(1),1) = dpnd_freebd (1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'dpnd_initial') value2(1:count2(1),1) = dpnd_initial(1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'dpnd_dlid'   ) value2(1:count2(1),1) = dpnd_dlid   (1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'dpnd_melt'   ) value2(1:count2(1),1) = dpnd_melt   (1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'dpnd_ridge'  ) value2(1:count2(1),1) = dpnd_ridge  (1:count2(1))
 
             status = nf90_inq_varid(ncid,trim(fld_2d_pond(n)),varid)
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_2d_pond(n)))
@@ -456,18 +472,22 @@
          start3(3) = timcnt
          count3(3) = 1
 
-         do n = 1,num_3d_pond
+         numvars = num_3d_pond
+         ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+         ! this is a temporary implementation, hardcode to write the first 3 fields only
+         if (tr_pnd_topo) numvars=3
+         do n = 1,numvars
             allocate(value3(count3(1),count3(2),1))
 
             value3 = -9999._dbl_kind
             if (trim(fld_3d_pond(n)) == 'apndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_apnd,1:count3(2))
             if (trim(fld_3d_pond(n)) == 'hpndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_hpnd,1:count3(2))
             if (trim(fld_3d_pond(n)) == 'ipndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_ipnd,1:count3(2))
-            if (trim(fld_3d_pond(n)) == 'flpndn') value3(1:count3(1),1:count3(2),1) = flpndn(1:count3(1),1:count3(2))
-            if (trim(fld_3d_pond(n)) == 'expndn') value3(1:count3(1),1:count3(2),1) = expndn(1:count3(1),1:count3(2))
-            if (trim(fld_3d_pond(n)) == 'frpndn') value3(1:count3(1),1:count3(2),1) = frpndn(1:count3(1),1:count3(2))
-            if (trim(fld_3d_pond(n)) == 'rfpndn') value3(1:count3(1),1:count3(2),1) = rfpndn(1:count3(1),1:count3(2))
-            if (trim(fld_3d_pond(n)) == 'ilpndn') value3(1:count3(1),1:count3(2),1) = ilpndn(1:count3(1),1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'dpnd_flushn'  ) value3(1:count3(1),1:count3(2),1) = dpnd_flushn  (1:count3(1),1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'dpnd_exponn'  ) value3(1:count3(1),1:count3(2),1) = dpnd_exponn  (1:count3(1),1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'dpnd_freebdn' ) value3(1:count3(1),1:count3(2),1) = dpnd_freebdn (1:count3(1),1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'dpnd_initialn') value3(1:count3(1),1:count3(2),1) = dpnd_initialn(1:count3(1),1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'dpnd_dlidn'   ) value3(1:count3(1),1:count3(2),1) = dpnd_dlidn   (1:count3(1),1:count3(2))
 
             status = nf90_inq_varid(ncid,trim(fld_3d_pond(n)),varid)
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_3d_pond(n)))

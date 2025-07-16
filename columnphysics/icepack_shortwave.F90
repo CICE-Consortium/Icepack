@@ -3531,7 +3531,7 @@
 
       logical (kind=log_kind), intent(in) :: &
          l_initonly  ! local initonly value
-      
+
       ! local variables
       real (kind=dbl_kind) :: &
          hsnlvl  , & ! snow depth over level ice (m)

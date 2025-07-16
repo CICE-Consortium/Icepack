@@ -32,7 +32,7 @@
       public :: icepack_step_snow, drain_snow, icepack_init_snow
 
       real (kind=dbl_kind), parameter, public :: &
-         drsnw_min_o = 1.0186_dbl_kind    ! Bun 1989  (um^3/s)  
+         drsnw_min_o = 1.0186_dbl_kind    ! Bun 1989  (um^3/s)
                                           ! minimum volume growth rate 1.28x10^-8 mm^3/s/4/pi
 
       real (kind=dbl_kind) :: &

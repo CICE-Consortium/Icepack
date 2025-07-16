@@ -127,11 +127,11 @@ ponds, :math:`\rho_i` and :math:`\rho_s` are ice and snow densities,
 :math:`\Delta h_i` and :math:`\Delta h_s` are the thicknesses of ice and
 snow that melted, and :math:`F_{rain}` is the rainfall rate. Namelist
 parameters are set for the level-ice (``tr_pond_lvl``) parameterization;
-in the cesm and topo pond schemes the standard values of :math:`r_{max}`
-and :math:`r_{min}` are 0.7 and 0.15, respectively. For the sealvl pond 
-parameterization, 100% of the melt water is added to the ponds 
-(:math:`r = 1.0`) and runoff is handled by the macro-flaw drainage 
-parameterization (see below).
+in the topo pond scheme the standard values of :math:`r_{max}`
+and :math:`r_{min}` are 0.7 and 0.15, respectively. For the sea-level pond
+parameterization, 100% of the melt water is added to the ponds
+(:math:`r = 1.0`) and runoff is handled by the macro-flaw drainage
+parameterization.
 
 Radiatively, the surface of an ice category is divided into fractions of
 snow, pond and bare ice. In these melt pond schemes, the actual pond
@@ -694,36 +694,36 @@ same mean pond area in a grid cell after the addition of new ice,
 and solving for the new pond area tracer :math:`a_{pnd}^\prime` given
 the newly formed ice area :math:`\Delta a_i = \Delta a_{lvl}`.
 
-sealvl pond formulation (``tr_pond_sealvl`` = true)
+Sea-level pond formulation (``tr_pond_sealvl`` = true)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The sealvl meltpond parameterization was developed based on the
+The sea-level meltpond parameterization was developed based on the
 following observations from field studies and high-resolution (<=1 m)
 satellite and airborne imagery:
 
 * Stage I and II of melt pond formation (initial formation and
   drainage to sea level, respectively) last approximately 2 weeks
-  (:cite:`Eicken04`, :cite:`Polashenski12`, :cite:`Landy14`).
+  :cite:`Eicken04`, :cite:`Polashenski12`, :cite:`Landy14`.
   Therefore melt ponds spend most of their lifespan in Stage III (i.e.,
   pond-air interfaces are at or near sea level and pond-ice interfaces
   are below sea level).
 * On the scale of a CICE grid cell (> 1 km), melt ponds are
   simultaneously observed on thicker and thinner ice; thinner ice
   does not need to be saturated with ponds for there to be ponds on
-  thicker ice (e.g., :cite:`Webster15`, :cite:`Webster22`).
+  thicker ice :cite:`Webster15`, :cite:`Webster22`.
 * For pack ice in the Arctic, Stage III melt pond fraction is rarely
   observed to be below 15% or above 45% on the scale of a CICE grid cell
   (e.g., :cite:`Fetterer98`, :cite:`Tschudi01`, :cite:`Webster15`,
   :cite:`Wright20`). Some remote sensing retrievals show higher
-  pond fractions immediately before the ice melts out (:cite:`Webster15`),
+  pond fractions immediately before the ice melts out :cite:`Webster15`,
   but it is possible that melted-through ponds (i.e.,
   open water) are being misclassified as ponds.
 * Ponds are routinely observed on deformed ice (e.g., :cite:`Eicken04`).
 * When MYI and FYI coexist, observations do not clearly indicate
   consistent differences in pond fraction, although there may be
-  differences in timing (e.g., :cite:`Webster15`, :cite:`Wright20`).
+  differences in timing :cite:`Webster15`, :cite:`Wright20`.
 * Ponded ice albedos do not rapidly increase as pond depth decreases
-  below 20 cm (e.g., :cite:`Light22`).
+  below 20 cm :cite:`Light22`.
 
 The sealvl parameterization assumes that each ice thickness category
 within the grid cell has a subcategory distribution of ice surface
@@ -735,11 +735,11 @@ ice thickness changes). The hypsometric curve is assumed to be linear.
 For each category, the slope and intercept of the hypsometric curve are
 parameterized such that when pond surfaces are at sea level and the
 category is snow-free, the pond area fraction is equal to the namelist
-parameter ``apnd_sl`` (notated as :math:`a_{p,sl}` in :eq:`pndasp`).
+parameter ``apnd_sl`` (notated as :math:`a_{p,sl}` in Eq. :eq:`pndasp`).
 Unless otherwise specified, the sealvl parameterization uses the same
 parameterizations as the level-ice pond scheme. For example, the same
 approach is used to set the effective surface fractions for the Delta-
-Eddington shortwave calculations).
+Eddington shortwave calculations.
 
 *Hypsometry and Pond Depth-Area Relationship.*
 
@@ -756,7 +756,7 @@ category and :math:`a_p` is the pond area fraction of the category.
 Pond meltwater volume is apportioned into depth and area according to
 :math:`pndasp`, with the exception that if the pond area completely
 fills the category :math:`h_p` may exceed :math:`a_p*pndasp`
-(:math:`h_p` is still subject to a freeboard constraint, see below).
+(:math:`h_p` is still subject to a freeboard constraint).
 Unlike in the level-ice parameterization, this use of :math:`pndasp` means
 that when drainage reduces pond volume, both pond area and depth
 decrease; in the level-ice parameterization just depth decreases. In the
@@ -784,7 +784,7 @@ evolution.
 The parameterized hypsometric curve is also used to compute the height
 of the pond surfaces above the mean ice draft (:math:`hpsurf`), which is
 then used in the calculation of hydraulic head for the drainage
-parameterizations (below). :math:`hpsurf` is calculated by
+parameterizations. :math:`hpsurf` is calculated by
 
 .. math::
    hpsurf = h_{in} - pndasp + 2 * pndasp * a_{p}
@@ -811,7 +811,7 @@ in the sealvl scheme.
 * *Percolation Drainage.* Percolation drainage is implemented in the mushy
   thermodynamics scheme. The harmonic mean of the permeability of the
   ice column is estimated, as is the hydraulic head (the height of the
-  pond-air interface above sea level, see above). Then the drainage rate
+  pond-air interface above sea level). Then the drainage rate
   is estimated assuming a Darcy flow. Percolation drainage in the sealvl
   scheme is identical to the level-ice scheme except for the calculation of
   the hydraulic head.
@@ -850,7 +850,7 @@ in the sealvl scheme.
   assumed that all pond water drains from ice undergoing deformation.
 
 * *Pond Lid Refreezing.* Pond lid refreezing and melting in the sealvl
-  scheme is handled in the same manner as in the level-ice scheme (above).
+  scheme is handled in the same manner as in the level-ice scheme.
   The only difference is that in the sealvl scheme the impact of the
   removed/added pond water are distributed according to hypsometry.
 
@@ -869,7 +869,7 @@ optical properties (bare ice IOPs are used). Subsequent research
 transition to bare ice IOPs below 20 cm pond depth. The presence of a
 pond of any measured depth was sufficient to change the apparent optical
 properties. Consequently, the sealvl scheme disables the pond to bare
-ice transition depth assumption (i.e., ``hp0`` = ``hpmin`` = 0.005 m).
+ice transition depth assumption (``hp0`` = ``hpmin`` = 0.005 m).
 
 .. _sfc-forcing:
 

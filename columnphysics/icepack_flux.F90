@@ -69,11 +69,11 @@
                                Qref_iso, Qrefn_iso,  &
                                fiso_ocn, fiso_ocnn,  &
                                fiso_evap, fiso_evapn,&
-                               flpnd,  flpndn,       &
-                               expnd,  expndn,       &
-                               frpnd,  frpndn,       &
-                               rfpnd,  rfpndn,       &
-                               ilpnd,  ilpndn)
+                               dpnd_flush,   dpnd_flushn,   &
+                               dpnd_expon,   dpnd_exponn,   &
+                               dpnd_freebd,  dpnd_freebdn,  &
+                               dpnd_initial, dpnd_initialn, &
+                               dpnd_dlid,    dpnd_dlidn)
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in) :: &
@@ -107,11 +107,11 @@
           dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
           snoicen , & ! snow-ice growth                 (m)
-          flpndn  , & ! pond flushing rate due to ice permeability (m/step)
-          expndn  , & ! exponential pond drainage rate (m/step)
-          frpndn  , & ! pond drainage rate due to freeboard constraint (m/step)
-          rfpndn  , & ! runoff rate due to rfrac (m/step)
-          ilpndn  , & ! pond loss/gain due to ice lid (m/step)
+          dpnd_flushn , & ! pond flushing rate due to ice permeability (m/step)
+          dpnd_exponn , & ! exponential pond drainage rate (m/step)
+          dpnd_freebdn, & ! pond drainage rate due to freeboard constraint (m/step)
+          dpnd_initialn,& ! runoff rate due to rfrac (m/step)
+          dpnd_dlidn  , & ! pond loss/gain due to ice lid (m/step)
           fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
           fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
@@ -149,11 +149,11 @@
           meltsliq, & ! mass of snow melt               (kg/m^2)
           congel  , & ! congelation ice growth          (m)
           snoice  , & ! snow-ice growth                 (m)
-          flpnd   , & ! pond flushing rate due to ice permeability (m/step)
-          expnd   , & ! exponential pond drainage rate (m/step)
-          frpnd   , & ! pond drainage rate due to freeboard constraint (m/step)
-          rfpnd   , & ! runoff rate due to rfrac (m/step)
-          ilpnd   , & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
+          dpnd_flush , & ! pond flushing rate due to ice permeability (m/step)
+          dpnd_expon , & ! exponential pond drainage rate (m/step)
+          dpnd_freebd, & ! pond drainage rate due to freeboard constraint (m/step)
+          dpnd_initial,& ! runoff rate due to rfrac (m/step)
+          dpnd_dlid  , & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
           fswthru_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
           fswthru_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthru_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
@@ -285,16 +285,16 @@
          snoice    = snoice    + snoicen   * aicen
       ! Meltwater fluxes
       if (tr_pond) then
-         if (present(flpndn) .and. present(flpnd)) &
-            flpnd     = flpnd     + flpndn    * aicen
-         if (present(expndn) .and. present(expnd)) &
-            expnd     = expnd     + expndn    * aicen
-         if (present(frpndn) .and. present(frpnd)) &
-            frpnd     = frpnd     + frpndn    * aicen
-         if (present(rfpndn) .and. present(rfpnd)) &
-            rfpnd     = rfpnd     + rfpndn    * aicen
-         if (present(ilpndn) .and. present(ilpnd)) &
-            ilpnd     = ilpnd     + ilpndn    * aicen
+         if (present(dpnd_flushn)  .and. present(dpnd_flush))   &
+            dpnd_flush   = dpnd_flush   + dpnd_flushn   * aicen
+         if (present(dpnd_exponn)  .and. present(dpnd_expon))   &
+            dpnd_expon   = dpnd_expon   + dpnd_exponn   * aicen
+         if (present(dpnd_freebdn) .and. present(dpnd_freebd))  &
+            dpnd_freebd  = dpnd_freebd  + dpnd_freebdn  * aicen
+         if (present(dpnd_initialn).and. present(dpnd_initial)) &
+            dpnd_initial = dpnd_initial + dpnd_initialn * aicen
+         if (present(dpnd_dlidn)   .and. present(dpnd_dlid))    &
+            dpnd_dlid    = dpnd_dlid    + dpnd_dlidn    * aicen
       endif
 
       end subroutine merge_fluxes

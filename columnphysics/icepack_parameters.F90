@@ -713,7 +713,7 @@
          calc_Tsfc_in    , &! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
-         semi_implicit_Tsfc_in   , &! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat 
+         semi_implicit_Tsfc_in   , &! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat
          vapor_flux_correction_in, &! compute mass/enthalpy correction when evaporation/sublimation
                             ! computed outside at 0C
          update_ocn_f_in    ! include fresh water and salt fluxes for frazil
@@ -1085,7 +1085,7 @@
          windmin_in, &      ! minimum wind speed to compact snow (m/s)
          drhosdwind_in, &   ! wind compaction factor (kg s/m^4)
          snwlvlfac_in, &    ! fractional increase in snow depth
-         snw_growth_wet_in, & ! wet metamorphism parameter (um^3/s)
+         snw_growth_wet_in,&! wet metamorphism parameter (um^3/s)
          drsnw_min_in, &    ! minimum snow grain growth factor
          snwliq_max_in      ! irreducible saturation fraction
 
@@ -1729,7 +1729,7 @@
          calc_Tsfc_out    ,&! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
-         semi_implicit_Tsfc_out    ,&! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat 
+         semi_implicit_Tsfc_out    ,&! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat
          vapor_flux_correction_out ,&! compute mass/enthalpy correction when evaporation/sublimation
                             ! computed outside at 0C
          update_ocn_f_out   ! include fresh water and salt fluxes for frazil
@@ -2103,7 +2103,7 @@
          windmin_out, &      ! minimum wind speed to compact snow (m/s)
          drhosdwind_out, &   ! wind compaction factor (kg s/m^4)
          snwlvlfac_out,  &   ! fractional increase in snow depth
-         snw_growth_wet_out, & ! wet metamorphism parameter (um^3/s)
+         snw_growth_wet_out,&! wet metamorphism parameter (um^3/s)
          drsnw_min_out, &    ! minimum snow grain growth factor
          snwliq_max_out      ! irreducible saturation fraction
 
