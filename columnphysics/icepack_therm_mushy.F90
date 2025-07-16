@@ -61,7 +61,8 @@
                                           fcondtop, fcondbot, &
                                           fadvheat, snoice,   &
                                           smice,    smliq,    &
-                                          flpnd,    expnd)
+                                          dpnd_flush,         &
+                                          dpnd_expon)
 
     ! solve the enthalpy and bulk salinity of the ice for a single column
 
@@ -117,8 +118,8 @@
          zTsn            ! internal snow layer temperatures
      
      real (kind=dbl_kind), intent(inout):: &
-         flpnd       , & ! pond flushing rate due to ice permeability (m/s)
-         expnd           ! exponential pond drainage rate (m/s)
+         dpnd_flush  , & ! pond flushing rate due to ice permeability (m/s)
+         dpnd_expon      ! exponential pond drainage rate (m/s)
 
     ! local variables
     real(kind=dbl_kind), dimension(1:nilyr) :: &
@@ -337,8 +338,8 @@
     endif
 
     ! drain ponds from flushing
-    call flush_pond(w, hpond, apond, dt, flpnd, expnd, &
-                        zTin, phi, hilyr, hin, hsn)
+    call flush_pond(w, hpond, apond, dt, dpnd_flush, dpnd_expon, &
+                    zTin, phi, hilyr, hin, hsn)
     if (icepack_warnings_aborted(subname)) return
 
     ! flood snow ice
@@ -3216,7 +3217,7 @@
 
 !=======================================================================
 
-  subroutine flush_pond(w, hpond, apond, dt, flpnd, expnd, &
+  subroutine flush_pond(w, hpond, apond, dt, dpnd_flush, dpnd_expon, &
                         zTin, phi, hilyr, hin, hsn)
 
     ! given a flushing velocity drain the meltponds
@@ -3233,10 +3234,10 @@
          phi           ! ice layer liquid fraction
 
     real(kind=dbl_kind), intent(inout) :: &
-         hpond , & ! melt pond thickness (m)
-         apond , & ! melt pond area fraction of category (-)
-         flpnd , & ! pond flushing rate due to ice permeability (m/s)
-         expnd     ! exponential pond drainage rate (m/s)
+         hpond     , & ! melt pond thickness (m)
+         apond     , & ! melt pond area fraction of category (-)
+         dpnd_flush, & ! pond flushing rate due to ice permeability (m/s)
+         dpnd_expon    ! exponential pond drainage rate (m/s)
      
     real(kind=dbl_kind) :: &
          dhpond   , & ! change in pond depth per unit pond area (m)
@@ -3259,7 +3260,7 @@
           ! flush pond through mush (percolation drainage)
           !-------------------------------------------------------------
           dhpond = max(-w * dt / apond, -hpond)
-          flpnd = -dhpond * apond
+          dpnd_flush = -dhpond * apond
           ! update pond depth (and area)
           if (tr_pond_sealvl) then
                call pond_hypsometry(hpond, apond, dhpond=dhpond, hin=hin)
@@ -3292,7 +3293,7 @@
                if (icepack_warnings_aborted(subname)) return
           endif
           ! diagnostic drainage rate
-          expnd = -dhpond * apond
+          dpnd_expon = -dhpond * apond
           ! update pond depth (and area)
           if (tr_pond_sealvl) then
                call pond_hypsometry(hpond, apond, dhpond=dhpond, hin=hin)

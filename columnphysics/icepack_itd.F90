@@ -297,7 +297,7 @@
       subroutine reduce_area (hin_max,            &
                               aicen,     vicen,   &
                               aicen_init,vicen_init, &
-                              mipnd, trcrn)
+                              dpnd_melt, trcrn)
 
       real (kind=dbl_kind), intent(in) :: &
          hin_max       ! lowest category boundary
@@ -305,7 +305,7 @@
       real (kind=dbl_kind), intent(inout) :: &
          aicen     , & ! concentration of ice
          vicen     , & ! volume per unit area of ice          (m)
-         mipnd         ! pond 'drainage' due to ice melting (m / step)
+         dpnd_melt     ! pond 'drainage' due to ice melting (m / step)
 
       real (kind=dbl_kind), intent(in) :: &
          aicen_init, & ! old ice area for category 1 (m)
@@ -351,9 +351,9 @@
             da = da - aicen ! -1*change in fractional area over the subroutine
             if (tr_pond) then
                if (tr_pond_lvl) then
-                  mipnd = da*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)*trcrn(nt_alvl,1)
+                  dpnd_melt = da*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)*trcrn(nt_alvl,1)
                else
-                  mipnd = da*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)
+                  dpnd_melt = da*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)
                endif
             endif
 

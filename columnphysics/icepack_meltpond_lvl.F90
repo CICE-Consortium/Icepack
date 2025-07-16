@@ -42,9 +42,11 @@
                                    qicen,  sicen,        &
                                    Tsfcn,  alvl,         &
                                    apnd,   hpnd,  ipnd,  &
-                                   meltsliqn, frpndn,    &
-                                   rfpndn, ilpndn,       &
-                                   flpndn)
+                                   meltsliqn,            &
+                                   dpnd_freebdn,         &
+                                   dpnd_initialn,        &
+                                   dpnd_dlidn,           &
+                                   dpnd_flushn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          ! time step (s)
@@ -65,10 +67,10 @@
 
       real (kind=dbl_kind), intent(inout) :: &
          apnd, hpnd, ipnd, &
-         frpndn, &   ! pond drainage rate due to freeboard constraint (m/step)
-         rfpndn, &   ! runoff rate due to rfrac (m/step)
-         ilpndn, &   ! pond loss/gain due to ice lid (m/step)
-         flpndn      ! pond flushing rate due to ice permeability (m/s)
+         dpnd_freebdn,  & ! pond drainage rate due to freeboard constraint (m/step)
+         dpnd_initialn, & ! runoff rate due to rfrac (m/step)
+         dpnd_dlidn,    & ! pond loss/gain due to ice lid (m/step)
+         dpnd_flushn      ! pond flushing rate due to ice permeability (m/s)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          qicen, &  ! ice layer enthalpy (J m-3)
@@ -161,8 +163,8 @@
             ! meltwater (m3/m2) captured over entire grid cell area. 
             ! Multiply by (1-rfrac)/rfrac to get loss over entire area. 
             ! Divide by aicen to get loss per unit category area 
-            ! (for consistency with melttn, frpndn, etc)
-            rfpndn = dvn * (c1-rfrac) / (rfrac * aicen)
+            ! (for consistency with melttn, dpnd_freebdn, etc)
+            dpnd_initialn = dvn * (c1-rfrac) / (rfrac * aicen)
             dvn_temp = dvn
 
             ! shrink pond volume under freezing conditions
@@ -205,7 +207,7 @@
             volpn = volpn + dvn
             ! Track lost/gained meltwater per unit category area from pond 
             ! lid freezing/melting. Note sign flip relative to dvn convention
-            ilpndn = (dvn_temp - dvn) / aicen
+            dpnd_dlidn = (dvn_temp - dvn) / aicen
 
             !-----------------------------------------------------------
             ! update pond area and depth
@@ -235,7 +237,7 @@
             ! limit pond depth to maintain nonnegative freeboard
             hpond_tmp = hpondn
             hpondn = min(hpondn, ((rhow-rhoi)*hi - rhos*hs)/rhofresh)
-            frpndn = (hpond_tmp - hpondn) * apondn
+            dpnd_freebdn = (hpond_tmp - hpondn) * apondn
 
             ! fraction of grid cell covered by ponds
             apondn = apondn * aicen
@@ -272,7 +274,7 @@
                     + 0.5*dvn/(pndaspect*apondn), alvl_tmp*aicen))
                hpondn = c0
                if (apondn > puny) hpondn = volpn/apondn
-               flpndn = -dvn/aicen
+               dpnd_flushn = -dvn/aicen
             endif
 
          endif

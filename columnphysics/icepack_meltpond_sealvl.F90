@@ -54,8 +54,9 @@
                                        aicen,  vicen,  vsnon, &
                                        qicen,  sicen,         &
                                        apnd,   hpnd,  ipnd,   &
-                                       meltsliqn, frpndn,     &
-                                       ilpndn, flpndn)
+                                       meltsliqn,             &
+                                       dpnd_freebdn,          &
+                                       dpnd_dlidn, dpnd_flushn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          ! time step (s)
@@ -74,9 +75,9 @@
 
       real (kind=dbl_kind), intent(inout) :: &
          apnd, hpnd, ipnd, & ! pond tracers
-         frpndn, &   ! pond drainage rate due to freeboard constraint (m/step)
-         ilpndn, &   ! pond loss/gain due to ice lid (m/step)
-         flpndn      ! pond flushing rate due to ice permeability (m/s)
+         dpnd_freebdn,     & ! pond drainage rate due to freeboard constraint (m/step)
+         dpnd_dlidn,       & ! pond loss/gain due to ice lid (m/step)
+         dpnd_flushn         ! pond flushing rate due to ice permeability (m/s)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          qicen, &    ! ice layer enthalpy (J m-3)
@@ -138,7 +139,7 @@
             !-----------------------------------------------------------
             ! Remove ponds on thin ice
             !-----------------------------------------------------------
-            frpndn = vpondn
+            dpnd_freebdn = vpondn
             apnd = c0
             hpnd = c0
             vpondn = c0
@@ -196,7 +197,7 @@
 
             ! Track lost/gained meltwater per unit category area from 
             ! pond lid freezing/melting. Note sign flip relative to dvn
-            ilpndn = dvn_temp - dvpondn
+            dpnd_dlidn = dvn_temp - dvpondn
             
             !-----------------------------------------------------------
             ! update pond area and depth
@@ -219,7 +220,7 @@
                if (icepack_warnings_aborted(subname)) return
             endif
             dhpond = min(dhpond, c0) ! strictly drainage
-            frpndn = - dhpond * apnd
+            dpnd_freebdn = - dhpond * apnd
             call pond_hypsometry(hpnd, apnd, dhpond=dhpond, hin=hi)
             if (icepack_warnings_aborted(subname)) return
             
@@ -248,7 +249,7 @@
                if (icepack_warnings_aborted(subname)) return
                drain = perm*pressure_head*dt/(viscosity_dyn*hi)*dpscale
                dhpond = -min(drain, hpnd)
-               flpndn = -dhpond * apnd               
+               dpnd_flushn = -dhpond * apnd               
                call pond_hypsometry(hpnd, apnd, dhpond=dhpond, hin=hi)
                if (icepack_warnings_aborted(subname)) return
             endif
