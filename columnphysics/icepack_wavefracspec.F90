@@ -183,7 +183,7 @@
                   dt,            nfreq,                      &
                   aice,          vice,            aicen,     &
                   wave_spectrum, wavefreq,        dwavefreq, &
-                  trcrn,         d_afsd_wave)
+                  trcrn,         d_afsd_wave, wave_height) 
 
 
       character (len=char_len), intent(in) :: &
@@ -213,6 +213,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          d_afsd_wave     ! change in fsd due to waves
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         wave_height    ! wave height 
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          d_afsdn_wave    ! change in fsd due to waves, per category
@@ -254,7 +257,13 @@
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
 
-      local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
+        ! Add option to use wave height from wave model
+      if (present (wave_height)) then
+         local_sig_ht = wave_height 
+      else
+         local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
+      endif
+ 
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
 !      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
       if ((aice > p01).and.(local_sig_ht>0.1_dbl_kind)) then
