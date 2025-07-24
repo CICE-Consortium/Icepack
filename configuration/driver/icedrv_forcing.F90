@@ -1054,10 +1054,10 @@
          status,  &  ! NetCDF status flag
          varid       ! NetCDF variable id
 
-      integer (kind=8), allocatable :: &
+      integer (kind=dbl_kind), allocatable :: &
          data_time(:)   ! array for time array in forcing data
 
-      integer (kind=8), dimension(ntime) :: &
+      integer (kind=dbl_kind), dimension(ntime) :: &
          model_time ! array for Icepack minutely time
 
       real (kind=dbl_kind) :: &
@@ -1102,7 +1102,7 @@
          ! May have strange behavior if dt is not an integer
          model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
          do nt = 1, ntime
-            model_time(nt) = int(model_time0 + dt * nt, kind=8)
+            model_time(nt) = int(model_time0 + dt * nt, kind=dbl_kind)
          enddo
 
          ! Read, average, and interpolate forcing data from each variable
@@ -1290,7 +1290,7 @@
       integer (kind=int_kind), intent(in) :: &
          ncid           ! NetCDF file id
 
-      integer (kind=8), dimension(ntime), intent(in) :: &
+      integer (kind=dbl_kind), dimension(ntime), intent(in) :: &
          model_time     ! model time array
 
       ! Local variables
@@ -1305,7 +1305,7 @@
          nvardims,&  ! number of dimensions for variable
          varid       ! NetCDF variable id
 
-      integer (kind=8), allocatable :: &
+      integer (kind=dbl_kind), allocatable :: &
          data_time(:)   ! array for time array in forcing data
 
       integer, dimension(1) :: &
@@ -1554,10 +1554,10 @@
          status,  &  ! NetCDF status flag
          varid       ! NetCDF variable id
 
-      integer (kind=8), allocatable :: &
+      integer (kind=dbl_kind), allocatable :: &
          data_time(:)   ! array for time array in forcing data
 
-      integer (kind=8), dimension(ntime) :: &
+      integer (kind=dbl_kind), dimension(ntime) :: &
          model_time ! array for Icepack minutely time
 
       real (kind=dbl_kind) :: &
@@ -1604,7 +1604,7 @@
          ! May have strange behavior if dt is not an integer
          model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
          do nt = 1, ntime
-            model_time(nt) = int(model_time0 + dt * nt, kind=8)
+            model_time(nt) = int(model_time0 + dt * nt, kind=dbl_kind)
          enddo
 
          ! Warn if simulation includes leg 4-5 transition
