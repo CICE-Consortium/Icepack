@@ -1097,8 +1097,8 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             call icepack_warnings_add(subname//' Zap ice: negative ice area')
             return
-         elseif (abs(aicen(n)) /= c0 .and. &
-                 abs(aicen(n)) <= puny) then
+         elseif (abs(aicen(n)) <= puny .and. &
+                 (abs(aicen(n)) /= c0 .or. abs(vicen(n)) /= c0 .or. abs(vsnon(n)) /= c0)) then
 
       !-----------------------------------------------------------------
       ! Account for tracers important for conservation
