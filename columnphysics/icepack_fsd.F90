@@ -847,7 +847,7 @@
 
       integer (kind=int_kind) :: k
 
-      if present(wave_height) then
+      if (present(wave_height)) then
          w_amp = p5 * wave_height  ! amplitude is 1/2 sig wave hight
       else 
          w_amp = c2* SQRT(SUM(local_wave_spec*dwavefreq))   ! sig wave amplitude
