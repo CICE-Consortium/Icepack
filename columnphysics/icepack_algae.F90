@@ -394,8 +394,7 @@
                                bio_index,                &
                                aicen,                    &
                                vicen,        vsnon,      &
-                               iphin,                    &! ntrcr
-                               trcrn,        aice_old,   &!aice_old
+                               iphin,        trcrn,      &
                                flux_bion,    flux_bio,   &
                                upNOn,        upNHn,      &
                                upNO,         upNH,       &
