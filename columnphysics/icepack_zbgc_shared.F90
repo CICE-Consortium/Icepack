@@ -588,8 +588,7 @@
                                bio_index,  &
                                aicen,      &
                                vicen,        vsnon,      &
-                               iphin,                    &
-                               trcrn,        aice_init,  &
+                               iphin,        trcrn,      &
                                flux_bion,    flux_bio,   &
                                upNOn,        upNHn,      &
                                upNO,         upNH,       &
@@ -618,8 +617,7 @@
       real (kind=dbl_kind), intent(in):: &
          aicen      , & ! concentration of ice
          vicen      , & ! volume of ice (m)
-         vsnon      , & ! volume of snow(m)
-         aice_init      ! initial concentration of ice
+         vsnon          ! volume of snow(m)
 
       ! single category rates
       real (kind=dbl_kind), dimension(:), intent(in):: &
