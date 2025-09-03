@@ -434,7 +434,6 @@
         worka, workb
 
       real (kind=dbl_kind), dimension(ncat) :: aicen_init
-      real (kind=dbl_kind), dimension(ncat) :: vicen_init
       real (kind=dbl_kind), dimension(ncat) :: vsnon_init
 
       character(len=*),parameter :: subname='(shift_ice)'
@@ -444,7 +443,6 @@
       !-----------------------------------------------------------------
 
       aicen_init(:) = aicen(:)
-      vicen_init(:) = vicen(:)
       vsnon_init(:) = vsnon(:)
 
       !-----------------------------------------------------------------

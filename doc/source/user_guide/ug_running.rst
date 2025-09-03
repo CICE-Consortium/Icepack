@@ -390,8 +390,12 @@ On macOS:
 
 .. code-block:: bash
 
-  # Download the Miniconda installer to ~/Downloads/miniconda.sh
+  # Check hardware platform (x86_64 or arm64)
+  uname -m
+  # Download the compatible Miniconda installer to ~/Downloads/miniconda.sh
   curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o ~/Downloads/miniconda.sh
+  # or
+  curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh -o ~/Downloads/miniconda.sh
   # Install Miniconda
   bash ~/Downloads/miniconda.sh
   
