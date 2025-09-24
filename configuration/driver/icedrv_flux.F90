@@ -688,6 +688,7 @@
       congel (:) = c0
       frazil (:) = c0
       snoice (:) = c0
+      Tsnice (:) = c0
       dsnow  (:) = c0
       meltt  (:) = c0
       melts  (:) = c0
