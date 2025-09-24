@@ -375,8 +375,7 @@
          einter = einter + hilyr * zqin(k)
       enddo ! k
 
-      Tsnice = c0
-      if ((hslyr+hilyr) > puny) then
+      if (hilyr > puny) then
          if (hslyr > puny) then
             Tsnice = Tsnice + aicen*((hslyr*zTsn(nslyr) + hilyr*zTin(1)) / (hslyr+hilyr))
          else
