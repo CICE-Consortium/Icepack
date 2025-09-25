@@ -35,7 +35,7 @@
       use icepack_tracers,    only: tr_pond, tr_pond_lvl, nt_alvl
       use icepack_tracers,    only: n_iso, tr_iso, nt_smice, nt_rsnw, nt_rhos, nt_sice
       use icepack_tracers,    only: icepack_compute_tracers
-      use icepack_parameters, only: skl_bgc, z_tracers, hi_min
+      use icepack_parameters, only: skl_bgc, z_tracers, hi_min, min_area, min_mass
       use icepack_parameters, only: kcatbound, kitd, saltflux_option, snwgrain, snwredist
       use icepack_therm_shared, only: Tmin
       use icepack_warnings,   only: warnstr, icepack_warnings_add
@@ -1074,12 +1074,32 @@
          n, k, it, & !counting indices
          blevels
 
+      logical (kind=log_kind) :: &
+         zap_residual, &
+         zap_category(ncat)
+
       real (kind=dbl_kind) :: xtmp, sicen      ! temporary variables
       real (kind=dbl_kind) :: dvssl, dvint     ! temporary variables
       real (kind=dbl_kind) , dimension (1):: trcr_skl
       real (kind=dbl_kind) , dimension (nblyr+1):: bvol
 
       character(len=*),parameter :: subname='(zap_small_areas)'
+
+      !-----------------------------------------------------------------
+      ! Flag categories with very small areas and residual ice
+      !-----------------------------------------------------------------
+
+      zap_category(:) = .false.
+      do n = 1, ncat
+         if ( abs(aicen(n)) <= puny .and. &
+             (abs(aicen(n)) /= c0 .or. abs(vicen(n)) /= c0 .or. abs(vsnon(n)) /= c0)) then
+            zap_category(n) = .true.
+         endif
+      enddo
+
+      zap_residual = .false.
+      if (aice      < max(min_area, puny) .or. &
+          aice*rhoi < max(min_mass, puny)) zap_residual = .true. ! all categories
 
       !-----------------------------------------------------------------
       ! I. Zap categories with very small areas.
@@ -1095,8 +1115,7 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             call icepack_warnings_add(subname//' Zap ice: negative ice area')
             return
-         elseif (abs(aicen(n)) <= puny .and. &
-                 (abs(aicen(n)) /= c0 .or. abs(vicen(n)) /= c0 .or. abs(vsnon(n)) /= c0)) then
+         elseif (zap_category(n) .or. zap_residual) then
 
       !-----------------------------------------------------------------
       ! Account for tracers important for conservation

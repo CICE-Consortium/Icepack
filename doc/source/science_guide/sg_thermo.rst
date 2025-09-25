@@ -1966,6 +1966,16 @@ as the product of sensitivity studies to balance the climatological tendencies o
 wave fracture and welding. So that results do not vary as the number or range of 
 floe size categories varies, we fix this scaling coefficient, c_weld.
 
+If ``tr_fsd=false``, lateral melting is accomplished by multiplying the state variables by
+:math:`1-r_{side}`, where :math:`r_{side}` is the fraction of ice melted
+laterally :cite:`Maykut87,Steele92`, and adjusting the ice
+energy and fluxes as appropriate. We assume a floe diameter of 300 m.
+
+If ``tr_fsd=true``, lateral melting is accomplished using the :cite:`Maykut87`
+lateral heat flux, but applied to the ice using the prognostic floe size distribution
+as described in :cite:`Horvat15` and :cite:`Roach18`. Lateral melt modifies
+the ITD and the FSD.
+
 If the latent heat flux is negative (i.e., latent heat is transferred
 from the ice to the atmosphere), snow or snow-free ice sublimates at the
 top surface. If the latent heat flux is positive, vapor from the
@@ -2004,15 +2014,11 @@ old and new layers, respectively. The enthalpies of the new layers are
 .. math:: 
    q_k = \frac{1}{\Delta h_i} \sum_{m=1}^{N_i} \eta_{km} q_m.
 
-If ``tr_fsd=false``, lateral melting is accomplished by multiplying the state variables by
-:math:`1-r_{side}`, where :math:`r_{side}` is the fraction of ice melted
-laterally :cite:`Maykut87,Steele92`, and adjusting the ice
-energy and fluxes as appropriate. We assume a floe diameter of 300 m.
-
-If ``tr_fsd=true``, lateral melting is accomplished using the :cite:`Maykut87`
-lateral heat flux, but applied to the ice using the prognostic floe size distribution
-as described in :cite:`Horvat15` and :cite:`Roach18`. Lateral melt modifies
-the ITD and the FSD.
+Residual amounts of ice may be conservatively removed following the thermodynamics
+and ridging calculations based on minimum area and mass parameters ``min_area`` and
+``min_mass``. Initializing these parameters to CICE's ``dyn_area_min`` and ``dyn_mass_min``
+namelist values ensures consistency between Icepack's thermodynamic and CICE's
+dynamic calculations and avoids tiny amounts of residual ice in the solution.
 
 Snow-ice formation
 ------------------
