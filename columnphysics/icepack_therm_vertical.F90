@@ -377,7 +377,7 @@
 
       if (hilyr > puny) then
          if (hslyr > puny) then
-            Tsnice = Tsnice + aicen*((hslyr*zTsn(nslyr) + hilyr*zTin(1)) / (hslyr+hilyr))
+            Tsnice = Tsnice + aicen*((hilyr*zTsn(nslyr) + hslyr*zTin(1)) / (hslyr+hilyr))
          else
             Tsnice = Tsnice + aicen*Tsf
          endif
