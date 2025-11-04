@@ -830,7 +830,7 @@
          dwavefreq       ! wave frequency bin widths (s^-1)
 
       real(kind=dbl_kind), intent(in), optional :: &
-         wave_height
+         wave_height ! significant wave height (m)
 
       integer (kind=int_kind), intent(out) :: &
          new_size        ! index of floe size category in which new floes will grow

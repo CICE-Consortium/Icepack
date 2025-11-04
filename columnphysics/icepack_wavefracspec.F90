@@ -183,7 +183,7 @@
                   dt,            nfreq,                      &
                   aice,          vice,            aicen,     &
                   wave_spectrum, wavefreq,        dwavefreq, &
-                  trcrn,         d_afsd_wave, wave_height) 
+                  trcrn,         d_afsd_wave,     wave_height) 
 
 
       character (len=char_len), intent(in) :: &
@@ -215,7 +215,7 @@
          d_afsd_wave     ! change in fsd due to waves
 
       real (kind=dbl_kind), intent(in), optional :: &
-         wave_height    ! wave height 
+         wave_height    ! ! significant wave height (m)
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          d_afsdn_wave    ! change in fsd due to waves, per category
