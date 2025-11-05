@@ -668,10 +668,12 @@
          nbtrcr             !
 
       character (len=char_len) :: wave_spec_type
+      character (len=char_len) :: wave_height_type
 
       character(len=*), parameter :: subname = '(step_dyn_wave)'
 
       call icepack_query_parameters(wave_spec_type_out=wave_spec_type)
+      call icepack_query_parameters(wave_height_type_out=wave_height_type)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -679,6 +681,7 @@
       do i = 1, nx
            d_afsd_wave(i,:) = c0
            call icepack_step_wavefracture (wave_spec_type=wave_spec_type, &
+                        wave_height_type=wave_height_type,     &
                         dt=dt, nfreq=nfreq,                    &
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &

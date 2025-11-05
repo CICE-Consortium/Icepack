@@ -119,6 +119,7 @@
     saltflux_option = 'constant'
     oceanmixed_ice  = .true.
     wave_spec_type  = 'none'
+    wave_height_type= 'internal'
     restore_ocn     = .false.
     trestore        = 90
     precip_units    = 'mks'

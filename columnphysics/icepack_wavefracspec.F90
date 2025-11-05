@@ -180,6 +180,7 @@
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
       subroutine icepack_step_wavefracture(wave_spec_type,   &
+                  wave_height_type,                         &
                   dt,            nfreq,                      &
                   aice,          vice,            aicen,     &
                   wave_spectrum, wavefreq,        dwavefreq, &
@@ -188,6 +189,9 @@
 
       character (len=char_len), intent(in) :: &
          wave_spec_type  ! type of wave spectrum forcing
+      
+      character (len=char_len), intent(in) :: &
+         wave_height_type  ! type of wave height forcing
 
       integer (kind=int_kind), intent(in) :: &
          nfreq           ! number of wave frequency categories
@@ -257,11 +261,18 @@
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
 
-        ! Add option to use wave height from wave model
-      if (present (wave_height)) then
-         local_sig_ht = wave_height 
-      else
+        ! Add option to use wave height from wave model or file
+      if (trim(wave_height_type) == 'internal') then
          local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
+      else
+         if (present(wave_height)) then
+            local_sig_ht = wave_height
+         else 
+            write(warnstr,*) subname, &
+              'WARNING: Wave Height data not provided- calculating wave height internally'
+            call icepack_warnings_add(warnstr)
+            local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
+         endif
       endif
  
       ! do not try to fracture for minimal ice concentration or zero wave spectrum

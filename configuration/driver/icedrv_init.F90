@@ -100,7 +100,8 @@
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
          cpl_frazil, congel_freeze, tfrz_option, saltflux_option, &
-         frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
+         frzpnd, atmbndy, wave_spec_type, wave_height_type,       &
+         snwredist, snw_aging_table
 
       logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain, update_ocn_f
       real (kind=dbl_kind)    :: sw_frac, sw_dtemp
@@ -176,7 +177,8 @@
         formdrag,        highfreq,        natmiter,        &
         atmiter_conv,    calc_dragio,     congel_freeze,   &
         tfrz_option,     saltflux_option, ice_ref_salinity, &
-        default_season,  wave_spec_type,  cpl_frazil,      &
+        default_season,  wave_spec_type, wave_height_type, & 
+        cpl_frazil,      &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         lateral_flux_type,                                 &
@@ -230,6 +232,7 @@
            ice_ref_salinity_out=ice_ref_salinity, kalg_out=kalg, &
            fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
            wave_spec_type_out=wave_spec_type, &
+           wave_height_type_out=wave_height_type, &
            sw_redist_out=sw_redist, sw_frac_out=sw_frac, sw_dtemp_out=sw_dtemp, &
            snwredist_out=snwredist, use_smliq_pnd_out=use_smliq_pnd, &
            snwgrain_out=snwgrain, rsnw_fall_out=rsnw_fall, rsnw_tmax_out=rsnw_tmax, &
@@ -277,6 +280,7 @@
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       wave_spec_type  = 'none'    ! type of wave spectrum forcing
+      wave_height_type= 'internal'! type of wave height forcing
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
       ocn_data_file   = ' '       ! ocean forcing data file
@@ -987,7 +991,9 @@
            tfrz_option_in=tfrz_option, saltflux_option_in=saltflux_option, &
            ice_ref_salinity_in=ice_ref_salinity, kalg_in=kalg, &
            fbot_xfer_type_in=fbot_xfer_type, &
-           wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec, &
+           wave_spec_type_in=wave_spec_type, &
+           wave_height_type_in=wave_height_type, &
+           wave_spec_in=wave_spec, &
            sw_redist_in=sw_redist, sw_frac_in=sw_frac, sw_dtemp_in=sw_dtemp, &
            snwredist_in=snwredist, use_smliq_pnd_in=use_smliq_pnd, &
            snw_aging_table_in=snw_aging_table, &
