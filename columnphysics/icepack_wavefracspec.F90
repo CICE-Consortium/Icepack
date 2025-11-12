@@ -32,7 +32,8 @@
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd, ncat, nfsd
-      use icepack_warnings, only: warnstr, icepack_warnings_add,  icepack_warnings_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort,  icepack_warnings_aborted
       use icepack_fsd
 
       implicit none
