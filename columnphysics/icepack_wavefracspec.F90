@@ -188,11 +188,9 @@
 
 
       character (len=char_len), intent(in) :: &
-         wave_spec_type  ! type of wave spectrum forcing
-      
-      character (len=char_len), intent(in) :: &
+         wave_spec_type,  & ! type of wave spectrum forcing
          wave_height_type  ! type of wave height forcing
-
+      
       integer (kind=int_kind), intent(in) :: &
          nfreq           ! number of wave frequency categories
 
