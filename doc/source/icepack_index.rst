@@ -253,6 +253,8 @@ section :ref:`tabnamelist`.
    "istep0", ":math:`\bullet` number of steps taken in previous run", "0"
    "istep1", "total number of steps at current time step", ""
    "Iswabs", "shortwave radiation absorbed in ice layers", "W/m\ :math:`^2`"
+   "itd_area_min", ":math:`\bullet` zap residual ice below a minimum area", "1.e-11"
+   "itd_mass_min", ":math:`\bullet` zap residual ice below a minimum mass", "1.e-10
    "**J**", "", ""
    "**K**", "", ""
    "kalg", ":math:`\bullet` absorption coefficient for algae", ""

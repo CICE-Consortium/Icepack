@@ -151,6 +151,8 @@ setup_nml
    "", "``none``", "no ice", ""
    "", "'path/file'", "restart file name", ""
    "``istep0``", "integer", "initial time step number", "0"
+   "``itd_area_min``", "real", "area below which ice is zapped", "1.e-11"
+   "``itd_mass_min``", "real", "mass below which ice is zapped", "1.e-10"
    "``ndtd``", "integer", "number of dynamics/advection/ridging/steps per thermo timestep", "1"
    "``npt``", "integer", "total number of time steps to take", "99999"
    "``restart``", "logical", "initialize using restart file", "``.false.``"
