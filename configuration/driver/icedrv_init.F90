@@ -99,7 +99,7 @@
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
          ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, hi_min, Tliquidus_max, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
-         apnd_sl, tscale_pnd_drain, min_area, min_mass, &
+         apnd_sl, tscale_pnd_drain, itd_area_min, itd_mass_min, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity, floediam, hfrazilmin, &
          rsnw_fall, rsnw_tmax, rhosnew, rhosmin, rhosmax, &
@@ -150,7 +150,7 @@
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc,       &
         conserv_check,  history_format,                                 &
         hi_init_slab,   hsno_init_slab, hbar_init_itd,   hsno_init_itd, &
-        sst_init,       min_area,       min_mass
+        sst_init,       itd_area_min,   itd_mass_min
 
       namelist /grid_nml/ &
         kcatbound
@@ -259,7 +259,7 @@
            windmin_out=windmin, drhosdwind_out=drhosdwind, snwlvlfac_out=snwlvlfac, &
            snw_aging_table_out=snw_aging_table, snw_growth_wet_out=snw_growth_wet, &
            drsnw_min_out=drsnw_min, snwliq_max_out=snwliq_max, &
-           min_area_out=min_area, min_mass_out=min_mass)
+           itd_area_min_out=itd_area_min, itd_mass_min_out=itd_mass_min)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -712,8 +712,8 @@
          write(nu_diag,1005) ' hsno_init_itd             = ', hsno_init_itd
          write(nu_diag,1005) ' sst_init                  = ', sst_init
          write(nu_diag,1010) ' conserv_check             = ', conserv_check
-         write(nu_diag,1000) ' min_area                  = ', min_area
-         write(nu_diag,1000) ' min_mass                  = ', min_mass
+         write(nu_diag,1000) ' itd_area_min              = ', itd_area_min
+         write(nu_diag,1000) ' itd_mass_min              = ', itd_mass_min
          write(nu_diag,1020) ' kitd                      = ', kitd
          write(nu_diag,1020) ' kcatbound                 = ', kcatbound
          write(nu_diag,1020) ' ndtd                      = ', ndtd
@@ -1049,7 +1049,8 @@
            rhosnew_in=rhosnew, rhosmin_in=rhosmin, rhosmax_in=rhosmax, &
            windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac, &
            snw_growth_wet_in=snw_growth_wet, drsnw_min_in=drsnw_min, &
-           snwliq_max_in=snwliq_max, min_area_in=min_area, min_mass_in=min_mass)
+           snwliq_max_in=snwliq_max, itd_area_min_in=itd_area_min, &
+           itd_mass_min_in=itd_mass_min)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
            nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero)

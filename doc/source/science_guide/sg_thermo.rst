@@ -2015,8 +2015,8 @@ old and new layers, respectively. The enthalpies of the new layers are
    q_k = \frac{1}{\Delta h_i} \sum_{m=1}^{N_i} \eta_{km} q_m.
 
 Residual amounts of ice may be conservatively removed following the thermodynamics
-and ridging calculations based on minimum area and mass parameters ``min_area`` and
-``min_mass``. Initializing these parameters to CICE's ``dyn_area_min`` and ``dyn_mass_min``
+and ridging calculations based on minimum area and mass parameters ``itd_area_min`` and
+``itd_mass_min``. Initializing these parameters to CICE's ``dyn_area_min`` and ``dyn_mass_min``
 namelist values ensures consistency between Icepack's thermodynamic and CICE's
 dynamic calculations and avoids tiny amounts of residual ice in the solution.
 

@@ -35,7 +35,7 @@
       use icepack_tracers,    only: tr_pond, tr_pond_lvl, nt_alvl
       use icepack_tracers,    only: n_iso, tr_iso, nt_smice, nt_rsnw, nt_rhos, nt_sice
       use icepack_tracers,    only: icepack_compute_tracers
-      use icepack_parameters, only: skl_bgc, z_tracers, hi_min, min_area, min_mass
+      use icepack_parameters, only: skl_bgc, z_tracers, hi_min, itd_area_min, itd_mass_min
       use icepack_parameters, only: kcatbound, kitd, saltflux_option, snwgrain, snwredist
       use icepack_therm_shared, only: Tmin
       use icepack_warnings,   only: warnstr, icepack_warnings_add
@@ -1098,8 +1098,8 @@
       enddo
 
       zap_residual = .false.
-      if (aice      < max(min_area, puny) .or. &
-          aice*rhoi < max(min_mass, puny)) zap_residual = .true. ! all categories
+      if (aice      < max(itd_area_min, puny) .or. &
+          aice*rhoi < max(itd_mass_min, puny)) zap_residual = .true. ! all categories
 
       !-----------------------------------------------------------------
       ! I. Zap categories with very small areas.
