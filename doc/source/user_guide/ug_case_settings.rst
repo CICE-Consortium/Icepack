@@ -390,9 +390,9 @@ forcing_nml
    "", "``none``", "no wave data provided, no wave-ice interactions (not recommended when using the FSD)", ""
    "", "``profile``", "no wave data file is provided, use fixed dummy wave spectrum, for testing, sea surface height generated using constant phase (1 iteration of wave fracture)", ""
    "", "``random``", "wave data file is provided, sea surface height generated using random number (multiple iterations of wave fracture)", ""
-   "``wave_height_type``", "``internal``", "significant wave heights are calculated by icepack from the wave_spectra", "``internal``"
+   "``wave_height_type``", "``internal``", "significant wave heights are calculated by icepack from the wave_spectra", "``none``"
+   "", "``none``", "No wave data provided, no wave-ice interactions", ""
    "", "``coupled``", "significant wave heights data provided from a coupled wave model, like WW3", ""
-   "", "``file``", "significant wave height data provided in an external file", ""
    "``ycycle``", "integer", "number of years in forcing data cycle", "1"
    "", "", "", ""
    

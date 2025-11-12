@@ -264,14 +264,13 @@
         ! Add option to use wave height from wave model or file
       if (trim(wave_height_type) == 'internal') then
          local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
-      else
+      elseif (trim(wave_height_type) == 'coupled') then
          if (present(wave_height)) then
             local_sig_ht = wave_height
          else 
             write(warnstr,*) subname, &
-              'WARNING: Wave Height data not provided- calculating wave height internally'
+              'WARNING: Wave_Height_type = coupled, but NO wave height data provided'
             call icepack_warnings_add(warnstr)
-            local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
          endif
       endif
  

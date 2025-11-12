@@ -322,13 +322,9 @@
          floediam  = 300.0_dbl_kind   ! effective floe diameter for lateral melt (m)
 
       logical (kind=log_kind), public :: &
-         wave_spec = .false.          ! if true, use wave forcing
-
-      character (len=char_len), public :: &
-         wave_spec_type = 'constant'  ! 'none', 'constant', or 'random'
-      
-      character (len=char_len), public :: &
-         wave_height_type = 'internal'  ! 'internal', 'coupled', or 'file'
+         wave_spec = .false.         , &    ! if true, use wave forcing
+         wave_spec_type = 'constant' , &    ! 'none', 'constant', or 'random'
+         wave_height_type = 'internal'      ! 'none', 'internal', 'coupled'
 
 !-----------------------------------------------------------------------
 ! Parameters for melt ponds
