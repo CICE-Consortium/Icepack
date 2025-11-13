@@ -485,6 +485,8 @@
             ! wave_sig_ht - compute here to pass to add new ice
             if (tr_fsd .and. trim(wave_height_type) == 'internal') then 
                 wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
+            !else
+            !   wave_sig_ht(i) provided by coupler or external data. 
             endif 
 
             call icepack_step_therm2(dt=dt,                           &
