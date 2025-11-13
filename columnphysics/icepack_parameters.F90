@@ -323,7 +323,7 @@
 
       logical (kind=log_kind), public :: &
          wave_spec = .false.          ! if true, use wave forcing
-      
+
       character (len=char_len), public :: &
          wave_spec_type = 'constant' , &    ! 'none', 'constant', or 'random'
          wave_height_type = 'internal'      ! 'none', 'internal', 'coupled'
@@ -863,10 +863,8 @@
          wave_spec_in       ! if true, use wave forcing
 
       character (len=*), intent(in), optional :: &
-         wave_spec_type_in  ! type of wave spectrum forcing
-
-      character (len=*), intent(in), optional :: &
-         wave_height_type_in  ! type of wave height forcing
+         wave_spec_type_in,   & ! type of wave spectrum forcing
+         wave_height_type_in    ! type of wave height forcing
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
@@ -1887,10 +1885,8 @@
          wave_spec_out      ! if true, use wave forcing
 
       character (len=*), intent(out), optional :: &
-         wave_spec_type_out ! type of wave spectrum forcing
-
-      character (len=*), intent(out), optional :: &
-         wave_height_type_out ! type of wave height forcing
+         wave_spec_type_out,   & !type of wave spectrum forcing
+         wave_height_type_out    ! type of wave height forcing
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry

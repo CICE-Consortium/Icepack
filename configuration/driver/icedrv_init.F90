@@ -177,7 +177,7 @@
         formdrag,        highfreq,        natmiter,        &
         atmiter_conv,    calc_dragio,     congel_freeze,   &
         tfrz_option,     saltflux_option, ice_ref_salinity, &
-        default_season,  wave_spec_type, wave_height_type, & 
+        default_season,  wave_spec_type,  wave_height_type, & 
         cpl_frazil,      &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &

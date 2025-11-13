@@ -275,7 +275,6 @@
             call icepack_warnings_add(subname//&
             ' FSD needs wave_height_type=internal or coupled') 
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-
       endif
  
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
