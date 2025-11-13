@@ -268,13 +268,9 @@
             local_sig_ht = wave_height
          else
             call icepack_warnings_add(subname//&
-            ' wave_height_type=coupled, but NO wave height data provided') 
+            ' wave_height_type=coupled, but NO wave height data found') 
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          endif
-      elseif (trim(wave_height_type) == 'none') then
-            call icepack_warnings_add(subname//&
-            ' FSD needs wave_height_type=internal or coupled') 
-            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
  
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
