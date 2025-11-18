@@ -32,7 +32,8 @@
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd, ncat, nfsd
-      use icepack_warnings, only: warnstr, icepack_warnings_add,  icepack_warnings_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort,  icepack_warnings_aborted
       use icepack_fsd
 
       implicit none
@@ -180,15 +181,17 @@
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
       subroutine icepack_step_wavefracture(wave_spec_type,   &
+                  wave_height_type,                         &
                   dt,            nfreq,                      &
                   aice,          vice,            aicen,     &
                   wave_spectrum, wavefreq,        dwavefreq, &
-                  trcrn,         d_afsd_wave)
+                  trcrn,         d_afsd_wave,     wave_height) 
 
 
       character (len=char_len), intent(in) :: &
-         wave_spec_type  ! type of wave spectrum forcing
-
+         wave_spec_type,  & ! type of wave spectrum forcing
+         wave_height_type  ! type of wave height forcing
+      
       integer (kind=int_kind), intent(in) :: &
          nfreq           ! number of wave frequency categories
 
@@ -213,6 +216,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          d_afsd_wave     ! change in fsd due to waves
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         wave_height    ! ! significant wave height (m)
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          d_afsdn_wave    ! change in fsd due to waves, per category
@@ -254,7 +260,19 @@
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
 
-      local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
+        ! Add option to use wave height from wave model or file
+      if (trim(wave_height_type) == 'internal') then
+         local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
+      elseif (trim(wave_height_type) == 'coupled') then
+         if (present(wave_height)) then
+            local_sig_ht = wave_height
+         else
+            call icepack_warnings_add(subname//&
+            ' wave_height_type=coupled, but NO wave height data found') 
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         endif
+      endif
+ 
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
 !      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
       if ((aice > p01).and.(local_sig_ht>0.1_dbl_kind)) then

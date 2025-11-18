@@ -746,7 +746,7 @@
 
                if (wave_spec) then
                   if (wave_sig_ht > puny) then
-                     call wave_dep_growth (wave_spectrum, &
+                     call wave_dep_growth (wave_spectrum, wave_sig_ht, &
                                            wavefreq, dwavefreq, &
                                            new_size)
                      if (icepack_warnings_aborted(subname)) return
@@ -774,7 +774,7 @@
 
                if (wave_spec) then
                   if (wave_sig_ht > puny) then
-                     call wave_dep_growth (wave_spectrum, &
+                     call wave_dep_growth (wave_spectrum, wave_sig_ht, &
                                            wavefreq, dwavefreq, &
                                            new_size)
                      if (icepack_warnings_aborted(subname)) return
@@ -816,7 +816,7 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 !
-      subroutine wave_dep_growth (local_wave_spec, &
+      subroutine wave_dep_growth (local_wave_spec, wave_height, &
                                   wavefreq, dwavefreq, &
                                   new_size)
 
@@ -828,6 +828,9 @@
       real(kind=dbl_kind), dimension(:), intent(in) :: &
          wavefreq,     & ! wave frequencies (s^-1)
          dwavefreq       ! wave frequency bin widths (s^-1)
+
+      real(kind=dbl_kind), intent(in), optional :: &
+         wave_height ! significant wave height (m)
 
       integer (kind=int_kind), intent(out) :: &
          new_size        ! index of floe size category in which new floes will grow
@@ -844,7 +847,11 @@
 
       integer (kind=int_kind) :: k
 
-      w_amp = c2* SQRT(SUM(local_wave_spec*dwavefreq))   ! sig wave amplitude
+      if (present(wave_height)) then
+         w_amp = p5 * wave_height  ! amplitude is 1/2 sig wave hight
+      else 
+         w_amp = c2* SQRT(SUM(local_wave_spec*dwavefreq))   ! sig wave amplitude
+      endif
       f_peak = wavefreq(MAXLOC(local_wave_spec, DIM=1))  ! peak frequency
 
       ! tensile failure

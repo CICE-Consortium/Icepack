@@ -1,3 +1,4 @@
 tr_fsd = .true.
 wave_spec_type = 'constant'
+wave_height_type = 'internal'
 tfrz_option    = 'mushy'
