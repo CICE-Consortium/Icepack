@@ -22,6 +22,8 @@
     history_format = 'none'
     cpl_bgc        = .false.
     conserv_check  = .false.
+    itd_area_min   = 1.e-11
+    itd_mass_min   = 1.e-10
 /
 
 &grid_nml

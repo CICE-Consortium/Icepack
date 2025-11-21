@@ -75,10 +75,11 @@
                                dpnd_initial, dpnd_initialn, &
                                dpnd_dlid,    dpnd_dlidn)
 
-      ! single category fluxes
+      ! concentration is aicen_init in call to subroutine
       real (kind=dbl_kind), intent(in) :: &
           aicen       ! concentration of ice
 
+      ! single category fluxes
       real (kind=dbl_kind), optional, intent(in) :: &
           flw     , & ! downward longwave flux          (W/m**2)
           strairxn, & ! air/ice zonal  strss,           (N/m**2)

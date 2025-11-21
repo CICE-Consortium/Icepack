@@ -254,17 +254,19 @@
                             ! 1 for exponential redistribution function
 
       real (kind=dbl_kind), public :: &
-         Cf       = 17._dbl_kind     ,&! ratio of ridging work to PE change in ridging
-         Pstar    = 2.75e4_dbl_kind  ,&! constant in Hibler strength formula
-                                       ! (kstrength = 0)
-         Cstar    = 20._dbl_kind     ,&! constant in Hibler strength formula
-                                       ! (kstrength = 0)
-         dragio   = 0.00536_dbl_kind ,&! ice-ocn drag coefficient
+         itd_area_min = 1.e-11_dbl_kind     ,&! zap residual ice below a minimum area
+         itd_mass_min = 1.e-10_dbl_kind     ,&! zap residual ice below a minimum mass
+         Cf       = 17._dbl_kind            ,&! ratio of ridging work to PE change in ridging
+         Pstar    = 2.75e4_dbl_kind         ,&! constant in Hibler strength formula
+                                              ! (kstrength = 0)
+         Cstar    = 20._dbl_kind            ,&! constant in Hibler strength formula
+                                              ! (kstrength = 0)
+         dragio   = 0.00536_dbl_kind        ,&! ice-ocn drag coefficient
          thickness_ocn_layer1 = 2.0_dbl_kind,&! thickness of first ocean level (m)
-         iceruf_ocn = 0.03_dbl_kind  ,&! under-ice roughness (m)
-         gravit   = 9.80616_dbl_kind ,&! gravitational acceleration (m/s^2)
-         mu_rdg = 3.0_dbl_kind ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
-                                       ! (krdg_redist = 1)
+         iceruf_ocn = 0.03_dbl_kind         ,&! under-ice roughness (m)
+         gravit   = 9.80616_dbl_kind        ,&! gravitational acceleration (m/s^2)
+         mu_rdg = 3.0_dbl_kind                ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
+                                              ! (krdg_redist = 1)
 
       logical (kind=log_kind), public :: &
          calc_dragio     = .false.     ! if true, calculate dragio from iceruf_ocn and thickness_ocn_layer1
@@ -571,7 +573,7 @@
          stefan_boltzmann_in, ice_ref_salinity_in, &
          Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
          iceruf_in, Cf_in, Pstar_in, Cstar_in, kappav_in, &
-         kice_in, ksno_in, &
+         kice_in, ksno_in, itd_area_min_in, itd_mass_min_in, &
          zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
          saltmax_in, phi_init_in, min_salin_in, Tliquidus_max_in, &
          min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, hs_ssl_min_in, &
@@ -801,14 +803,16 @@
 !-----------------------------------------------------------------------
 
       real(kind=dbl_kind), intent(in), optional :: &
-         Cf_in,         & ! ratio of ridging work to PE change in ridging
-         Pstar_in,      & ! constant in Hibler strength formula
-         Cstar_in,      & ! constant in Hibler strength formula
-         dragio_in,     & ! ice-ocn drag coefficient
+         itd_area_min_in,         & ! zap residual ice below this minimum area
+         itd_mass_min_in,         & ! zap residual ice below this minimum mass
+         Cf_in,                   & ! ratio of ridging work to PE change in ridging
+         Pstar_in,                & ! constant in Hibler strength formula
+         Cstar_in,                & ! constant in Hibler strength formula
+         dragio_in,               & ! ice-ocn drag coefficient
          thickness_ocn_layer1_in, & ! thickness of first ocean level (m)
-         iceruf_ocn_in, & ! under-ice roughness (m)
-         gravit_in,     & ! gravitational acceleration (m/s^2)
-         iceruf_in        ! ice surface roughness (m)
+         iceruf_ocn_in,           & ! under-ice roughness (m)
+         gravit_in,               & ! gravitational acceleration (m/s^2)
+         iceruf_in                  ! ice surface roughness (m)
 
       integer (kind=int_kind), intent(in), optional :: & ! defined in namelist
          kstrength_in  , & ! 0 for simple Hibler (1979) formulation
@@ -1152,6 +1156,8 @@
       if (present(Tsmelt_in)            ) Tsmelt           = Tsmelt_in
       if (present(ice_ref_salinity_in)  ) ice_ref_salinity = ice_ref_salinity_in
       if (present(iceruf_in)            ) iceruf           = iceruf_in
+      if (present(itd_area_min_in)      ) itd_area_min     = itd_area_min_in
+      if (present(itd_mass_min_in)      ) itd_mass_min     = itd_mass_min_in
       if (present(Cf_in)                ) Cf               = Cf_in
       if (present(Pstar_in)             ) Pstar            = Pstar_in
       if (present(Cstar_in)             ) Cstar            = Cstar_in
@@ -1580,7 +1586,7 @@
          stefan_boltzmann_out, ice_ref_salinity_out, &
          Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
          iceruf_out, Cf_out, Pstar_out, Cstar_out, kappav_out, &
-         kice_out, ksno_out, &
+         kice_out, ksno_out, itd_area_min_out, itd_mass_min_out, &
          zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
          saltmax_out, phi_init_out, min_salin_out, Tliquidus_max_out, &
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, hs_ssl_min_out, &
@@ -1819,14 +1825,16 @@
 !-----------------------------------------------------------------------
 
       real(kind=dbl_kind), intent(out), optional :: &
-         Cf_out,         & ! ratio of ridging work to PE change in ridging
-         Pstar_out,      & ! constant in Hibler strength formula
-         Cstar_out,      & ! constant in Hibler strength formula
-         dragio_out,     & ! ice-ocn drag coefficient
+         itd_area_min_out,         & ! zap residual ice below this minimum area
+         itd_mass_min_out,         & ! zap residual ice below this minimum mass
+         Cf_out,                   & ! ratio of ridging work to PE change in ridging
+         Pstar_out,                & ! constant in Hibler strength formula
+         Cstar_out,                & ! constant in Hibler strength formula
+         dragio_out,               & ! ice-ocn drag coefficient
          thickness_ocn_layer1_out, & ! thickness of first ocean level (m)
-         iceruf_ocn_out, & ! under-ice roughness (m)
-         gravit_out,     & ! gravitational acceleration (m/s^2)
-         iceruf_out        ! ice surface roughness (m)
+         iceruf_ocn_out,           & ! under-ice roughness (m)
+         gravit_out,               & ! gravitational acceleration (m/s^2)
+         iceruf_out                  ! ice surface roughness (m)
 
       integer (kind=int_kind), intent(out), optional :: & ! defined in namelist
          kstrength_out  , & ! 0 for simple Hibler (1979) formulation
@@ -2203,6 +2211,8 @@
       if (present(ice_ref_salinity_out)  ) ice_ref_salinity_out = ice_ref_salinity
       if (present(iceruf_out)            ) iceruf_out       = iceruf
       if (present(Cf_out)                ) Cf_out           = Cf
+      if (present(itd_area_min_out)      ) itd_area_min_out = itd_area_min
+      if (present(itd_mass_min_out)      ) itd_mass_min_out = itd_mass_min
       if (present(Pstar_out)             ) Pstar_out        = Pstar
       if (present(Cstar_out)             ) Cstar_out        = Cstar
       if (present(kappav_out)            ) kappav_out       = kappav
@@ -2502,6 +2512,8 @@
         write(iounit,*) "  Tsmelt     = ",Tsmelt
         write(iounit,*) "  ice_ref_salinity = ",ice_ref_salinity
         write(iounit,*) "  iceruf     = ",iceruf
+        write(iounit,*) "  itd_area_min = ",itd_area_min
+        write(iounit,*) "  itd_mass_min = ",itd_mass_min
         write(iounit,*) "  Cf         = ",Cf
         write(iounit,*) "  Pstar      = ",Pstar
         write(iounit,*) "  Cstar      = ",Cstar

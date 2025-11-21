@@ -12,9 +12,10 @@ Icepack includes options for simulating sea ice thermodynamics, mechanical redis
 tracers, including thickness, enthalpy, ice age, first-year ice area, deformed ice area and 
 volume, melt ponds, and biogeochemistry.
 
-Icepack is called on a grid point by grid point basis.  All data is passed in and out of the model
-via subroutine interfaces.  Fortran "use" statements are not encouraged for accessing data inside
-the Icepack model.
+Icepack is called on a grid point by grid point basis. All data is passed in and out of the model
+via subroutine interfaces. Fortran "use" statements are not encouraged for accessing data inside
+the Icepack model from outside. Parameters may be queried and/or reset from Icepack's default
+values by calling the query and init interfaces as described in :ref:`sequence_and_interface`.
 
 Icepack does not generally contain any parallelization or I/O.  The driver of Icepack is 
 expected to support
