@@ -468,6 +468,9 @@
 
       logical (kind=log_kind) :: &
          tr_fsd  ! floe size distribution tracers
+      
+      character (len=char_len) :: &
+         wave_height_type
 
       character(len=*), parameter :: subname='(step_therm2)'
 
@@ -477,6 +480,7 @@
 
       call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
+      call icepack_query_parameters(wave_height_type_out=wave_height_type)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -487,8 +491,11 @@
 
          if (tmask(i)) then
             ! wave_sig_ht - compute here to pass to add new ice
-            if (tr_fsd) &
-            wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
+            if (tr_fsd .and. trim(wave_height_type) == 'internal') then 
+                wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
+            !else
+            !   wave_sig_ht(i) provided by coupler or external data. 
+            endif 
 
             call icepack_step_therm2(dt=dt,                           &
                          hin_max=hin_max(:),                          &
@@ -676,11 +683,13 @@
          ntrcr,           & !
          nbtrcr             !
 
-      character (len=char_len) :: wave_spec_type
+      character (len=char_len) :: &
+              wave_spec_type ,    &
+              wave_height_type
 
       character(len=*), parameter :: subname = '(step_dyn_wave)'
 
-      call icepack_query_parameters(wave_spec_type_out=wave_spec_type)
+      call icepack_query_parameters(wave_spec_type_out=wave_spec_type, wave_height_type_out=wave_height_type)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -688,6 +697,7 @@
       do i = 1, nx
            d_afsd_wave(i,:) = c0
            call icepack_step_wavefracture (wave_spec_type=wave_spec_type, &
+                        wave_height_type=wave_height_type,     &
                         dt=dt, nfreq=nfreq,                    &
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &

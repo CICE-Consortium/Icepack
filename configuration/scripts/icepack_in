@@ -132,6 +132,7 @@
     saltflux_option = 'constant'
     oceanmixed_ice  = .true.
     wave_spec_type  = 'none'
+    wave_height_type= 'none'
     restore_ocn     = .false.
     trestore        = 90
     sss_fixed       = 34.0
