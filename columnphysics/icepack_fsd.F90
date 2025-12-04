@@ -620,7 +620,6 @@
                                   wave_sig_ht,               &
                                   wave_spectrum,             &
                                   wavefreq,                  &
-                                  dwavefreq,                 &
                                   d_afsd_latg,               &
                                   d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
@@ -640,8 +639,7 @@
                         ! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-         wavefreq   , & ! wave frequencies (s^-1)
-         dwavefreq      ! wave frequency bin widths (s^-1)
+         wavefreq       ! wave frequencies (s^-1)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          d_an_latg  , & ! change in aicen due to lateral growth
@@ -747,8 +745,7 @@
                if (wave_spec) then
                   if (wave_sig_ht > puny) then
                      call wave_dep_growth (wave_spectrum, wave_sig_ht, &
-                                           wavefreq, dwavefreq, &
-                                           new_size)
+                                           wavefreq, new_size)
                      if (icepack_warnings_aborted(subname)) return
                   end if
 
@@ -775,8 +772,7 @@
                if (wave_spec) then
                   if (wave_sig_ht > puny) then
                      call wave_dep_growth (wave_spectrum, wave_sig_ht, &
-                                           wavefreq, dwavefreq, &
-                                           new_size)
+                                           wavefreq, new_size)
                      if (icepack_warnings_aborted(subname)) return
                   end if
 
@@ -817,8 +813,7 @@
 !  authors: Lettie Roach, NIWA/VUW
 !
       subroutine wave_dep_growth (local_wave_spec, wave_height, &
-                                  wavefreq, dwavefreq, &
-                                  new_size)
+                                  wavefreq, new_size)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          local_wave_spec ! ocean surface wave spectrum as a function of frequency
@@ -826,11 +821,10 @@
                          ! dimension set in ice_forcing
 
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-         wavefreq,     & ! wave frequencies (s^-1)
-         dwavefreq       ! wave frequency bin widths (s^-1)
+         wavefreq        ! wave frequencies (s^-1)
 
-      real(kind=dbl_kind), intent(in), optional :: &
-         wave_height ! significant wave height (m)
+      real(kind=dbl_kind), intent(in) :: &
+         wave_height     ! significant wave height (m)
 
       integer (kind=int_kind), intent(out) :: &
          new_size        ! index of floe size category in which new floes will grow
@@ -847,11 +841,7 @@
 
       integer (kind=int_kind) :: k
 
-      if (present(wave_height)) then
-         w_amp = p5 * wave_height  ! amplitude is 1/2 sig wave hight
-      else 
-         w_amp = c2* SQRT(SUM(local_wave_spec*dwavefreq))   ! sig wave amplitude
-      endif
+      w_amp = p5 * wave_height  ! amplitude is 1/2 sig wave height
       f_peak = wavefreq(MAXLOC(local_wave_spec, DIM=1))  ! peak frequency
 
       ! tensile failure

@@ -191,9 +191,9 @@
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
         atmiter_conv,    calc_dragio,     congel_freeze,   &
-        tfrz_option,     saltflux_option, ice_ref_salinity, &
-        default_season,  wave_spec_type,  wave_height_type, & 
-        cpl_frazil,      &
+        tfrz_option,     saltflux_option, ice_ref_salinity,&
+        cpl_frazil,      default_season,                   &
+        wave_spec_type,  wave_height_type,                 &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         lateral_flux_type,                                 &
@@ -683,27 +683,21 @@
       endif
 
       wave_spec = .false.
-      if (tr_fsd .and. (trim(wave_spec_type) /= 'none') .and. &
-         (trim(wave_height_type) /= 'none')) then
-          wave_spec = .true.
-      end if
-      if (tr_fsd .and. (trim(wave_spec_type) == 'none') .and. &
-          (trim(wave_height_type) == 'none')) then
-         write (nu_diag,*) 'WARNING: tr_fsd=T but wave_spec=F - not recommended' 
+      if (tr_fsd) then
+         if (trim(wave_spec_type) /= 'none') then
+            if (trim(wave_height_type) /= 'none') wave_spec = .true.
+            if (trim(wave_height_type) /= 'internal') then
+               write (nu_diag,*) 'WARNING: set wave_height_type=internal or coupled'
+               call icedrv_system_abort(file=__FILE__,line=__LINE__)
+            endif
+         endif
+         if (.not.(wave_spec)) then
+            write (nu_diag,*) 'WARNING: tr_fsd=T but wave_spec=F - not recommended'
+            if (trim(wave_height_type) /= 'none') then
+               write (nu_diag,*) 'WARNING: Wave_spec=F, wave_height_type/=none, wave_sig_ht = 0'
+            endif
+         endif
       endif
-      if (tr_fsd .and. &
-         ((trim(wave_spec_type)=='none').and. &
-          (trim(wave_height_type)/='none'))) then
-         write (nu_diag,*) 'WARNING: Wave_spec_type=none, wave_height_type must also = none'
-         call icedrv_system_abort(file=__FILE__,line=__LINE__)
-      endif
-      if (tr_fsd .and. &
-         ((trim(wave_spec_type)/='none').and. &
-          (trim(wave_height_type)=='none'))) then
-         write (nu_diag,*) 'WARNING: set wave_height_type=internal or coupled'
-         call icedrv_system_abort(file=__FILE__,line=__LINE__)
-      endif
- 
 
       !-----------------------------------------------------------------
       ! spew
