@@ -780,7 +780,7 @@ icepack_init_parameters
            stefan_boltzmann_in, ice_ref_salinity_in, &
            Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
            iceruf_in, Cf_in, Pstar_in, Cstar_in, kappav_in, &
-           kice_in, ksno_in, &
+           kice_in, ksno_in, itd_area_min_in, itd_mass_min_in, &
            zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
            saltmax_in, phi_init_in, min_salin_in, Tliquidus_max_in, &
            min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, hs_ssl_min_in, &
@@ -799,7 +799,7 @@ icepack_init_parameters
            atmiter_conv_in, calc_dragio_in, &
            tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
            apnd_sl_in, saltflux_option_in, congel_freeze_in, &
-           floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
+           floeshape_in, wave_spec_in, wave_spec_type_in, wave_height_type_in, nfreq_in, &
            dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
            bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
            modal_aero_in, use_macromolecules_in, restartbgc_in, skl_bgc_in, &
@@ -1010,14 +1010,16 @@ icepack_init_parameters
   !-----------------------------------------------------------------------
   
         real(kind=dbl_kind), intent(in), optional :: &
-           Cf_in,         & ! ratio of ridging work to PE change in ridging
-           Pstar_in,      & ! constant in Hibler strength formula
-           Cstar_in,      & ! constant in Hibler strength formula
-           dragio_in,     & ! ice-ocn drag coefficient
+           itd_area_min_in,         & ! zap residual ice below this minimum area
+           itd_mass_min_in,         & ! zap residual ice below this minimum mass
+           Cf_in,                   & ! ratio of ridging work to PE change in ridging
+           Pstar_in,                & ! constant in Hibler strength formula
+           Cstar_in,                & ! constant in Hibler strength formula
+           dragio_in,               & ! ice-ocn drag coefficient
            thickness_ocn_layer1_in, & ! thickness of first ocean level (m)
-           iceruf_ocn_in, & ! under-ice roughness (m)
-           gravit_in,     & ! gravitational acceleration (m/s^2)
-           iceruf_in        ! ice surface roughness (m)
+           iceruf_ocn_in,           & ! under-ice roughness (m)
+           gravit_in,               & ! gravitational acceleration (m/s^2)
+           iceruf_in                  ! ice surface roughness (m)
   
         integer (kind=int_kind), intent(in), optional :: & ! defined in namelist
            kstrength_in  , & ! 0 for simple Hibler (1979) formulation
@@ -1089,7 +1091,8 @@ icepack_init_parameters
            wave_spec_in       ! if true, use wave forcing
   
         character (len=*), intent(in), optional :: &
-           wave_spec_type_in  ! type of wave spectrum forcing
+           wave_spec_type_in,   & ! type of wave spectrum forcing
+           wave_height_type_in    ! type of wave height forcing
   
   !-----------------------------------------------------------------------
   ! Parameters for biogeochemistry
@@ -1341,7 +1344,7 @@ icepack_query_parameters
            stefan_boltzmann_out, ice_ref_salinity_out, &
            Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
            iceruf_out, Cf_out, Pstar_out, Cstar_out, kappav_out, &
-           kice_out, ksno_out, &
+           kice_out, ksno_out, itd_area_min_out, itd_mass_min_out, &
            zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
            saltmax_out, phi_init_out, min_salin_out, Tliquidus_max_out, &
            min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, hs_ssl_min_out, &
@@ -1359,7 +1362,7 @@ icepack_query_parameters
            atmiter_conv_out, calc_dragio_out, &
            tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
            apnd_sl_out, saltflux_option_out, congel_freeze_out, &
-           floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
+           floeshape_out, wave_spec_out, wave_spec_type_out, wave_height_type_out, nfreq_out, &
            dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
            bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
            modal_aero_out, use_macromolecules_out, restartbgc_out, use_atm_dust_iron_out, &
@@ -1580,14 +1583,16 @@ icepack_query_parameters
   !-----------------------------------------------------------------------
   
         real(kind=dbl_kind), intent(out), optional :: &
-           Cf_out,         & ! ratio of ridging work to PE change in ridging
-           Pstar_out,      & ! constant in Hibler strength formula
-           Cstar_out,      & ! constant in Hibler strength formula
-           dragio_out,     & ! ice-ocn drag coefficient
+           itd_area_min_out,         & ! zap residual ice below this minimum area
+           itd_mass_min_out,         & ! zap residual ice below this minimum mass
+           Cf_out,                   & ! ratio of ridging work to PE change in ridging
+           Pstar_out,                & ! constant in Hibler strength formula
+           Cstar_out,                & ! constant in Hibler strength formula
+           dragio_out,               & ! ice-ocn drag coefficient
            thickness_ocn_layer1_out, & ! thickness of first ocean level (m)
-           iceruf_ocn_out, & ! under-ice roughness (m)
-           gravit_out,     & ! gravitational acceleration (m/s^2)
-           iceruf_out        ! ice surface roughness (m)
+           iceruf_ocn_out,           & ! under-ice roughness (m)
+           gravit_out,               & ! gravitational acceleration (m/s^2)
+           iceruf_out                  ! ice surface roughness (m)
   
         integer (kind=int_kind), intent(out), optional :: & ! defined in namelist
            kstrength_out  , & ! 0 for simple Hibler (1979) formulation
@@ -1659,7 +1664,8 @@ icepack_query_parameters
            wave_spec_out      ! if true, use wave forcing
   
         character (len=*), intent(out), optional :: &
-           wave_spec_type_out ! type of wave spectrum forcing
+           wave_spec_type_out,   & !type of wave spectrum forcing
+           wave_height_type_out    ! type of wave height forcing
   
   !-----------------------------------------------------------------------
   ! Parameters for biogeochemistry
@@ -2255,7 +2261,6 @@ icepack_step_therm2
                                        wave_sig_ht,                 &
                                        wave_spectrum,               &
                                        wavefreq,                    &
-                                       dwavefreq,                   &
                                        d_afsd_latg,  d_afsd_newi,   &
                                        d_afsd_latm,  d_afsd_weld,   &
                                        dpnd_melt)
@@ -2345,8 +2350,7 @@ icepack_step_therm2
            wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
   
         real(kind=dbl_kind), dimension(:), intent(in), optional :: &
-           wavefreq, &    ! wave frequencies (s^-1)
-           dwavefreq      ! wave frequency bin widths (s^-1)
+           wavefreq       ! wave frequencies (s^-1)
   
         real (kind=dbl_kind), dimension(:), intent(out), optional :: &
                           ! change in floe size distribution (area)
@@ -3400,15 +3404,11 @@ icepack_step_wavefracture
   !
   !  authors: 2018 Lettie Roach, NIWA/VUW
   !
-        subroutine icepack_step_wavefracture(wave_spec_type,   &
+        subroutine icepack_step_wavefracture(                  &
                     dt,            nfreq,                      &
                     aice,          vice,            aicen,     &
                     wave_spectrum, wavefreq,        dwavefreq, &
-                    trcrn,         d_afsd_wave)
-  
-  
-        character (len=char_len), intent(in) :: &
-           wave_spec_type  ! type of wave spectrum forcing
+                    trcrn,         d_afsd_wave,     wave_height)
   
         integer (kind=int_kind), intent(in) :: &
            nfreq           ! number of wave frequency categories
@@ -3434,6 +3434,9 @@ icepack_step_wavefracture
   
         real (kind=dbl_kind), dimension(:), intent(out) :: &
            d_afsd_wave     ! change in fsd due to waves
+  
+        real (kind=dbl_kind), intent(in), optional :: &
+           wave_height     ! significant wave height (m)
   
         real (kind=dbl_kind), dimension(nfsd,ncat) :: &
            d_afsdn_wave    ! change in fsd due to waves, per category
