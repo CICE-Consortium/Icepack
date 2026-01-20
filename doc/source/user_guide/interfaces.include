@@ -2061,10 +2061,10 @@ icepack_step_radiation
            TLAT, TLON    ! latitude and longitude (radian)
   
         real (kind=dbl_kind), intent(in), optional :: &
-           swuvrdr   , & ! sw down, vis uvr dir (W/m^2)
-           swuvrdf   , & ! sw down, vis uvr dif (W/m^2)
-           swpardr   , & ! sw down, vis par dir (W/m^2)
-           swpardf       ! sw down, vis par dif (W/m^2)
+           swuvrdr   , & ! sw down, uv  dir (W/m^2)
+           swuvrdf   , & ! sw down, uv  dif (W/m^2)
+           swpardr   , & ! sw down, par dir (W/m^2)
+           swpardf       ! sw down, par dif (W/m^2)
   
         integer (kind=int_kind), intent(in) :: &
            sec           ! elapsed seconds into date
@@ -2125,10 +2125,10 @@ icepack_step_radiation
            fswthrun_vdf , & ! vis dif SW through ice to ocean (W/m^2)
            fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
            fswthrun_idf , & ! nir dif SW through ice to ocean (W/m^2)
-           fswthrun_uvrdr,& ! vis uvr dir SW through ice to ocean (W/m^2)
-           fswthrun_uvrdf,& ! vis uvr dif SW through ice to ocean (W/m^2)
-           fswthrun_pardr,& ! vis par dir SW through ice to ocean (W/m^2)
-           fswthrun_pardf   ! vis par dif SW through ice to ocean (W/m^2)
+           fswthrun_uvrdr,& ! uv  dir SW through ice to ocean (W/m^2)
+           fswthrun_uvrdf,& ! uv  dif SW through ice to ocean (W/m^2)
+           fswthrun_pardr,& ! par dir SW through ice to ocean (W/m^2)
+           fswthrun_pardf   ! par dif SW through ice to ocean (W/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            fswpenln  , & ! visible SW entering ice layers (W m-2)
@@ -2712,10 +2712,10 @@ icepack_step_therm1
            fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
            fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
            fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
-           fswthru_uvrdr,& ! vis uvr dir shortwave penetrating to ocean (W/m^2)
-           fswthru_uvrdf,& ! vis uvr dif shortwave penetrating to ocean (W/m^2)
-           fswthru_pardr,& ! vis par dir shortwave penetrating to ocean (W/m^2)
-           fswthru_pardf,& ! vis par dif shortwave penetrating to ocean (W/m^2)
+           fswthru_uvrdr,& ! uv  dir shortwave penetrating to ocean (W/m^2)
+           fswthru_uvrdf,& ! uv  dif shortwave penetrating to ocean (W/m^2)
+           fswthru_pardr,& ! par dir shortwave penetrating to ocean (W/m^2)
+           fswthru_pardf,& ! par dif shortwave penetrating to ocean (W/m^2)
            dsnow       , & ! change in snow depth     (m/step-->cm/day)
            fsloss          ! rate of snow loss to leads      (kg/m^2/s)
   
@@ -2803,10 +2803,10 @@ icepack_step_therm1
            fswthrun_vdf , & ! vis dif SW through ice to ocean   (W/m^2)
            fswthrun_idr , & ! nir dir SW through ice to ocean   (W/m^2)
            fswthrun_idf , & ! nir dif SW through ice to ocean   (W/m^2)
-           fswthrun_uvrdr,& ! vis uvr dir SW through ice to ocean (W/m^2)
-           fswthrun_uvrdf,& ! vis uvr dif SW through ice to ocean (W/m^2)
-           fswthrun_pardr,& ! vis par dir SW through ice to ocean (W/m^2)
-           fswthrun_pardf   ! via par dif SW through ice to ocean (W/m^2)
+           fswthrun_uvrdr,& ! uv  dir SW through ice to ocean   (W/m^2)
+           fswthrun_uvrdf,& ! uv  dif SW through ice to ocean   (W/m^2)
+           fswthrun_pardr,& ! par dir SW through ice to ocean   (W/m^2)
+           fswthrun_pardf   ! par dif SW through ice to ocean   (W/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            zqsn        , & ! snow layer enthalpy                (J m-3)
