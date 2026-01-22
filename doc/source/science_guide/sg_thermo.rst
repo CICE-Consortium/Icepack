@@ -889,19 +889,27 @@ heat flux, :math:`F_{L\downarrow}` is the incoming longwave flux,
 :math:`F_{L\uparrow}` is the outgoing longwave flux, :math:`F_{sw}` is
 the incoming shortwave flux, :math:`\alpha` is the shortwave albedo, and
 :math:`i_0` is the fraction of absorbed shortwave flux that penetrates
-into the ice. The albedo may be altered by the presence of melt ponds.
+into the ice.
+
+Two methods for computing albedo and shortwave fluxes are available, the
+"CCSM3" method and a multiple scattering radiative transfer scheme that
+uses a Delta-Eddington approach. Shortwave forcing input is generally
+divided into two wavelength bands (:math:`< 700` \ nm, visible and below) and
+(:math:`> 700` \ nm, infrared), with an additional capability to accept
+shortwave divided into ultraviolet (:math:`< 400` \ nm) and visible /
+photosynthetically active (:math:`400 - 700` \ nm) bands.
+Radiation calculations may occur in the original two bands
+or for up to five bands, as described below.
+
+The albedo may be altered by the presence of melt ponds.
 Each of the explicit melt pond parameterizations (topo, level-ice and
 sealvl ponds) should be used in conjunction with the Delta-Eddington
-shortwave scheme, described below.
+shortwave scheme.
 
 Shortwave radiation: Delta-Eddington
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Two methods for computing albedo and shortwave fluxes are available, the
-"ccsm3" method, described in the next section, and a multiple scattering
-radiative transfer scheme that uses a Delta-Eddington approach
-(``shortwave`` = ``dEdd``).
-
+In the Delta-Eddington approach (``shortwave`` = ``dEdd``),
 "Inherent" optical properties (IOPs) for snow and sea ice, such as
 extinction coefficient and single scattering albedo, are prescribed
 based on physical measurements; reflected, absorbed and transmitted

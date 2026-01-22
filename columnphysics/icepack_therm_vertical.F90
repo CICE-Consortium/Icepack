@@ -2370,10 +2370,10 @@
          fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
-         fswthru_uvrdr,& ! vis uvr dir shortwave penetrating to ocean (W/m^2)
-         fswthru_uvrdf,& ! vis uvr dif shortwave penetrating to ocean (W/m^2)
-         fswthru_pardr,& ! vis par dir shortwave penetrating to ocean (W/m^2)
-         fswthru_pardf,& ! vis par dif shortwave penetrating to ocean (W/m^2)
+         fswthru_uvrdr,& ! uv  dir shortwave penetrating to ocean (W/m^2)
+         fswthru_uvrdf,& ! uv  dif shortwave penetrating to ocean (W/m^2)
+         fswthru_pardr,& ! par dir shortwave penetrating to ocean (W/m^2)
+         fswthru_pardf,& ! par dif shortwave penetrating to ocean (W/m^2)
          dsnow       , & ! change in snow depth     (m/step-->cm/day)
          fsloss          ! rate of snow loss to leads      (kg/m^2/s)
 
@@ -2461,10 +2461,10 @@
          fswthrun_vdf , & ! vis dif SW through ice to ocean   (W/m^2)
          fswthrun_idr , & ! nir dir SW through ice to ocean   (W/m^2)
          fswthrun_idf , & ! nir dif SW through ice to ocean   (W/m^2)
-         fswthrun_uvrdr,& ! vis uvr dir SW through ice to ocean (W/m^2)
-         fswthrun_uvrdf,& ! vis uvr dif SW through ice to ocean (W/m^2)
-         fswthrun_pardr,& ! vis par dir SW through ice to ocean (W/m^2)
-         fswthrun_pardf   ! via par dif SW through ice to ocean (W/m^2)
+         fswthrun_uvrdr,& ! uv  dir SW through ice to ocean   (W/m^2)
+         fswthrun_uvrdf,& ! uv  dif SW through ice to ocean   (W/m^2)
+         fswthrun_pardr,& ! par dir SW through ice to ocean   (W/m^2)
+         fswthrun_pardf   ! par dif SW through ice to ocean   (W/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy                (J m-3)
@@ -2532,17 +2532,17 @@
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
-         l_fswthrun_vdr, & ! vis dir SW local n ice to ocean  (W/m^2)
-         l_fswthrun_vdf, & ! vis dif SW local n ice to ocean  (W/m^2)
-         l_fswthrun_idr, & ! nir dir SW local n ice to ocean  (W/m^2)
-         l_fswthrun_idf, & ! nir dif SW local n ice to ocean  (W/m^2)
-         l_fswthrun_uvrdr,& ! vis uvr dir SW through ice to ocean (W/m^2)
-         l_fswthrun_uvrdf,& ! vis uvr dif SW through ice to ocean (W/m^2)
-         l_fswthrun_pardr,& ! vis par dir SW through ice to ocean (W/m^2)
-         l_fswthrun_pardf,& ! vis par dif SW through ice to ocean (W/m^2)
-         l_dsnow,        & ! local snow change
-         l_dsnown,       & ! local snow change category
-         l_meltsliq        ! mass of snow melt local           (kg/m^2)
+         l_fswthrun_vdr,   & ! vis dir SW category ice to ocean (W/m^2)
+         l_fswthrun_vdf,   & ! vis dif SW category ice to ocean (W/m^2)
+         l_fswthrun_idr,   & ! nir dir SW category ice to ocean (W/m^2)
+         l_fswthrun_idf,   & ! nir dif SW category ice to ocean (W/m^2)
+         l_fswthrun_uvrdr, & ! uv  dir SW category ice to ocean (W/m^2)
+         l_fswthrun_uvrdf, & ! uv  dif SW category ice to ocean (W/m^2)
+         l_fswthrun_pardr, & ! par dir SW category ice to ocean (W/m^2)
+         l_fswthrun_pardf, & ! par dif SW category ice to ocean (W/m^2)
+         l_dsnow,          & ! local snow change
+         l_dsnown,         & ! local snow change category
+         l_meltsliq          ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
          l_dpnd_flushn,  & ! category pond flushing rate          (m/step)
