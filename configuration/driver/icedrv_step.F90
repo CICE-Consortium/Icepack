@@ -468,7 +468,7 @@
 
       logical (kind=log_kind) :: &
          tr_fsd  ! floe size distribution tracers
-      
+
       character (len=char_len) :: &
          wave_height_type ! type of significant wave height forcing
 
