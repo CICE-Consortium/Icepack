@@ -360,6 +360,9 @@
                hsn(n)   = vsnon(n)/aicen(n)
                hin(n)   = vicen(n)/aicen(n)
             endif
+            do k = 1, nslyr
+               rsnw (k,n) = max(rsnw_fall, rsnw(k,n))
+            enddo
          enddo
 
          call update_snow_radius (dt,                &
