@@ -720,12 +720,18 @@
       ! Condition 5: check for energy conservation error
       ! Change in internal ice energy should equal net energy input.
       !-----------------------------------------------------------------
-
             fcondbot = kh(1+nslyr+nilyr) * &
                        (zTin(nilyr) - Tbot)
 
-            ferr = abs( (enew-einit+e_num)/dt &
+            if (calc_Tsfc) then
+                ! Flux extra energy out of the ice
+                fcondbot = fcondbot + einex/dt
+                ferr = abs( (enew-einit)/dt &
+                     - (fcondtopn - fcondbot + fswint) )
+            else
+                ferr = abs( (enew-einit+e_num)/dt &
                  - (fcondtopn - fcondbot + fswint) )
+            end if
 
             ! factor of 0.9 allows for roundoff errors later
             if (ferr > 0.9_dbl_kind*ferrmax) then         ! condition (5)
