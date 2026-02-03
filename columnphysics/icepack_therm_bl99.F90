@@ -720,6 +720,7 @@
       ! Condition 5: check for energy conservation error
       ! Change in internal ice energy should equal net energy input.
       !-----------------------------------------------------------------
+
             fcondbot = kh(1+nslyr+nilyr) * &
                        (zTin(nilyr) - Tbot)
 
