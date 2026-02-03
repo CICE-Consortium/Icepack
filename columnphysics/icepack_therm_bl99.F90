@@ -296,6 +296,27 @@
 
       enddo
 
+      do k = 1, nslyr
+         if (l_snow) then
+
+            Sswabs_tmp = c0
+            if (Tsn_init(k) <= -sw_dtemp) then
+               Sswabs_tmp = min(Sswabs(k), &
+                                -sw_frac*Tsn_init(k)/etas(k))
+            endif
+            if (Sswabs_tmp < puny) Sswabs_tmp = c0
+
+            dswabs = min(Sswabs(k) - Sswabs_tmp, fswint)
+
+            fswsfc   = fswsfc + dswabs
+            fswint   = fswint - dswabs
+            Sswabs(k) = Sswabs_tmp
+
+         endif
+      enddo
+
+      endif
+
       if (semi_implicit_Tsfc) then
          fsurfn = fsurfn + fswsfc ! this is the total heat flux
       endif
