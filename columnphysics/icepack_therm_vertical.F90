@@ -65,8 +65,6 @@
       use icepack_meltpond_sealvl, only: compute_ponds_sealvl
       use icepack_snow, only: drain_snow
 
-      use ESMF
-
       implicit none
 
       private
@@ -2898,6 +2896,7 @@
       !-----------------------------------------------------------------
       ! Vertical thermodynamics: Heat conduction, growth and melting.
       !-----------------------------------------------------------------
+
             if (.not.(calc_Tsfc)) then
 
                ! If not calculating surface temperature and fluxes, set

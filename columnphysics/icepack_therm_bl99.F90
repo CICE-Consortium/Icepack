@@ -12,7 +12,6 @@
       module icepack_therm_bl99
 
       use icepack_kinds
-      use ESMF
       use icepack_parameters, only: c0, c1, c2, p1, p5, puny
       use icepack_parameters, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
       use icepack_parameters, only: conduct, calc_Tsfc, semi_implicit_Tsfc
@@ -270,54 +269,32 @@
       !       has already computed fsurf.  (Unless we adjust fsurf here)
       !-----------------------------------------------------------------
 !mclaren: Should there be an if calc_Tsfc statement here then??
-      if (calc_Tsfc) then
-         if (sw_redist) then
 
-         do k = 1, nilyr
+      if (sw_redist) then
 
-            Iswabs_tmp = c0 ! all Iswabs is moved into fswsfc
-            if (Tin_init(k) <= Tmlts(k) - sw_dtemp) then
-               if (l_brine) then
-                  ci = cp_ice - Lfresh * Tmlts(k) / (Tin_init(k)**2)
-                  Iswabs_tmp = min(Iswabs(k), &
-                                 sw_frac*(Tmlts(k)-Tin_init(k))*ci/dt_rhoi_hlyr)
-               else
-                  ci = cp_ice
-                  Iswabs_tmp = min(Iswabs(k), &
-                                 sw_frac*(-Tin_init(k))*ci/dt_rhoi_hlyr)
-               endif
+      do k = 1, nilyr
+
+         Iswabs_tmp = c0 ! all Iswabs is moved into fswsfc
+         if (Tin_init(k) <= Tmlts(k) - sw_dtemp) then
+            if (l_brine) then
+               ci = cp_ice - Lfresh * Tmlts(k) / (Tin_init(k)**2)
+               Iswabs_tmp = min(Iswabs(k), &
+                                sw_frac*(Tmlts(k)-Tin_init(k))*ci/dt_rhoi_hlyr)
+            else
+               ci = cp_ice
+               Iswabs_tmp = min(Iswabs(k), &
+                                sw_frac*(-Tin_init(k))*ci/dt_rhoi_hlyr)
             endif
-            if (Iswabs_tmp < puny) Iswabs_tmp = c0
-
-            dswabs = min(Iswabs(k) - Iswabs_tmp, fswint)
-
-            fswsfc   = fswsfc + dswabs
-            fswint   = fswint - dswabs
-            Iswabs(k) = Iswabs_tmp
-
-         enddo
-
-         do k = 1, nslyr
-            if (l_snow) then
-
-               Sswabs_tmp = c0
-               if (Tsn_init(k) <= -sw_dtemp) then
-                  Sswabs_tmp = min(Sswabs(k), &
-                                 -sw_frac*Tsn_init(k)/etas(k))
-               endif
-               if (Sswabs_tmp < puny) Sswabs_tmp = c0
-
-               dswabs = min(Sswabs(k) - Sswabs_tmp, fswint)
-
-               fswsfc   = fswsfc + dswabs
-               fswint   = fswint - dswabs
-               Sswabs(k) = Sswabs_tmp
-
-            endif
-         enddo
-
          endif
-      endif ! calc_Tsfc
+         if (Iswabs_tmp < puny) Iswabs_tmp = c0
+
+         dswabs = min(Iswabs(k) - Iswabs_tmp, fswint)
+
+         fswsfc   = fswsfc + dswabs
+         fswint   = fswint - dswabs
+         Iswabs(k) = Iswabs_tmp
+
+      enddo
 
       if (semi_implicit_Tsfc) then
          fsurfn = fsurfn + fswsfc ! this is the total heat flux
