@@ -98,7 +98,7 @@
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
          ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, hi_min, Tliquidus_max, &
-         mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
+         hs_min, mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          apnd_sl, tscale_pnd_drain, itd_area_min, itd_mass_min, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity, floediam, hfrazilmin, &
@@ -161,7 +161,7 @@
         a_rapid_mode,   Rac_rapid_mode,  aspect_rapid_mode,             &
         dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy,                   &
         floediam,       hfrazilmin,      Tliquidus_max,    hi_min,      &
-        tscale_pnd_drain
+        tscale_pnd_drain, hs_min
 
       namelist /dynamics_nml/ &
         kstrength,      krdg_partic,    krdg_redist,    mu_rdg,         &
@@ -232,7 +232,7 @@
            krdg_redist_out=krdg_redist, mu_rdg_out=mu_rdg, &
            atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
            formdrag_out=formdrag, highfreq_out=highfreq, &
-           emissivity_out=emissivity, &
+           emissivity_out=emissivity, hs_min_out=hs_min, &
            kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, &
            dpscale_out=dpscale, frzpnd_out=frzpnd, &
            rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
@@ -854,6 +854,7 @@
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
          write(nu_diag,1005) ' ustar_min                 = ', ustar_min
          write(nu_diag,1005) ' hi_min                    = ', hi_min
+         write(nu_diag,1005) ' hs_min                    = ', hs_min
          write(nu_diag,1030) ' fbot_xfer_type            = ', trim(fbot_xfer_type)
          write(nu_diag,1010) ' oceanmixed_ice            = ', oceanmixed_ice
          write(nu_diag,1030) ' congel_freeze             = ', trim(congel_freeze)
@@ -1035,7 +1036,7 @@
            krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
            atmbndy_in=atmbndy, calc_strair_in=calc_strair, &
            formdrag_in=formdrag, highfreq_in=highfreq, &
-           emissivity_in=emissivity, &
+           emissivity_in=emissivity, hs_min_in=hs_min, &
            kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, &
            dpscale_in=dpscale, frzpnd_in=frzpnd, &
            rfracmin_in=rfracmin, rfracmax_in=rfracmax, &
