@@ -120,7 +120,7 @@
          kice      = 2.03_dbl_kind    ,&! thermal conductivity of fresh ice(W/m/deg)
                                         ! kice is only used with ktherm=1 (BL99) and conduct='MU71'
          ksno      = 0.30_dbl_kind    ,&! thermal conductivity of snow  (W/m/deg)
-         hs_min    = 0.10_dbl_kind    ,&! min snow thickness for computing zTsn (m)
+         hs_min    = 1.e-4_dbl_kind    ,&! min snow thickness for computing zTsn (m)
          snowpatch = 0.02_dbl_kind    ,&! parameter for fractional snow area (m)
          saltmax   = 3.2_dbl_kind     ,&! max salinity at ice base for BL99 (ppt)
                                         ! phi_init, dSin0_frazil are for mushy thermo
@@ -129,7 +129,7 @@
          Tliquidus_max = c0           ,&! maximum liquidus temperature of mush (C)
          dSin0_frazil = c3            ,&! bulk salinity reduction of newly formed frazil
          ustar_min = 0.005_dbl_kind   ,&! minimum friction velocity for ocean heat flux (m/s)
-         hi_min    = p1               ,&! minimum ice thickness allowed (m) for thermo
+         hi_min    = p01               ,&! minimum ice thickness allowed (m) for thermo
          ! mushy thermo
          a_rapid_mode      =  0.5e-3_dbl_kind,&! channel radius for rapid drainage mode (m)
          Rac_rapid_mode    =    10.0_dbl_kind,&! critical Rayleigh number
