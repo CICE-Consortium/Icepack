@@ -581,7 +581,7 @@
                      if (Top_T_was_reset_last_time) then
                         fcondtopn_reduction = fcondtopn_reduction + dqmat_sn*hslyr / dt
                         Top_T_was_reset_last_time = .false.
-                        e_num = e_num + hslyr * dqmat_sn		
+                        e_num = e_num + hslyr * dqmat_sn
                      else
                         Top_T_was_reset_last_time = .true.
                      endif
