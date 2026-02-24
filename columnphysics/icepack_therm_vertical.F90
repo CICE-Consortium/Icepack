@@ -111,7 +111,7 @@
          endif
 
          if ((top_layer_temp < cold_temp_flag) .and. (fcondtopn_solve < c0)) then
-            reduce_ratio = (cold_temp_flag - top_layer_temp) / (100.0 + cold_temp_flag)
+            reduce_ratio = (cold_temp_flag - top_layer_temp) / (c100 + cold_temp_flag)
             reduce_amount = reduce_ratio * fcondtopn_solve
             fcondtopn_solve = fcondtopn_solve - reduce_amount
          endif
