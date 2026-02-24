@@ -567,26 +567,28 @@
                endif
                if ((l_brine) .and. zTsn(k)>c0) then
 
-                  ! Alex West: return this energy to the ocean
+                  if (.not. calc_Tsfc) then
+                     ! Alex West: return this energy to the ocean
 
-                  dqmat_sn = (zTsn(k)*cp_ice - Lfresh)*rhos - zqsn(k)
+                     dqmat_sn = (zTsn(k)*cp_ice - Lfresh)*rhos - zqsn(k)
 
-                  ! Alex West: If this is the second time in succession that Tsn(1) has been
-                  ! reset, tell the solver to reduce the forcing at the top, and
-                  ! pass the difference to the array enum where it will eventually
-                  ! go into the ocean
-                  ! This is done to avoid an 'infinite loop' whereby temp continually evolves
-                  ! to the same point above zero, is reset, ad infinitum
-                  if (l_snow .AND. k == 1) then
-                     if (Top_T_was_reset_last_time) then
-                        fcondtopn_reduction = fcondtopn_reduction + dqmat_sn*hslyr / dt
-                        Top_T_was_reset_last_time = .false.
-                        e_num = e_num + hslyr * dqmat_sn
-                     else
-                        Top_T_was_reset_last_time = .true.
+                     ! Alex West: If this is the second time in succession that Tsn(1) has been
+                     ! reset, tell the solver to reduce the forcing at the top, and
+                     ! pass the difference to the array enum where it will eventually
+                     ! go into the ocean
+                     ! This is done to avoid an 'infinite loop' whereby temp continually evolves
+                     ! to the same point above zero, is reset, ad infinitum
+                     if (l_snow .AND. k == 1) then
+                        if (Top_T_was_reset_last_time) then
+                           fcondtopn_reduction = fcondtopn_reduction + dqmat_sn*hslyr / dt
+                           Top_T_was_reset_last_time = .false.
+                           e_num = e_num + hslyr * dqmat_sn
+                        else
+                           Top_T_was_reset_last_time = .true.
+                        endif
                      endif
-                  endif
-                  
+                  end if
+
                   zTsn(k) = min(zTsn(k), c0)
 
                endif

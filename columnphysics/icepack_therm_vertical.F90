@@ -23,10 +23,11 @@
 
       use icepack_fsd, only: floe_rad_c, floe_binwidth
 
-      use icepack_parameters, only: c0, c1, c2, p001, p5, puny
+      use icepack_parameters, only: c0, c1, c2, p001, p5, puny, c100
       use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, calc_Tsfc, rsnw_fall, rsnw_tmax
+      use icepack_parameters, only: ratio_Wm2_m, cold_temp_flag
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
@@ -76,6 +77,10 @@
 
 !=======================================================================
 
+!
+! Function for limiting the conductive flux supplied from an atmosphere model when calc_tsfc=.false.
+!
+
       function cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr) result(fcondtopn_solve)
 
          integer (kind=int_kind), intent(in) :: &
@@ -88,8 +93,6 @@
          real (kind=dbl_kind), intent(in)    :: hslyr
 
          real (kind=dbl_kind)   :: fcondtopn_solve
-
-         real (kind=dbl_kind), parameter :: ratio_Wm2_m = 1000.0, cold_temp_flag = c0 - 60.0
 
          ! AEW: New variables for cold-ice flux capping
          real (kind=dbl_kind) :: top_layer_temp,     &
@@ -389,12 +392,15 @@
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
-            fcondtopn_solve = cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr)
-            fcondtopn_extra = fcondtopn - fcondtopn_solve
 
-            ! if (calc_Tsfc) then
-            !    fcondtopn = fcondtopn_solve
-            ! end if
+            if (calc_Tsfc) then
+               fcondtopn_solve = fcondtopn
+            else
+               fcondtopn_solve = cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr)
+            end if
+
+
+            fcondtopn_extra = fcondtopn - fcondtopn_solve
 
             call temperature_changes(dt,                   &
                                      rhoa,      flw,       &
