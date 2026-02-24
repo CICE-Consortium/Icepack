@@ -349,9 +349,9 @@
 
       character(len=*),parameter :: subname='(set_sfcflux)'
 
-      raicen        = c1 / aicen
+      raicen        = c1
 
-#ifdef CICE_IN_NEMO
+#if defined(CICE_IN_NEMO) || defined(ACCESS)
 !----------------------------------------------------------------------
 ! Convert fluxes from GBM values to per ice area values when
 ! running in NEMO environment.  (When in standalone mode, fluxes
