@@ -419,6 +419,8 @@
                                      einit, e_num)
             if (icepack_warnings_aborted(subname)) return
 
+            fcondtopn = fcondtopn_solve + fcondtopn_extra
+
          endif ! ktherm
 
          !  mass of ice and liquid water in snow
