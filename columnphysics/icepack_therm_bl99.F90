@@ -621,12 +621,12 @@
 
                zTin(k) = Tmat(k+1+nslyr)
 
-               if (.not. calc_Tsfc .and. l_brine .and. zTin(k) > Tmlts(k) - puny) then
+               if (l_brine .and. zTin(k) > Tmlts(k) - puny) then
                   dTmat(k) = zTin(k) - Tmlts(k)
                   dqmat(k) = rhoi * dTmat(k) &
                            * (cp_ice - Lfresh * Tmlts(k)/zTin(k)**2)
 
-                  if ((.not. l_snow) .and. (k == 1)) then
+                  if ((.not. calc_Tsfc) .and. (.not. l_snow) .and. (k == 1)) then
                      if (Top_T_was_reset_last_time) then
                         fcondtopn_reduction = fcondtopn_reduction + dqmat(k)*hilyr / dt
                         Top_T_was_reset_last_time = .false.
