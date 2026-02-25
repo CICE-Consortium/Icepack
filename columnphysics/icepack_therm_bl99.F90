@@ -621,7 +621,7 @@
 
                zTin(k) = Tmat(k+1+nslyr)
 
-               if (l_brine .and. zTin(k) > Tmlts(k) - puny) then
+               if (.not. calc_Tsfc .and. l_brine .and. zTin(k) > Tmlts(k) - puny) then
                   dTmat(k) = zTin(k) - Tmlts(k)
                   dqmat(k) = rhoi * dTmat(k) &
                            * (cp_ice - Lfresh * Tmlts(k)/zTin(k)**2)
