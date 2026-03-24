@@ -2120,10 +2120,12 @@
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Input energy =', einp
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'Numerical energy =', e_num
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'fcondtopn_extra energy =', fcondtopn_extra
-         call icepack_warnings_add(warnstr)
+         if (.not. calc_Tsfc) then
+            write(warnstr,*) subname, 'Numerical energy =', e_num
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'fcondtopn_extra energy =', fcondtopn_extra
+            call icepack_warnings_add(warnstr)
+         end if
          write(warnstr,*) subname, 'fbot,fcondbot:'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, fbot,fcondbotn
