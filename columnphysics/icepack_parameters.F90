@@ -137,8 +137,8 @@
          dSdt_slow_mode    = -1.5e-7_dbl_kind,&! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode   =    0.05_dbl_kind,&! critical liquid fraction porosity cutoff
          phi_i_mushy       =    0.85_dbl_kind,&! liquid fraction of congelation ice
-         ratio_Wm2_m       =           1000.0,&! max condutive flux/depth ratio (W m)
-         cold_temp_flag    =        c0 - 60.0  ! min temp used to limit the conductive flux (C)
+         ratio_Wm2_m       =        1000.0_dbl_kind ,&! max condutive flux/depth ratio (W m)
+         cold_temp_flag    =        -60.0_dbl_kind  ! min temp used to limit the conductive flux (C)
 
       integer (kind=int_kind), public :: &
          ktherm = 1      ! type of thermodynamics
