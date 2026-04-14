@@ -123,7 +123,8 @@
          zTsn            ! internal snow layer temperatures
 
       real (kind=dbl_kind), intent(out):: &
-         e_num
+         e_num            ! excess energy from conductive flux (J m-2)
+
      ! local variables
 
       integer (kind=int_kind), parameter :: &
@@ -568,11 +569,11 @@
                if ((l_brine) .and. zTsn(k)>c0) then
 
                   if (.not. calc_Tsfc) then
-                     ! Alex West: return this energy to the ocean
+                     ! return this energy to the ocean
 
                      dqmat_sn = (zTsn(k)*cp_ice - Lfresh)*rhos - zqsn(k)
 
-                     ! Alex West: If this is the second time in succession that Tsn(1) has been
+                     ! If this is the second time in succession that Tsn(1) has been
                      ! reset, tell the solver to reduce the forcing at the top, and
                      ! pass the difference to the array enum where it will eventually
                      ! go into the ocean
@@ -809,14 +810,6 @@
          write(warnstr,*) subname, 'Final snow temperatures:'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (zTsn(k),k=1,nslyr)
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'Matrix ice temperature diff:'
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, (dTmat(k),k=1,nilyr)
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'dqmat*hilyr/dt:'
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, (hilyr*dqmat(k)/dt,k=1,nilyr)
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Final ice temperatures:'
          call icepack_warnings_add(warnstr)
