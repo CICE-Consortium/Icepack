@@ -293,7 +293,7 @@
          fadvocn, saltvol, dfsalt ! advective heat flux to ocean
 
       real (kind=dbl_kind) :: &
-         fcondtopn_solve, fcondtopn_extra, e_num
+         fcondtopn_solve, fcondtopn_extra, einex_sfc_flux
 
       character(len=*),parameter :: subname='(thermo_vertical)'
 
@@ -321,7 +321,7 @@
       meltsliq= c0
       massice(:) = c0
       massliq(:) = c0
-      e_num = c0
+      einex_sfc_flux = c0
       fcondtopn_extra = c0
       if (tr_pond) then
          dpnd_flush = c0
@@ -416,7 +416,7 @@
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
                                      fcondtopn_solve, fcondbotn,  &
-                                     einit, e_num)
+                                     einit, einex_sfc_flux)
             if (icepack_warnings_aborted(subname)) return
 
             fcondtopn = fcondtopn_solve + fcondtopn_extra
@@ -476,7 +476,7 @@
                              zSin,        sss,       &
                              sst,                    &
                              dsnow,       rsnw,      &
-                             e_num, fcondtopn_extra  )
+                             einex_sfc_flux, fcondtopn_extra  )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -490,7 +490,7 @@
                                       fsnow,     einit,    &
                                       einter,    efinal,   &
                                       fcondtopn, fcondbotn, &
-                                      fadvocn,   fbot, e_num, fcondtopn_extra )
+                                      fadvocn,   fbot, einex_sfc_flux, fcondtopn_extra )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1136,7 +1136,7 @@
                                     zSin,      sss,      &
                                     sst,                 &
                                     dsnow,     rsnw,     &
-                                    e_num, fcondtopn_extra)
+                                    einex_sfc_flux, fcondtopn_extra)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -1205,7 +1205,7 @@
          sss             ! ocean salinity (PSU)
 
       real (kind=dbl_kind), intent(in) :: &
-         e_num, fcondtopn_extra
+         einex_sfc_flux, fcondtopn_extra
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -1629,7 +1629,7 @@
       ! fhocn is the available ocean heat that is left after use by ice
       !-----------------------------------------------------------------
 
-      fhocnn = fbot + (esub + etop_mlt + ebot_mlt + e_num)/dt
+      fhocnn = fbot + (esub + etop_mlt + ebot_mlt + einex_sfc_flux)/dt
 
     !-----------------------------------------------------------------
     ! Add new snowfall at top surface
@@ -2054,7 +2054,7 @@
                                             einit,    einter,   &
                                             efinal,             &
                                             fcondtopn,fcondbotn, &
-                                            fadvocn,  fbot, e_num, fcondtopn_extra)
+                                            fadvocn,  fbot, einex_sfc_flux, fcondtopn_extra)
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -2067,7 +2067,7 @@
          fsnow       , & ! snowfall rate (kg m-2 s-1)
          fcondtopn   , &
          fadvocn     , &
-         fbot, e_num, fcondtopn_extra
+         fbot, einex_sfc_flux, fcondtopn_extra
 
       real (kind=dbl_kind), intent(in) :: &
          einit       , & ! initial energy of melting (J m-2)
@@ -2121,7 +2121,7 @@
          write(warnstr,*) subname, 'Input energy =', einp
          call icepack_warnings_add(warnstr)
          if (.not. calc_Tsfc) then
-            write(warnstr,*) subname, 'Numerical energy =', e_num
+            write(warnstr,*) subname, 'Numerical energy =', einex_sfc_flux
             call icepack_warnings_add(warnstr)
             write(warnstr,*) subname, 'fcondtopn_extra energy =', fcondtopn_extra
             call icepack_warnings_add(warnstr)

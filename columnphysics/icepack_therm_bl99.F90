@@ -69,7 +69,7 @@
                                       fsensn,   flatn,    &
                                       flwoutn,  fsurfn,   &
                                       fcondtopn,fcondbot, &
-                                      einit, e_num)
+                                      einit, einex_sfc_flux)
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -123,7 +123,7 @@
          zTsn            ! internal snow layer temperatures
 
       real (kind=dbl_kind), intent(out):: &
-         e_num            ! excess energy from conductive flux (J m-2)
+         einex_sfc_flux  ! excess energy from conductive flux (J m-2)
 
      ! local variables
 
@@ -158,7 +158,7 @@
          dflat_dT    , & ! deriv of flat wrt Tsf (W m-2 deg-1)
          dflwout_dT  , & ! deriv of flwout wrt Tsf (W m-2 deg-1)
          dt_rhoi_hlyr, & ! dt/(rhoi*hilyr)
-         einex       , & ! excess energy from dqmat to ocean
+         einex_sfc_calc, & ! excess energy from dqmat to ocean
          ferr            ! energy conservation error (W m-2)
 
       real (kind=dbl_kind), dimension (nilyr) :: &
@@ -208,7 +208,7 @@
       ! Initialize
       !-----------------------------------------------------------------
       fcondtopn_reduction = c0
-      e_num = c0
+      einex_sfc_flux = c0
       Top_T_was_reset_last_time = .false.
       converged  = .false.
       l_snow     = .false.
@@ -219,7 +219,7 @@
       dfsens_dT  = c0
       dflat_dT   = c0
       dflwout_dT = c0
-      einex      = c0
+      einex_sfc_calc      = c0
       if (semi_implicit_Tsfc) then  ! initialize
          dfsurf_dT  = dfsurfdTs_cpl
          dflat_dT   = dflatdTs_cpl
@@ -344,7 +344,7 @@
             if (.not.semi_implicit_Tsfc) dfsurf_dT = c0
             avg_Tsi   = c0
             enew      = c0
-            einex     = c0
+            einex_sfc_calc = c0
 
       !-----------------------------------------------------------------
       ! Update specific heat of ice layers.
@@ -583,7 +583,7 @@
                         if (Top_T_was_reset_last_time) then
                            fcondtopn_reduction = fcondtopn_reduction + dqmat_sn*hslyr / dt
                            Top_T_was_reset_last_time = .false.
-                           e_num = e_num + hslyr * dqmat_sn
+                           einex_sfc_flux = einex_sfc_flux + hslyr * dqmat_sn
                         else
                            Top_T_was_reset_last_time = .true.
                         endif
@@ -631,7 +631,7 @@
                      if (Top_T_was_reset_last_time) then
                         fcondtopn_reduction = fcondtopn_reduction + dqmat(k)*hilyr / dt
                         Top_T_was_reset_last_time = .false.
-                        e_num = e_num + hilyr * dqmat(k)
+                        einex_sfc_flux = einex_sfc_flux + hilyr * dqmat(k)
                      else
                         Top_T_was_reset_last_time = .true.
                      endif
@@ -681,7 +681,7 @@
                   zqin(k) = -rhoi * (-cp_ice*zTin(k) + Lfresh)
                endif
                enew = enew + hilyr * zqin(k)
-               einex = einex + hilyr * dqmat(k)
+               einex_sfc_calc = einex_sfc_calc + hilyr * dqmat(k)
 
                Tin_start(k) = zTin(k) ! for next iteration
 
@@ -729,11 +729,11 @@
 
             if (calc_Tsfc) then
                 ! Flux extra energy out of the ice
-                fcondbot = fcondbot + einex/dt
+                fcondbot = fcondbot + einex_sfc_calc/dt
                 ferr = abs( (enew-einit)/dt &
                      - (fcondtopn - fcondbot + fswint) )
             else
-                ferr = abs( (enew-einit+e_num)/dt &
+                ferr = abs( (enew-einit+einex_sfc_flux)/dt &
                  - (fcondtopn - fcondbot + fswint) )
             end if
 
