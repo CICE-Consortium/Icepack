@@ -187,17 +187,19 @@
          kh              ! effective conductivity at interfaces (W m-2 deg-1)
 
       real (kind=dbl_kind) :: &
-         ci          , & ! specific heat of sea ice (J kg-1 deg-1)
-         avg_Tsf     , & ! = 1. if Tsf averaged w/Tsf_start, else = 0.
-         Iswabs_tmp  , & ! energy to melt through fraction frac of layer
-         Sswabs_tmp  , & ! same for snow
-         dswabs      , & ! difference in swabs and swabs_tmp
-         frac        , &
-         fcondtopn_reduction, &
-         fcondtopn_force, dqmat_sn
+         ci                 , & ! specific heat of sea ice (J kg-1 deg-1)
+         avg_Tsf            , & ! = 1. if Tsf averaged w/Tsf_start, else = 0.
+         Iswabs_tmp         , & ! energy to melt through fraction frac of layer
+         Sswabs_tmp         , & ! same for snow
+         dswabs             , & ! difference in swabs and swabs_tmp
+         frac               , &
+         fcondtopn_reduction, & ! reduction in downward cond flux at top surface (W m-2)
+         fcondtopn_force    , & ! reduced downward cond flux at top surface (W m-2)
+         dqmat_sn               ! associated enthalpy difference at top snow layer (J m-3)
 
       logical (kind=log_kind) :: &
-         converged, Top_T_was_reset_last_time ! = true when local solution has converged
+         converged             , & ! = true when local solution has converged
+         Top_T_was_reset_last_time ! = true when surface temperature was reset in prev iteration
 
       logical (kind=log_kind) , dimension (nilyr) :: &
          reduce_kh      ! reduce conductivity when T exceeds Tmlt

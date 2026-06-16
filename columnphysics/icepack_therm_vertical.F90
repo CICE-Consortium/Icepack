@@ -77,32 +77,27 @@
 
 !=======================================================================
 
-!
 ! Function for limiting the conductive flux supplied from an atmosphere model when calc_tsfc=.false.
-!
 
       function cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr) result(fcondtopn_solve)
 
          integer (kind=int_kind), intent(in) :: &
             nilyr   , & ! number of ice layers
             nslyr       ! number of snow layers
-         real (kind=dbl_kind), intent(in)    :: fcondtopn
-         real (kind=dbl_kind), intent(in)    :: hin
-         real (kind=dbl_kind), intent(in)    :: zTin(nilyr)
-         real (kind=dbl_kind), intent(in)    :: zTsn(nslyr)
-         real (kind=dbl_kind), intent(in)    :: hslyr
+         real (kind=dbl_kind), intent(in)    :: fcondtopn   ! downward cond flux at top surface (W m-2)
+         real (kind=dbl_kind), intent(in)    :: hin         ! ice thickness (m)
+         real (kind=dbl_kind), intent(in)    :: zTin(nilyr) ! internal ice layer temperatures (C)
+         real (kind=dbl_kind), intent(in)    :: zTsn(nslyr) ! internal snow layer temperatures (C)
+         real (kind=dbl_kind), intent(in)    :: hslyr       ! snow layer thickness (m)
 
-         real (kind=dbl_kind)   :: fcondtopn_solve
-
-         ! AEW: New variables for cold-ice flux capping
-         real (kind=dbl_kind) :: top_layer_temp,     &
-                  reduce_ratio,       &
-                  reduce_amount
-
+         real (kind=dbl_kind)   :: fcondtopn_solve ! limited downward cond flux at top surface (W m-2)
+         real (kind=dbl_kind)   :: &
+            top_layer_temp, & ! top layer temperature (C)
+            reduce_ratio  , & ! reduction ratio of downward cond flux at top surface
+            reduce_amount     ! reduction in downward cond flux at top surface (W m-2)
 
          if (abs(fcondtopn) > ratio_Wm2_m * hin) then
             fcondtopn_solve = sign(ratio_Wm2_m * hin,fcondtopn)
-
          else
             fcondtopn_solve = fcondtopn
          endif
@@ -120,6 +115,8 @@
          endif
 
       end function cap_conductive_flux
+
+!=======================================================================
 
 !
 ! Driver for updating ice and snow internal temperatures and
@@ -293,7 +290,9 @@
          fadvocn, saltvol, dfsalt ! advective heat flux to ocean
 
       real (kind=dbl_kind) :: &
-         fcondtopn_solve, fcondtopn_extra, einex_sfc_flux
+         fcondtopn_solve, & ! limited downward cond flux at top surface (W m-2)
+         fcondtopn_extra, & ! excess downward cond flux at top surface (W m-2)
+         einex_sfc_flux     ! excess energy removed during temperature_changes (J m-2)
 
       character(len=*),parameter :: subname='(thermo_vertical)'
 
@@ -398,8 +397,6 @@
             else
                fcondtopn_solve = cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr)
             end if
-
-
             fcondtopn_extra = fcondtopn - fcondtopn_solve
 
             call temperature_changes(dt,                   &
@@ -1205,7 +1202,8 @@
          sss             ! ocean salinity (PSU)
 
       real (kind=dbl_kind), intent(in) :: &
-         einex_sfc_flux, fcondtopn_extra
+         einex_sfc_flux, & ! excess energy removed during temperature_changes (J m-2)
+         fcondtopn_extra   ! excess downward cond flux at top surface (W m-2)
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -2060,14 +2058,16 @@
          dt              ! time step
 
       real (kind=dbl_kind), intent(in) :: &
-         fsurfn      , & ! net flux to top surface, excluding fcondtopn
-         flatn       , & ! surface downward latent heat (W m-2)
-         fhocnn      , & ! fbot, corrected for any surplus energy
-         fswint      , & ! SW absorbed in ice interior, below surface (W m-2)
-         fsnow       , & ! snowfall rate (kg m-2 s-1)
-         fcondtopn   , &
-         fadvocn     , &
-         fbot, einex_sfc_flux, fcondtopn_extra
+         fsurfn        , & ! net flux to top surface, excluding fcondtopn
+         flatn         , & ! surface downward latent heat (W m-2)
+         fhocnn        , & ! fbot, corrected for any surplus energy
+         fswint        , & ! SW absorbed in ice interior, below surface (W m-2)
+         fsnow         , & ! snowfall rate (kg m-2 s-1)
+         fcondtopn     , & ! downward cond flux at top surface (W m-2)
+         fadvocn       , & ! advective heat flux to ocean (W m-2)
+         fbot          , & ! ice-ocean heat flux at bottom surface (W/m^2)
+         einex_sfc_flux, & ! excess energy removed during temperature_changes (J m-2)
+         fcondtopn_extra   ! excess downward cond flux at top surface (W m-2)
 
       real (kind=dbl_kind), intent(in) :: &
          einit       , & ! initial energy of melting (J m-2)
