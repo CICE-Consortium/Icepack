@@ -152,14 +152,14 @@
          enew            ! new energy of melting after temp change (J m-2)
 
       real (kind=dbl_kind) :: &
-         dTsf_prev   , & ! dTsf from previous iteration
-         dTi1_prev   , & ! dTi1 from previous iteration
-         dfsens_dT   , & ! deriv of fsens wrt Tsf (W m-2 deg-1)
-         dflat_dT    , & ! deriv of flat wrt Tsf (W m-2 deg-1)
-         dflwout_dT  , & ! deriv of flwout wrt Tsf (W m-2 deg-1)
-         dt_rhoi_hlyr, & ! dt/(rhoi*hilyr)
-         einex_sfc_calc, & ! excess energy from dqmat to ocean
-         ferr            ! energy conservation error (W m-2)
+         dTsf_prev     , & ! dTsf from previous iteration
+         dTi1_prev     , & ! dTi1 from previous iteration
+         dfsens_dT     , & ! deriv of fsens wrt Tsf (W m-2 deg-1)
+         dflat_dT      , & ! deriv of flat wrt Tsf (W m-2 deg-1)
+         dflwout_dT    , & ! deriv of flwout wrt Tsf (W m-2 deg-1)
+         dt_rhoi_hlyr  , & ! dt/(rhoi*hilyr)
+         einex_sfc_calc, & ! excess energy from dqmat to ocean (J m-2)
+         ferr              ! energy conservation error (W m-2)
 
       real (kind=dbl_kind), dimension (nilyr) :: &
          Tin_init    , & ! zTin at beginning of time step
