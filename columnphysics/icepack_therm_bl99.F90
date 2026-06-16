@@ -202,7 +202,7 @@
          Top_T_was_reset_last_time ! = true when surface temperature was reset in prev iteration
 
       logical (kind=log_kind) , dimension (nilyr) :: &
-         reduce_kh      ! reduce conductivity when T exceeds Tmlt
+         reduce_kh       ! reduce conductivity when T exceeds Tmlt
 
       character(len=*),parameter :: subname='(temperature_changes)'
 
