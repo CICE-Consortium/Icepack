@@ -81,9 +81,8 @@ subroutine, *thermo_vertical*. At the end of the time step, the surface
 temperature and effective conductivity (i.e., thermal conductivity	
 divided by thickness) of the top ice/snow layer in each category are	
 returned to the atmosphere model via the coupler. Since the ice surface	
-temperature is treated explicitly, the effective conductivity may need	
-to be limited to ensure stability. As a result, accuracy may be	
-significantly reduced, especially for thin ice or snow layers. A more	
+temperature is treated explicitly, the conductive flux is limited to ensure stability.
+As a result, accuracy may be significantly reduced, especially for thin ice or snow layers. A more
 stable and accurate procedure would be to compute the temperature	
 profiles for both the atmosphere and ice, together with the surface	
 fluxes, in a single implicit calculation. This was judged impractical,	
