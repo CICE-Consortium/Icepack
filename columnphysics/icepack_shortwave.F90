@@ -3343,7 +3343,7 @@
          !       ---------------------  k-1
          !                k-1
          !       ---------------------  k
-         !       \\\\\\\ ocean \\\\\\\
+         !       /////// ocean ///////
 
          trndir(k+1) = trndir(k)*trnlay(k)
          refkm1      = c1/(c1 - rdndif(k)*rdif_a(k))
