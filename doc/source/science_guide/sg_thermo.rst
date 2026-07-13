@@ -1378,7 +1378,7 @@ diffusive CFL condition:
 .. math::
    K^* \le {\rho ch \over \Delta t}.
 
-To improve stability, the conductive flux is limited before
+To improve stability when ``calc_Tsfc=false``, the conductive flux is limited before
 the thermodynamic solve. Any excess flux is then used for bottom melt. The
 conductive flux may also be limited during the thermodynamic solve if the
 surface temperature exceeds the melting point, in which case the excess flux
