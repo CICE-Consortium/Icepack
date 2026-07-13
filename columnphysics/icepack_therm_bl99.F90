@@ -821,7 +821,6 @@
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (hilyr*dqmat(k)/dt,k=1,nilyr)
          call icepack_warnings_add(warnstr)
-         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Final ice temperatures:'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (zTin(k),k=1,nilyr)
