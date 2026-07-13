@@ -812,6 +812,7 @@
          write(warnstr,*) subname, 'Final snow temperatures:'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (zTsn(k),k=1,nslyr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Matrix ice temperature diff:'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (dTmat(k),k=1,nilyr)
