@@ -29,9 +29,7 @@ Snow redistribution
 
 Because the thermodynamic schemes in CICE assume a uniform snow depth over each category, ignoring the fractions of level and deformed ice, effects of snow redistribution are included only via the delta-Eddington radiation scheme. The redistributed snow depth is used to determine the effective area of bare ice (for very small snow depths) and the effective area and depth of melt ponds over level ice. Once those areas are determined, the redistributed snow volume over them is known, from which the snow depth for the remaining snow-covered area can be computed and used for its radiation balance calculation.
 
-Two basic approaches are available for snow redistribution by wind, ``snwredist`` = ``bulk``, for which a user-defined parameter :math:`p` (``snwlvlfac``) determines the ratio of snow on ridges to that on level ice, and ``snwITDrdg``, in which snow can be compacted by the wind or eroded and redeposited on other thickness categories. For both, nonlocal redistribution of snow (i.e., between grid cells) is neglected, assuming that the difference between snow mass blowing into a grid cell and that blowing out is negligible, but snow can be blown into nearby leads and open water.
-
-
+Two basic approaches are available for snow redistribution by wind, ``snwredist`` = ``bulk``, for which a user-defined parameter :math:`p` (``snwlvlfac``) determines the ratio of snow on ridges to that on level ice, and ``snwredist`` = ``ITDrdg``, in which snow can be compacted by the wind or eroded and redeposited on other thickness categories based on the standard deviation of the level and ridged ice thickness distribution. For both, nonlocal redistribution of snow (i.e., between grid cells) is neglected, assuming that the difference between snow mass blowing into a grid cell and that blowing out is negligible, but snow can be blown into nearby leads and open water.
 
 .. _snow_bulk:
 
@@ -64,7 +62,7 @@ In the shortwave module for level-ice ponds, we create a new variable :math:`h_{
 Snow redistribution and compaction by wind
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Following :cite:`Lecomte15`, when ``snwredist`` = ``snwITDrdg`` we parameterize the amount of snow lost into the ocean through leads or redistributed to other thickness categories by defining the redistribution function :math:`\Phi` for snow mass as the sum of an erosion rate :math:`\Phi_E` and a redeposition rate :math:`\Phi_R` for each category of thickness :math:`h_i`:
+Following :cite:`Lecomte15`, when ``snwredist`` = ``ITDrdg`` we parameterize the amount of snow lost into the ocean through leads or redistributed to other thickness categories by defining the redistribution function :math:`\Phi` for snow mass as the sum of an erosion rate :math:`\Phi_E` and a redeposition rate :math:`\Phi_R` for each category of thickness :math:`h_i`:
 
 .. math::
    \Phi_E = \left({\partial m \over \partial t}\right)_{erosion} = -{\gamma \over \sigma_{ITD}} \left(V-V^*\right){\rho_{max} - \rho_s \over \rho_{max}}

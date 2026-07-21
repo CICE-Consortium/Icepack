@@ -238,6 +238,9 @@
 
       character(len=*),parameter :: subname='(zbio)'
 
+      upNOn(:,:) = c0
+      upNHn(:,:) = c0
+      grow_alg(:,:) = c0
       zbgc_snown(:) = c0
       zbgc_atmn (:) = c0
       flux_bion (:) = c0

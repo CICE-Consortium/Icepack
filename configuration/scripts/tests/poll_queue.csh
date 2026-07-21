@@ -13,7 +13,7 @@ foreach line ("`cat suite.jobs`")
   set qstatjob = 1
   if (${job} =~ [0-9]*) then
     while ($qstatjob)
-        set qstatus = `${ICE_MACHINE_QSTAT} $job | grep $job | wc -l`
+        set qstatus = `${ICE_MACHINE_QSTAT} $job | grep -iv " historical " | grep $job | wc -l`
 #        echo $job $qstatus
         if ($qstatus == 0) then
         echo "Job $job completed"

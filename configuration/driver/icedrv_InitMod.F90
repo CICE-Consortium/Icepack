@@ -105,6 +105,10 @@
       endif
       call init_fsd
 
+      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_query_parameters(z_tracers_out=z_tracers)
+      if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
+
       call calendar(time)       ! determine the initial date
 
       call init_state           ! initialize the ice state
@@ -130,8 +134,6 @@
    !--------------------------------------------------------------------
    ! coupler communication or forcing data initialization
    !--------------------------------------------------------------------
-      call icepack_query_parameters(skl_bgc_out=skl_bgc)
-      call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_parameters(wave_spec_out=wave_spec)
       call icepack_query_tracer_flags(tr_snow_out=tr_snow)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
@@ -142,7 +144,6 @@
           file=__FILE__,line= __LINE__)
 
       call init_forcing      ! initialize forcing (standalone)
-      if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
       if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       if (precalc_forc) then
          call get_forcing(istep) ! precalculated arrays are indexed by istep

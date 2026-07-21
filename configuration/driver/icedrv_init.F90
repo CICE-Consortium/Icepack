@@ -1158,6 +1158,8 @@
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
       use icedrv_state, only: n_trcr_strata, nt_strata, trcr_base
+      use icedrv_state, only: uvel,vvel,divu,shear,strength
+      use icedrv_arrays_column, only: dhsn, ffracn
 
       integer (kind=int_kind) :: &
          i           , & ! horizontal indes
@@ -1270,6 +1272,9 @@
 
       do it = 1, ntrcr
          ! mask for base quantity on which tracers are carried
+         trcr_base(it,1) = c0
+         trcr_base(it,2) = c0
+         trcr_base(it,3) = c0
          if (trcr_depend(it) == 0) then      ! area
             trcr_base(it,1) = c1
          elseif (trcr_depend(it) == 1) then  ! ice volume
@@ -1316,6 +1321,14 @@
           salinz(:,:), Tmltz(:,:),   &
           aicen (:,:), trcrn(:,:,:), &
           vicen (:,:), vsnon(:,:))
+
+      uvel(:) = c0
+      vvel(:) = c0
+      divu(:) = c0
+      shear(:) = c0
+      strength(:) = c0
+      dhsn(:,:) = c0
+      ffracn(:,:) = c0
 
       !-----------------------------------------------------------------
       ! compute aggregate ice state and open water area

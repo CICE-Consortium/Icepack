@@ -595,6 +595,8 @@
       wind    (:) = sqrt(uatm(:)**2 + vatm(:)**2)  ! wind speed, (m/s)
       Cdn_atm(:) = (vonkar/log(zref/iceruf)) &
                  * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
+      rdg_conv(:) = c0
+      rdg_shear(:) = c0
 
       end subroutine init_coupler_flux
 
@@ -722,8 +724,15 @@
       dpnd_freebd (:) = c0
       dpnd_initial(:) = c0
       dpnd_dlid   (:) = c0
+      dpnd_flushn  (:,:) = c0
+      dpnd_exponn  (:,:) = c0
+      dpnd_freebdn (:,:) = c0
+      dpnd_initialn(:,:) = c0
+      dpnd_dlidn   (:,:) = c0
       dpnd_melt   (:) = c0
       dpnd_ridge  (:) = c0
+      frz_onset   (:) = c0
+      mlt_onset   (:) = c0
 
       ! drag coefficients are computed prior to the atmo_boundary call,
       ! during the thermodynamics section
@@ -731,24 +740,22 @@
       Cdn_atm(:) = (vonkar/log(zref/iceruf)) &
                  * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
 
-      if (formdrag) then
-        Cdn_atm_rdg (:) = c0
-        Cdn_atm_ratio(:)= c0
-        Cdn_atm_floe(:) = c0
-        Cdn_atm_pond(:) = c0
-        Cdn_atm_skin(:) = c0
-        Cdn_ocn_skin(:) = c0
-        Cdn_ocn_keel(:) = c0
-        Cdn_ocn_floe(:) = c0
-        hfreebd     (:) = c0
-        hdraft      (:) = c0
-        hridge      (:) = c0
-        distrdg     (:) = c0
-        hkeel       (:) = c0
-        dkeel       (:) = c0
-        lfloe       (:) = c0
-        dfloe       (:) = c0
-      endif
+      Cdn_atm_rdg (:) = c0
+      Cdn_atm_ratio(:)= c0
+      Cdn_atm_floe(:) = c0
+      Cdn_atm_pond(:) = c0
+      Cdn_atm_skin(:) = c0
+      Cdn_ocn_skin(:) = c0
+      Cdn_ocn_keel(:) = c0
+      Cdn_ocn_floe(:) = c0
+      hfreebd     (:) = c0
+      hdraft      (:) = c0
+      hridge      (:) = c0
+      distrdg     (:) = c0
+      hkeel       (:) = c0
+      dkeel       (:) = c0
+      lfloe       (:) = c0
+      dfloe       (:) = c0
 
       end subroutine init_history_therm
 

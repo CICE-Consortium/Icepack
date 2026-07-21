@@ -199,6 +199,11 @@
                alidrn(i,n) = c0
                alvdfn(i,n) = c0
                alidfn(i,n) = c0
+               albicen(i,n) = c0
+               albsnon(i,n) = c0
+               albpndn(i,n) = c0
+               snowfracn(i,n) = c0
+               apeffn(i,n) = c0
                fswsfcn(i,n) = c0
                fswintn(i,n) = c0
                fswthrun(i,n) = c0
@@ -366,6 +371,7 @@
       use icedrv_arrays_column, only: zfswin, trcrn_sw
       use icedrv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
       use icedrv_arrays_column, only: bphi, iDi, bTiz, iki
+      use icedrv_arrays_column, only: Zoo
       use icedrv_calendar,  only: istep1
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
@@ -425,6 +431,8 @@
       !-----------------------------------------------------------------
       ! biogeochemistry initialization
       !-----------------------------------------------------------------
+
+      Zoo(:,:,:) = c0
 
       !-----------------------------------------------------------------
       ! Initial Ocean Values if not coupled to the ocean bgc

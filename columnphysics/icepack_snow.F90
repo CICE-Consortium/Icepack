@@ -70,6 +70,26 @@
       character (len=*),parameter :: subname='(icepack_init_snow)'
 
       !-----------------------------------------------------------------
+      ! Check for valid values
+      !-----------------------------------------------------------------
+
+      if (snwredist /= 'none' .and. snwredist /= 'bulk' .and. &
+          snwredist /= 'ITDrdg') then
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//'ERROR: snwredist value invalid = '//trim(snwredist))
+         return
+      endif
+
+      if (snwgrain) then
+         if (snw_aging_table /= 'file' .and. snw_aging_table /= 'test' .and. &
+             snw_aging_table /= 'snicar') then
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: snw_aging_table value invalid = '//trim(snw_aging_table))
+            return
+         endif
+      endif
+
+      !-----------------------------------------------------------------
       ! Snow metamorphism lookup table
       !-----------------------------------------------------------------
 
@@ -230,7 +250,7 @@
             call icepack_warnings_add(subname//'ERROR: snw_aging_table value')
             return
          endif
-      endif
+      endif   ! snwgrain
 
       end subroutine icepack_init_snow
 
