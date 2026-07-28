@@ -23,10 +23,11 @@
 
       use icepack_fsd, only: floe_rad_c, floe_binwidth
 
-      use icepack_parameters, only: c0, c1, c2, p001, p5, puny
+      use icepack_parameters, only: c0, c1, c2, p001, p5, puny, c100
       use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, calc_Tsfc, rsnw_fall, rsnw_tmax
+      use icepack_parameters, only: ratio_Wm2_m, cold_temp_flag
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
@@ -75,6 +76,48 @@
       contains
 
 !=======================================================================
+
+! Function for limiting the conductive flux supplied from an atmosphere model when calc_tsfc=.false.
+
+      function cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr) result(fcondtopn_solve)
+
+         integer (kind=int_kind), intent(in) :: &
+            nilyr   , & ! number of ice layers
+            nslyr       ! number of snow layers
+         real (kind=dbl_kind), intent(in)    :: fcondtopn   ! downward cond flux at top surface (W m-2)
+         real (kind=dbl_kind), intent(in)    :: hin         ! ice thickness (m)
+         real (kind=dbl_kind), intent(in)    :: zTin(nilyr) ! internal ice layer temperatures (C)
+         real (kind=dbl_kind), intent(in)    :: zTsn(nslyr) ! internal snow layer temperatures (C)
+         real (kind=dbl_kind), intent(in)    :: hslyr       ! snow layer thickness (m)
+
+         real (kind=dbl_kind)   :: fcondtopn_solve ! limited downward cond flux at top surface (W m-2)
+         real (kind=dbl_kind)   :: &
+            top_layer_temp, & ! top layer temperature (C)
+            reduce_ratio  , & ! reduction ratio of downward cond flux at top surface
+            reduce_amount     ! reduction in downward cond flux at top surface (W m-2)
+
+         if (abs(fcondtopn) > ratio_Wm2_m * hin) then
+            fcondtopn_solve = sign(ratio_Wm2_m * hin,fcondtopn)
+         else
+            fcondtopn_solve = fcondtopn
+         endif
+
+         if (hslyr>hs_min) then
+            top_layer_temp = zTsn(1)
+         else
+            top_layer_temp = zTin(1)
+         endif
+
+         if ((top_layer_temp < cold_temp_flag) .and. (fcondtopn_solve < c0)) then
+            reduce_ratio = (cold_temp_flag - top_layer_temp) / (c100 + cold_temp_flag)
+            reduce_amount = reduce_ratio * fcondtopn_solve
+            fcondtopn_solve = fcondtopn_solve - reduce_amount
+         endif
+
+      end function cap_conductive_flux
+
+!=======================================================================
+
 !
 ! Driver for updating ice and snow internal temperatures and
 ! computing thermodynamic growth rates and atmospheric fluxes.
@@ -246,6 +289,11 @@
       real (kind=dbl_kind) :: &
          fadvocn, saltvol, dfsalt ! advective heat flux to ocean
 
+      real (kind=dbl_kind) :: &
+         fcondtopn_solve, & ! limited downward cond flux at top surface (W m-2)
+         fcondtopn_extra, & ! excess downward cond flux at top surface (W m-2)
+         einex_sfc_flux     ! excess energy removed during temperature_changes (J m-2)
+
       character(len=*),parameter :: subname='(thermo_vertical)'
 
       !-----------------------------------------------------------------
@@ -272,6 +320,8 @@
       meltsliq= c0
       massice(:) = c0
       massliq(:) = c0
+      einex_sfc_flux = c0
+      fcondtopn_extra = c0
       if (tr_pond) then
          dpnd_flush = c0
          dpnd_expon = c0
@@ -283,6 +333,8 @@
          fsurfn    = c0
          fcondtopn = c0
       endif
+
+      fcondtopn_solve = fcondtopn
 
       !-----------------------------------------------------------------
       ! Compute variables needed for vertical thermo calculation
@@ -340,6 +392,13 @@
 
          else ! ktherm
 
+            if (calc_Tsfc) then
+               fcondtopn_solve = fcondtopn
+            else
+               fcondtopn_solve = cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr)
+            end if
+            fcondtopn_extra = fcondtopn - fcondtopn_solve
+
             call temperature_changes(dt,                   &
                                      rhoa,      flw,       &
                                      potT,      Qa,        &
@@ -353,9 +412,11 @@
                                      Tsf,       Tbot,      &
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
-                                     fcondtopn, fcondbotn, &
-                                     einit                 )
+                                     fcondtopn_solve, fcondbotn,  &
+                                     einit, einex_sfc_flux)
             if (icepack_warnings_aborted(subname)) return
+
+            fcondtopn = fcondtopn_solve + fcondtopn_extra
 
          endif ! ktherm
 
@@ -411,7 +472,8 @@
                              mlt_onset,   frz_onset, &
                              zSin,        sss,       &
                              sst,                    &
-                             dsnow,       rsnw)
+                             dsnow,       rsnw,      &
+                             einex_sfc_flux, fcondtopn_extra  )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -425,7 +487,7 @@
                                       fsnow,     einit,    &
                                       einter,    efinal,   &
                                       fcondtopn, fcondbotn, &
-                                      fadvocn,   fbot      )
+                                      fadvocn,   fbot, einex_sfc_flux, fcondtopn_extra )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1070,7 +1132,8 @@
                                     mlt_onset, frz_onset,&
                                     zSin,      sss,      &
                                     sst,                 &
-                                    dsnow,     rsnw)
+                                    dsnow,     rsnw,     &
+                                    einex_sfc_flux, fcondtopn_extra)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -1138,6 +1201,9 @@
          sst         , & ! sea surface temperature (C)
          sss             ! ocean salinity (PSU)
 
+      real (kind=dbl_kind), intent(in) :: &
+         einex_sfc_flux, & ! excess energy removed during temperature_changes (J m-2)
+         fcondtopn_extra   ! excess downward cond flux at top surface (W m-2)
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -1271,7 +1337,7 @@
       wk1 = (fsurfn - fcondtopn) * dt
       etop_mlt = max(wk1, c0)           ! etop_mlt > 0
 
-      wk1 = (fcondbotn - fbot) * dt
+      wk1 = (fcondbotn - fbot + fcondtopn_extra) * dt
       ebot_mlt = max(wk1, c0)           ! ebot_mlt > 0
       ebot_gro = min(wk1, c0)           ! ebot_gro < 0
 
@@ -1561,8 +1627,7 @@
       ! fhocn is the available ocean heat that is left after use by ice
       !-----------------------------------------------------------------
 
-      fhocnn = fbot &
-             + (esub + etop_mlt + ebot_mlt)/dt
+      fhocnn = fbot + (esub + etop_mlt + ebot_mlt + einex_sfc_flux)/dt
 
     !-----------------------------------------------------------------
     ! Add new snowfall at top surface
@@ -1988,20 +2053,22 @@
                                             einit,    einter,   &
                                             efinal,             &
                                             fcondtopn,fcondbotn, &
-                                            fadvocn,  fbot      )
+                                            fadvocn,  fbot, einex_sfc_flux, fcondtopn_extra)
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
 
       real (kind=dbl_kind), intent(in) :: &
-         fsurfn      , & ! net flux to top surface, excluding fcondtopn
-         flatn       , & ! surface downward latent heat (W m-2)
-         fhocnn      , & ! fbot, corrected for any surplus energy
-         fswint      , & ! SW absorbed in ice interior, below surface (W m-2)
-         fsnow       , & ! snowfall rate (kg m-2 s-1)
-         fcondtopn   , &
-         fadvocn     , &
-         fbot
+         fsurfn        , & ! net flux to top surface, excluding fcondtopn
+         flatn         , & ! surface downward latent heat (W m-2)
+         fhocnn        , & ! fbot, corrected for any surplus energy
+         fswint        , & ! SW absorbed in ice interior, below surface (W m-2)
+         fsnow         , & ! snowfall rate (kg m-2 s-1)
+         fcondtopn     , & ! downward cond flux at top surface (W m-2)
+         fadvocn       , & ! advective heat flux to ocean (W m-2)
+         fbot          , & ! ice-ocean heat flux at bottom surface (W/m^2)
+         einex_sfc_flux, & ! excess energy removed during temperature_changes (J m-2)
+         fcondtopn_extra   ! excess downward cond flux at top surface (W m-2)
 
       real (kind=dbl_kind), intent(in) :: &
          einit       , & ! initial energy of melting (J m-2)
@@ -2054,6 +2121,12 @@
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Input energy =', einp
          call icepack_warnings_add(warnstr)
+         if (.not. calc_Tsfc) then
+            write(warnstr,*) subname, 'Numerical energy =', einex_sfc_flux
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'fcondtopn_extra energy =', fcondtopn_extra
+            call icepack_warnings_add(warnstr)
+         end if
          write(warnstr,*) subname, 'fbot,fcondbot:'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, fbot,fcondbotn

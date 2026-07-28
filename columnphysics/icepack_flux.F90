@@ -351,7 +351,7 @@
 
       raicen        = c1
 
-#ifdef CICE_IN_NEMO
+#if defined(CICE_IN_NEMO) || defined(CICE_ACCESS3)
 !----------------------------------------------------------------------
 ! Convert fluxes from GBM values to per ice area values when
 ! running in NEMO environment.  (When in standalone mode, fluxes

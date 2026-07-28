@@ -1375,8 +1375,14 @@ is that the solution scheme is no longer unconditionally stable.
 Instead, the effective conductivity in the top layer must satisfy a
 diffusive CFL condition:
 
-.. math:: 
+.. math::
    K^* \le {\rho ch \over \Delta t}.
+
+To improve stability when ``calc_Tsfc=false``, the conductive flux is limited before
+the thermodynamic solve. Any excess flux is then used for bottom melt. The
+conductive flux may also be limited during the thermodynamic solve if the
+surface temperature exceeds the melting point, in which case the excess flux
+is passed to the ocean.
 
 For thin layers and typical coupling intervals (:math:`\sim 1` hr),
 :math:`K^*` may need to be limited before being passed to the atmosphere

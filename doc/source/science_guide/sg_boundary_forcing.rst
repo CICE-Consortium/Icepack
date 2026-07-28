@@ -81,9 +81,9 @@ subroutine, *thermo_vertical*. At the end of the time step, the surface
 temperature and effective conductivity (i.e., thermal conductivity	
 divided by thickness) of the top ice/snow layer in each category are	
 returned to the atmosphere model via the coupler. Since the ice surface	
-temperature is treated explicitly, the effective conductivity may need	
-to be limited to ensure stability. As a result, accuracy may be	
-significantly reduced, especially for thin ice or snow layers. A more	
+temperature is treated explicitly, the conductive flux is limited to ensure stability,
+with any excess energy either used for bottom melting or transferred to the ocean as a heat flux.
+As a result, accuracy may be significantly reduced, especially for thin ice or snow layers. A more
 stable and accurate procedure would be to compute the temperature	
 profiles for both the atmosphere and ice, together with the surface	
 fluxes, in a single implicit calculation. This was judged impractical,	
@@ -97,6 +97,8 @@ implicitly. The resultant surface temperature change is passed back to the
 atmosphere model via coupler to complete the full update of its temperature profiles.
 This middle-ground approach, enabled by ``vapor_flux_correction=true``, does not sacrifice 
 accuracy because it does not need effective conductivity limiting as in the explicit case.
+The GEOS approach is available for either mushy or BL99 thermodynamics, while the
+flux-limiting approaches are only available for BL99.
 
       
 

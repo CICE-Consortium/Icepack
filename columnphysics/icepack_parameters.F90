@@ -136,7 +136,9 @@
          aspect_rapid_mode =     1.0_dbl_kind,&! aspect ratio (larger is wider)
          dSdt_slow_mode    = -1.5e-7_dbl_kind,&! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode   =    0.05_dbl_kind,&! critical liquid fraction porosity cutoff
-         phi_i_mushy       =    0.85_dbl_kind  ! liquid fraction of congelation ice
+         phi_i_mushy       =    0.85_dbl_kind,&! liquid fraction of congelation ice
+         ratio_Wm2_m       =  1000.0_dbl_kind,&! max condutive flux/depth ratio (W m)
+         cold_temp_flag    =   -60.0_dbl_kind  ! min temp used to limit the conductive flux (C)
 
       integer (kind=int_kind), public :: &
          ktherm = 1      ! type of thermodynamics
@@ -585,8 +587,8 @@
          cpl_frazil_in, semi_implicit_Tsfc_in, vapor_flux_correction_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
-         phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
-         albicev_in, albicei_in, albsnowv_in, &
+         phi_i_mushy_in, ratio_Wm2_m_in, cold_temp_flag_in, shortwave_in, albedo_type_in, &
+         albsnowi_in, albicev_in, albicei_in, albsnowv_in, &
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
          kalg_in, R_gC2molC_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
@@ -732,7 +734,9 @@
          aspect_rapid_mode_in , & ! aspect ratio for rapid drainage mode (larger=wider)
          dSdt_slow_mode_in    , & ! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
-         phi_i_mushy_in           ! liquid fraction of congelation ice
+         phi_i_mushy_in       , & ! liquid fraction of congelation ice
+         ratio_Wm2_m_in       , & ! max condutive flux/depth ratio (W m)
+         cold_temp_flag_in        ! min temp used to limit the conductive flux (C)
 
       character(len=*), intent(in), optional :: &
          congel_freeze_in         ! congelation computation
@@ -1205,6 +1209,8 @@
       if (present(dSdt_slow_mode_in)    ) dSdt_slow_mode   = dSdt_slow_mode_in
       if (present(phi_c_slow_mode_in)   ) phi_c_slow_mode  = phi_c_slow_mode_in
       if (present(phi_i_mushy_in)       ) phi_i_mushy      = phi_i_mushy_in
+      if (present(ratio_Wm2_m_in)       ) ratio_Wm2_m      = ratio_Wm2_m_in
+      if (present(cold_temp_flag_in)    ) cold_temp_flag   = cold_temp_flag_in
       if (present(shortwave_in)         ) shortwave        = shortwave_in
       if (present(albedo_type_in)       ) albedo_type      = albedo_type_in
       if (present(albicev_in)           ) albicev          = albicev_in
@@ -1598,8 +1604,9 @@
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
-         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, semi_implicit_Tsfc_out, &
-         albedo_type_out, albicev_out, albicei_out, albsnowv_out, vapor_flux_correction_out, &
+         phi_c_slow_mode_out, phi_i_mushy_out, ratio_Wm2_m_out, cold_temp_flag_out, &
+         shortwave_out, semi_implicit_Tsfc_out, albedo_type_out, albicev_out, &
+         albicei_out, albsnowv_out, vapor_flux_correction_out, &
          albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
          rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, R_gC2molC_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
@@ -1754,7 +1761,9 @@
          aspect_rapid_mode_out , & ! aspect ratio for rapid drainage mode (larger=wider)
          dSdt_slow_mode_out    , & ! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode_out   , & ! liquid fraction porosity cutoff for slow mode
-         phi_i_mushy_out           ! liquid fraction of congelation ice
+         phi_i_mushy_out       , & ! liquid fraction of congelation ice
+         ratio_Wm2_m_out       , & ! max condutive flux/depth ratio (W m)
+         cold_temp_flag_out        ! min temp used to limit the conductive flux (C)
 
       character(len=*), intent(out), optional :: &
          congel_freeze_out         ! congelation computation
@@ -2261,6 +2270,8 @@
       if (present(dSdt_slow_mode_out)    ) dSdt_slow_mode_out = dSdt_slow_mode
       if (present(phi_c_slow_mode_out)   ) phi_c_slow_mode_out = phi_c_slow_mode
       if (present(phi_i_mushy_out)       ) phi_i_mushy_out  = phi_i_mushy
+      if (present(ratio_Wm2_m_out)       ) ratio_Wm2_m_out  = ratio_Wm2_m
+      if (present(cold_temp_flag_out)    ) cold_temp_flag_out = cold_temp_flag
       if (present(shortwave_out)         ) shortwave_out    = shortwave
       if (present(albedo_type_out)       ) albedo_type_out  = albedo_type
       if (present(albicev_out)           ) albicev_out      = albicev
@@ -2575,6 +2586,8 @@
         write(iounit,*) "  dSdt_slow_mode = ", dSdt_slow_mode
         write(iounit,*) "  phi_c_slow_mode = ", phi_c_slow_mode
         write(iounit,*) "  phi_i_mushy= ", phi_i_mushy
+        write(iounit,*) "  ratio_Wm2_m= ", ratio_Wm2_m
+        write(iounit,*) "  cold_temp_flag = ", cold_temp_flag
         write(iounit,*) "  shortwave  = ", trim(shortwave)
         write(iounit,*) "  albedo_type= ", trim(albedo_type)
         write(iounit,*) "  albicev    = ", albicev

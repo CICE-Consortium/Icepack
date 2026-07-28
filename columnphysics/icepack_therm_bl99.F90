@@ -69,7 +69,7 @@
                                       fsensn,   flatn,    &
                                       flwoutn,  fsurfn,   &
                                       fcondtopn,fcondbot, &
-                                      einit               )
+                                      einit, einex_sfc_flux)
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -122,6 +122,9 @@
          zqsn        , & ! snow layer enthalpy (J m-3)
          zTsn            ! internal snow layer temperatures
 
+      real (kind=dbl_kind), intent(out):: &
+         einex_sfc_flux  ! excess energy from conductive flux (J m-2)
+
      ! local variables
 
       integer (kind=int_kind), parameter :: &
@@ -149,14 +152,14 @@
          enew            ! new energy of melting after temp change (J m-2)
 
       real (kind=dbl_kind) :: &
-         dTsf_prev   , & ! dTsf from previous iteration
-         dTi1_prev   , & ! dTi1 from previous iteration
-         dfsens_dT   , & ! deriv of fsens wrt Tsf (W m-2 deg-1)
-         dflat_dT    , & ! deriv of flat wrt Tsf (W m-2 deg-1)
-         dflwout_dT  , & ! deriv of flwout wrt Tsf (W m-2 deg-1)
-         dt_rhoi_hlyr, & ! dt/(rhoi*hilyr)
-         einex       , & ! excess energy from dqmat to ocean
-         ferr            ! energy conservation error (W m-2)
+         dTsf_prev     , & ! dTsf from previous iteration
+         dTi1_prev     , & ! dTi1 from previous iteration
+         dfsens_dT     , & ! deriv of fsens wrt Tsf (W m-2 deg-1)
+         dflat_dT      , & ! deriv of flat wrt Tsf (W m-2 deg-1)
+         dflwout_dT    , & ! deriv of flwout wrt Tsf (W m-2 deg-1)
+         dt_rhoi_hlyr  , & ! dt/(rhoi*hilyr)
+         einex_sfc_calc, & ! excess energy from dqmat to ocean (J m-2)
+         ferr              ! energy conservation error (W m-2)
 
       real (kind=dbl_kind), dimension (nilyr) :: &
          Tin_init    , & ! zTin at beginning of time step
@@ -184,15 +187,19 @@
          kh              ! effective conductivity at interfaces (W m-2 deg-1)
 
       real (kind=dbl_kind) :: &
-         ci          , & ! specific heat of sea ice (J kg-1 deg-1)
-         avg_Tsf     , & ! = 1. if Tsf averaged w/Tsf_start, else = 0.
-         Iswabs_tmp  , & ! energy to melt through fraction frac of layer
-         Sswabs_tmp  , & ! same for snow
-         dswabs      , & ! difference in swabs and swabs_tmp
-         frac
+         ci                 , & ! specific heat of sea ice (J kg-1 deg-1)
+         avg_Tsf            , & ! = 1. if Tsf averaged w/Tsf_start, else = 0.
+         Iswabs_tmp         , & ! energy to melt through fraction frac of layer
+         Sswabs_tmp         , & ! same for snow
+         dswabs             , & ! difference in swabs and swabs_tmp
+         frac               , &
+         fcondtopn_reduction, & ! reduction in downward cond flux at top surface (W m-2)
+         fcondtopn_force    , & ! reduced downward cond flux at top surface (W m-2)
+         dqmat_sn               ! associated enthalpy difference at top snow layer (J m-3)
 
       logical (kind=log_kind) :: &
-         converged       ! = true when local solution has converged
+         converged             , & ! = true when local solution has converged
+         Top_T_was_reset_last_time ! = true when surface temperature was reset in prev iteration
 
       logical (kind=log_kind) , dimension (nilyr) :: &
          reduce_kh       ! reduce conductivity when T exceeds Tmlt
@@ -202,7 +209,9 @@
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-
+      fcondtopn_reduction = c0
+      einex_sfc_flux = c0
+      Top_T_was_reset_last_time = .false.
       converged  = .false.
       l_snow     = .false.
       l_cold     = .true.
@@ -212,7 +221,7 @@
       dfsens_dT  = c0
       dflat_dT   = c0
       dflwout_dT = c0
-      einex      = c0
+      einex_sfc_calc      = c0
       if (semi_implicit_Tsfc) then  ! initialize
          dfsurf_dT  = dfsurfdTs_cpl
          dflat_dT   = dflatdTs_cpl
@@ -337,7 +346,7 @@
             if (.not.semi_implicit_Tsfc) dfsurf_dT = c0
             avg_Tsi   = c0
             enew      = c0
-            einex     = c0
+            einex_sfc_calc = c0
 
       !-----------------------------------------------------------------
       ! Update specific heat of ice layers.
@@ -428,6 +437,7 @@
 
             else
 
+               fcondtopn_force = fcondtopn - fcondtopn_reduction
                call get_matrix_elements_know_Tsfc (          &
                                    l_snow,      Tbot,        &
                                    Tin_init,    Tsn_init,    &
@@ -436,7 +446,7 @@
                                    etai,        etas,        &
                                    sbdiag,      diag,        &
                                    spdiag,      rhs,         &
-                                   fcondtopn)
+                                   fcondtopn_force)
                if (icepack_warnings_aborted(subname)) return
 
             endif  ! calc_Tsfc
@@ -558,7 +568,33 @@
                else
                   zTsn(k) = c0
                endif
-               if (l_brine) zTsn(k) = min(zTsn(k), c0)
+               if ((l_brine) .and. zTsn(k)>c0) then
+
+                  if (.not. calc_Tsfc) then
+                     ! return this energy to the ocean
+
+                     dqmat_sn = (zTsn(k)*cp_ice - Lfresh)*rhos - zqsn(k)
+
+                     ! If this is the second time in succession that Tsn(1) has been
+                     ! reset, tell the solver to reduce the forcing at the top, and
+                     ! pass the difference to the array enum where it will eventually
+                     ! go into the ocean
+                     ! This is done to avoid an 'infinite loop' whereby temp continually evolves
+                     ! to the same point above zero, is reset, ad infinitum
+                     if (l_snow .AND. k == 1) then
+                        if (Top_T_was_reset_last_time) then
+                           fcondtopn_reduction = fcondtopn_reduction + dqmat_sn*hslyr / dt
+                           Top_T_was_reset_last_time = .false.
+                           einex_sfc_flux = einex_sfc_flux + hslyr * dqmat_sn
+                        else
+                           Top_T_was_reset_last_time = .true.
+                        endif
+                     endif
+                  end if
+
+                  zTsn(k) = min(zTsn(k), c0)
+
+               endif
 
       !-----------------------------------------------------------------
       ! If condition 1 or 2 failed, average new snow layer
@@ -592,6 +628,16 @@
                   dTmat(k) = zTin(k) - Tmlts(k)
                   dqmat(k) = rhoi * dTmat(k) &
                            * (cp_ice - Lfresh * Tmlts(k)/zTin(k)**2)
+
+                  if ((.not. calc_Tsfc) .and. (.not. l_snow) .and. (k == 1)) then
+                     if (Top_T_was_reset_last_time) then
+                        fcondtopn_reduction = fcondtopn_reduction + dqmat(k)*hilyr / dt
+                        Top_T_was_reset_last_time = .false.
+                        einex_sfc_flux = einex_sfc_flux + hilyr * dqmat(k)
+                     else
+                        Top_T_was_reset_last_time = .true.
+                     endif
+                  endif
 ! use this for the case that Tmlt changes by an amount dTmlt=Tmltnew-Tmlt(k)
 !                             + rhoi * dTmlt &
 !                             * (cp_ocn - cp_ice + Lfresh/zTin(k))
@@ -637,7 +683,7 @@
                   zqin(k) = -rhoi * (-cp_ice*zTin(k) + Lfresh)
                endif
                enew = enew + hilyr * zqin(k)
-               einex = einex + hilyr * dqmat(k)
+               einex_sfc_calc = einex_sfc_calc + hilyr * dqmat(k)
 
                Tin_start(k) = zTin(k) ! for next iteration
 
@@ -683,11 +729,15 @@
             fcondbot = kh(1+nslyr+nilyr) * &
                        (zTin(nilyr) - Tbot)
 
-            ! Flux extra energy out of the ice
-            fcondbot = fcondbot + einex/dt
-
-            ferr = abs( (enew-einit)/dt &
+            if (calc_Tsfc) then
+                ! Flux extra energy out of the ice
+                fcondbot = fcondbot + einex_sfc_calc/dt
+                ferr = abs( (enew-einit)/dt &
+                     - (fcondtopn - fcondbot + fswint) )
+            else
+                ferr = abs( (enew-einit+einex_sfc_flux)/dt &
                  - (fcondtopn - fcondbot + fswint) )
+            end if
 
             ! factor of 0.9 allows for roundoff errors later
             if (ferr > 0.9_dbl_kind*ferrmax) then         ! condition (5)
