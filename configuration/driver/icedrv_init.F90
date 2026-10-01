@@ -468,6 +468,21 @@
             file=__FILE__, line=__LINE__)
       endif
 
+      write(nu_diag,*) subname,' Reading dynamics_nml'
+      rewind(unit=nu_nml, iostat=nml_error)
+      if (nml_error /= 0) then
+         call icedrv_system_abort(string=subname//'ERROR: dynamics_nml rewind ', &
+            file=__FILE__, line=__LINE__)
+      endif
+      nml_error =  1
+      do while (nml_error > 0)
+         read(nu_nml, nml=dynamics_nml,iostat=nml_error)
+      end do
+      if (nml_error /= 0) then
+         call icedrv_system_abort(string=subname//'ERROR: dynamics_nml reading ', &
+            file=__FILE__, line=__LINE__)
+      endif
+
       close(nu_nml)
 
       !-----------------------------------------------------------------
