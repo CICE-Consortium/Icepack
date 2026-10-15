@@ -22,6 +22,11 @@
 !  1975: The thickness distribution of sea ice, J. Geophys. Res.,
 !  80, 4501-4513.
 !
+! Lemieux, J.F., and D. Ringeisen, and M. Losch, and W.H. Lipscomb, 
+! and J. Ukita, and M. Plante, Consistent ridging and opening coefficients 
+! for multi-category sea ice models with modified viscous-plastic rheologies,
+! The Cryosphere, under review.
+!
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 !
@@ -714,11 +719,12 @@
 
       !-----------------------------------------------------------------
       ! Compute the net rate of closing due to convergence
-      ! and shear, based on Flato and Hibler (1995).
+      ! and shear, based on Flato and Hibler (1995) and 
+      ! Lemieux et al. (2026).
       !
-      ! For the elliptical yield curve:
+      ! For elliptical yield curve and plastic potential:
       !    rdg_conv  = -min (divu, 0)
-      !    rdg_shear = (1/2) * (Delta - abs(divu))
+      !    rdg_shear = (1/2) * (DeltaG**2/DeltaFG - abs(divu))
       ! Note that the shear term also accounts for divergence.
       !
       ! The energy dissipation rate is equal to the net closing rate
