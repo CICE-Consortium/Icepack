@@ -176,18 +176,19 @@ instead of added to the new ridge.
 The net area removed by ridging and closing is a function of the strain
 rates. Let :math:`R_{\mathrm{net}}` be the net rate of area loss for the
 ice pack (i.e., the rate of open water area closing, plus the net rate
-of ice area loss due to ridging). Following :cite:`Flato95`,
+of ice area loss due to ridging). Following :cite:`Flato95` and :cite:`Lemieux26`,
 :math:`R_{\mathrm{net}}` is given by
 
 .. math::
    R_{\mathrm{net}} = \frac{C_s}{2}
-                    (\Delta - |D_D|) - \min(D_D,0),
+                    (\Delta^2_G/\Delta_{FG} - |D_D|) - \min(D_D,0),
    :label: Rnet
 
 where :math:`C_s` is the fraction of shear dissipation energy that
 contributes to ridge-building, :math:`D_D` is the divergence, and
-:math:`\Delta` is a function of the divergence and shear. These strain
-rates are computed by the dynamics scheme. The default value of
+:math:`\Delta_G` and :math:`\Delta_{FG}` are functions of the divergence, 
+shear and the aspect ratios for the yield curve and plastic potential :cite:`Lemieux26`. 
+These strain rates are computed by the dynamics scheme. The default value of
 :math:`C_s` is 0.25.
 
 Next, define :math:`R_{\mathrm{tot}} = \sum_{n=0}^N r_n`. This rate is
