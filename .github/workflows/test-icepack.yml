@@ -86,7 +86,7 @@ jobs:
            activate-environment: icepack
            environment-file: configuration/scripts/machines/environment.yml
            auto-activate-base: false
-#      - name : install miniconda
+#      - name : install miniconda manually
 #        shell: /bin/bash {0}
 #        run: |
 #          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
