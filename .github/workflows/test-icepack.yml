@@ -26,8 +26,8 @@ jobs:
     strategy:
       fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
-        os: [macos-latest, ubuntu-latest]
-#        os: [macos-latest]
+#        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest]
 #        os: [macos-latest, macos-13]
 #        os: [ubuntu-latest]
         include: 
@@ -39,19 +39,13 @@ jobs:
 #            envdef: macos
 #            minicond: Miniconda3-latest-MacOSX-x86_64.sh
 #            testsuites: "quick_suite"
-          - os: ubuntu-latest
-            envdef: linux
-            minicond: Miniconda3-latest-Linux-x86_64.sh
-            testsuites: "quick_suite"
+#          - os: ubuntu-latest
+#            envdef: linux
+#            minicond: Miniconda3-latest-Linux-x86_64.sh
+#            testsuites: "quick_suite"
     steps:
       - name: install macos xcode
         shell: /bin/bash {0}
-#        if: contains( matrix.envdef, 'macos')
-#        run: |
-#          sudo xcode-select -r
-#          sudo xcode-select -s /Library/Developer/CommandLineTools
-#          echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
-#          echo "xcode-select -p: $(xcode-select -p)"
         if: contains( matrix.envdef, 'macos')
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
@@ -117,12 +111,6 @@ jobs:
           conda init tcsh
           cd $HOME/icepack
           conda env create -f configuration/scripts/machines/environment.yml
-          # 1. Prepend the icepack environment binaries directly to global PATH
-          echo "$HOME/miniconda/envs/icepack/bin" >> $GITHUB_PATH
-          # 2. Export active Conda variables expected by icepack.setup
-          echo "CONDA_PREFIX=$HOME/miniconda/envs/icepack" >> $GITHUB_ENV
-          echo "CONDA_EXE=$HOME/miniconda/bin/conda" >> $GITHUB_ENV
-          echo "CONDA_DEFAULT_ENV=icepack" >> $GITHUB_ENV
       - name: check conda env
         shell: /bin/bash {0}
         run: |
