@@ -26,10 +26,13 @@ jobs:
     strategy:
       matrix:
 #        os: [macos-latest, ubuntu-latest]
-#        os: [macos-latest]
-        os: [macos-13]
+        os: [macos-latest]
+#        os: [macos-13, macos-latest]
 #        os: [ubuntu-latest]
         include: 
+          - os: macos-latest
+            envdef: macos
+            minicond: Miniconda3-latest-MacOSX-arm64.sh
           - os: macos-13
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-x86_64.sh
@@ -39,10 +42,16 @@ jobs:
     steps:
       - name: reset macos toolchain to commandlinetools
         shell: /bin/bash {0}
+#        if: contains( matrix.envdef, 'macos')
+#        run: |
+#          sudo xcode-select -r
+#          sudo xcode-select -s /Library/Developer/CommandLineTools
+#          echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
+#          echo "xcode-select -p: $(xcode-select -p)"
         if: contains( matrix.envdef, 'macos')
         run: |
-          sudo xcode-select -r
-          sudo xcode-select -s /Library/Developer/CommandLineTools
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
           echo "xcode-select -p: $(xcode-select -p)"
       - name: system info
@@ -66,7 +75,7 @@ jobs:
           wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
           bash ~/miniconda.sh -b -p $HOME/miniconda
       - name: clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
       - name: link
