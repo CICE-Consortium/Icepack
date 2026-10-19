@@ -119,9 +119,14 @@ jobs:
           conda env create -f configuration/scripts/machines/environment.yml
       - name: check conda env
         run: |
-          conda activate icepack && which clang && which gfortran && which make
-          gfortran --version
+          conda activate icepack
+          which clang
           clang --version
+          which gcc
+          gcc --version
+          which gfortran
+          gfortran --version
+          which make
           make --version
       - name: check setup case
         shell: /bin/csh -e {0}
