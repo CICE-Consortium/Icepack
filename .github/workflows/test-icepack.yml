@@ -83,8 +83,9 @@ jobs:
         with:
           submodules: 'recursive'
       - name: link
+        shell: /bin/bash {0}
         run: |
-           ln -s ${GITHUB_WORKSPACE}/../Icepack ${HOME}/icepack
+           ln -s "${GITHUB_WORKSPACE}/../Icepack" "${HOME}/icepack"
 #           ls -al ${HOME}/
 #           ls -al ${GITHUB_WORKSPACE}/
       - name: check for tabs
