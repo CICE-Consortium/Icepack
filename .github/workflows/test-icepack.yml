@@ -26,16 +26,18 @@ jobs:
     strategy:
       matrix:
 #        os: [macos-latest, ubuntu-latest]
-        os: [macos-latest]
-#        os: [macos-13, macos-latest]
+#        os: [macos-latest]
+        os: [macos-latest, macos-13]
 #        os: [ubuntu-latest]
         include: 
           - os: macos-latest
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-arm64.sh
+            testsuites: "travis_suite io_suite"
           - os: macos-13
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-x86_64.sh
+            testsuites: "quick_suite"
 #          - os: ubuntu-latest
 #            envdef: linux
 #            minicond: Miniconda3-latest-Linux-x86_64.sh
@@ -139,7 +141,7 @@ jobs:
       - name: run suite
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite travis_suite,io_suite --testid ${{ matrix.os }}
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.os }}
       - name: write output
         run: |
           cd $HOME/icepack
