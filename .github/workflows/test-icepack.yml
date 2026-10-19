@@ -117,6 +117,7 @@ jobs:
           conda init tcsh
           cd $HOME/icepack
           conda env create -f configuration/scripts/machines/environment.yml
+          echo "$HOME/miniconda/envs/icepack/bin" >> $GITHUB_PATH
       - name: check conda env
         run: |
           conda activate icepack
