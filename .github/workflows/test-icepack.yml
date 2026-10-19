@@ -79,18 +79,11 @@ jobs:
           echo "OS: ${{ matrix.os }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
           echo "MINICOND: ${{ matrix.minicond }}"
-       - name: Setup Miniconda & Icepack Environment
-         uses: conda-incubator/setup-miniconda@v3
-         with:
-           miniforge-version: latest
-           activate-environment: icepack
-           environment-file: configuration/scripts/machines/environment.yml
-           auto-activate-base: false
-#      - name : install miniconda manually
-#        shell: /bin/bash {0}
-#        run: |
-#          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
-#          bash ~/miniconda.sh -b -p $HOME/miniconda
+      - name : install miniconda
+        shell: /bin/bash {0}
+        run: |
+          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
+          bash ~/miniconda.sh -b -p $HOME/miniconda
       - name: clone
         uses: actions/checkout@v4
         with:
@@ -116,14 +109,20 @@ jobs:
             endif
           end
           exit $cnt
-#      - name: setup conda env
-#        shell: /bin/bash {0}
-#        run: |
-#          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
-#          source $HOME/miniconda/bin/activate
-#          conda init tcsh
-#          cd $HOME/icepack
-#          conda env create -f configuration/scripts/machines/environment.yml
+      - name: setup conda env
+        shell: /bin/bash {0}
+        run: |
+          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
+          source $HOME/miniconda/bin/activate
+          conda init tcsh
+          cd $HOME/icepack
+          conda env create -f configuration/scripts/machines/environment.yml
+          # 1. Add env binaries to global PATH for all future steps
+          echo "$HOME/miniconda/envs/icepack/bin" >> $GITHUB_PATH
+          # 2. Export variables required by ./icepack.setup
+          echo "CONDA_PREFIX=$HOME/miniconda/envs/icepack" >> $GITHUB_ENV
+          echo "CONDA_EXE=$HOME/miniconda/bin/conda" >> $GITHUB_ENV
+          echo "CONDA_DEFAULT_ENV=icepack" >> $GITHUB_ENV
       - name: check conda env
         shell: /bin/bash {0}
         run: |
