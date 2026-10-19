@@ -26,22 +26,23 @@ jobs:
     strategy:
       fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
-#        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
 #        os: [macos-latest]
-        os: [macos-latest, macos-13]
+#        os: [macos-latest, macos-13]
 #        os: [ubuntu-latest]
         include: 
           - os: macos-latest
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-arm64.sh
             testsuites: "travis_suite,io_suite"
-          - os: macos-13
-            envdef: macos
-            minicond: Miniconda3-latest-MacOSX-x86_64.sh
+#          - os: macos-13
+#            envdef: macos
+#            minicond: Miniconda3-latest-MacOSX-x86_64.sh
+#            testsuites: "quick_suite"
+          - os: ubuntu-latest
+            envdef: linux
+            minicond: Miniconda3-latest-Linux-x86_64.sh
             testsuites: "quick_suite"
-#          - os: ubuntu-latest
-#            envdef: linux
-#            minicond: Miniconda3-latest-Linux-x86_64.sh
     steps:
       - name: reset macos toolchain to commandlinetools
         shell: /bin/bash {0}
