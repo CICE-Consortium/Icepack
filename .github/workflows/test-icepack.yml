@@ -26,10 +26,11 @@ jobs:
     strategy:
       matrix:
 #        os: [macos-latest, ubuntu-latest]
-        os: [macos-latest]
+#        os: [macos-latest]
+        os: [macos-13]
 #        os: [ubuntu-latest]
         include: 
-          - os: macos-latest
+          - os: macos-13
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-x86_64.sh
 #          - os: ubuntu-latest
