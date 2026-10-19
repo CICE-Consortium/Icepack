@@ -132,15 +132,21 @@ jobs:
       - name: check setup case
         shell: /bin/csh -e {0}
         run: |
+          source $HOME/miniconda/etc/profile.d/conda.csh
+          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0 --pes 1x1 -s diag1
       - name: check setup test
         shell: /bin/csh -e {0}
         run: |
+          source $HOME/miniconda/etc/profile.d/conda.csh
+          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} --test smoke --testid c0
 #      - name: compile case
 #        run: |
+#          source $HOME/miniconda/etc/profile.d/conda.csh
+#          conda activate icepack
 #          cd $HOME/icepack
 #          ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case1
 #          cd case1
@@ -154,17 +160,23 @@ jobs:
           ls -alR
 #      - name: run case
 #        run: |
+#          source $HOME/miniconda/etc/profile.d/conda.csh
+#          conda activate icepack
 #          cd $HOME/icepack
 #          cd case1
 #          ./icepack.run
       - name: run suite
         shell: /bin/csh -e {0}
         run: |
+          source $HOME/miniconda/etc/profile.d/conda.csh
+          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.os }}
       - name: write output
         shell: /bin/csh -e {0}
         run: |
+          source $HOME/miniconda/etc/profile.d/conda.csh
+          conda activate icepack
           cd $HOME/icepack
           ./.github/workflows/write_logfiles.csh
           cd testsuite.${{ matrix.os }}
