@@ -24,6 +24,7 @@ jobs:
     name: "IcepackTesting"
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
 #        os: [macos-latest, ubuntu-latest]
 #        os: [macos-latest]
@@ -33,7 +34,7 @@ jobs:
           - os: macos-latest
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-arm64.sh
-            testsuites: "travis_suite io_suite"
+            testsuites: "travis_suite,io_suite"
           - os: macos-13
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-x86_64.sh
