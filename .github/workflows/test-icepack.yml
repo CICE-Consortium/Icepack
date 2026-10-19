@@ -138,11 +138,15 @@ jobs:
       - name: check setup case
         shell: /bin/csh -e {0}
         run: |
+          eval `$HOME/miniconda/bin/conda shell.csh hook`
+          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0 --pes 1x1 -s diag1
       - name: check setup test
         shell: /bin/csh -e {0}
         run: |
+          eval `$HOME/miniconda/bin/conda shell.csh hook`
+          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} --test smoke --testid c0
 #      - name: compile case
@@ -166,6 +170,8 @@ jobs:
       - name: run suite
         shell: /bin/csh -e {0}
         run: |
+          eval `$HOME/miniconda/bin/conda shell.csh hook`
+          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.os }}
       - name: write output
