@@ -117,12 +117,11 @@ jobs:
           conda init tcsh
           cd $HOME/icepack
           conda env create -f configuration/scripts/machines/environment.yml
-#          # 1. Add env binaries to global PATH for all future steps
-#          echo "$HOME/miniconda/envs/icepack/bin" >> $GITHUB_PATH
-#          # 2. Export variables required by ./icepack.setup
-#          echo "CONDA_PREFIX=$HOME/miniconda/envs/icepack" >> $GITHUB_ENV
-#          echo "CONDA_EXE=$HOME/miniconda/bin/conda" >> $GITHUB_ENV
-#          echo "CONDA_DEFAULT_ENV=icepack" >> $GITHUB_ENV
+          # 1. Generate the C-shell hook once into ~/.cshrc
+          $HOME/miniconda/bin/conda shell.csh hook >$HOME/.cshrc
+          echo "conda activate icepack" >> $HOME/.cshrc
+          # 2. Force non-interactive /bin/csh subshells to source ~/.cshrc on launch
+          echo "CSHINIT=source $HOME/.cshrc" >> $GITHUB_ENV
       - name: check conda env
         shell: /bin/bash {0}
         run: |
@@ -136,17 +135,13 @@ jobs:
           which make
           make --version
       - name: check setup case
-        shell: /usr/bin/tcsh -e {0}
+        shell: /bin/csh -e {0}
         run: |
-          eval `$HOME/miniconda/bin/conda shell.csh hook`
-          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0 --pes 1x1 -s diag1
       - name: check setup test
         shell: /bin/csh -e {0}
         run: |
-          eval `$HOME/miniconda/bin/conda shell.csh hook`
-          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} --test smoke --testid c0
 #      - name: compile case
@@ -170,8 +165,6 @@ jobs:
       - name: run suite
         shell: /bin/csh -e {0}
         run: |
-          eval `$HOME/miniconda/bin/conda shell.csh hook`
-          conda activate icepack
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.os }}
       - name: write output
