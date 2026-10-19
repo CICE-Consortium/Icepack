@@ -117,12 +117,12 @@ jobs:
           conda init tcsh
           cd $HOME/icepack
           conda env create -f configuration/scripts/machines/environment.yml
-          # 1. Add env binaries to global PATH for all future steps
-          echo "$HOME/miniconda/envs/icepack/bin" >> $GITHUB_PATH
-          # 2. Export variables required by ./icepack.setup
-          echo "CONDA_PREFIX=$HOME/miniconda/envs/icepack" >> $GITHUB_ENV
-          echo "CONDA_EXE=$HOME/miniconda/bin/conda" >> $GITHUB_ENV
-          echo "CONDA_DEFAULT_ENV=icepack" >> $GITHUB_ENV
+#          # 1. Add env binaries to global PATH for all future steps
+#          echo "$HOME/miniconda/envs/icepack/bin" >> $GITHUB_PATH
+#          # 2. Export variables required by ./icepack.setup
+#          echo "CONDA_PREFIX=$HOME/miniconda/envs/icepack" >> $GITHUB_ENV
+#          echo "CONDA_EXE=$HOME/miniconda/bin/conda" >> $GITHUB_ENV
+#          echo "CONDA_DEFAULT_ENV=icepack" >> $GITHUB_ENV
       - name: check conda env
         shell: /bin/bash {0}
         run: |
@@ -136,7 +136,7 @@ jobs:
           which make
           make --version
       - name: check setup case
-        shell: /bin/csh -e {0}
+        shell: /usr/bin/tcsh -e {0}
         run: |
           eval `$HOME/miniconda/bin/conda shell.csh hook`
           conda activate icepack
