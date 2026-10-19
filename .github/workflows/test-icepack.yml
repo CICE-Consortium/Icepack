@@ -117,11 +117,12 @@ jobs:
           conda init tcsh
           cd $HOME/icepack
           conda env create -f configuration/scripts/machines/environment.yml
-          # 1. Generate the C-shell hook once into ~/.cshrc
-          $HOME/miniconda/bin/conda shell.csh hook >$HOME/.cshrc
-          echo "conda activate icepack" >> $HOME/.cshrc
-          # 2. Force non-interactive /bin/csh subshells to source ~/.cshrc on launch
-          echo "CSHINIT=source $HOME/.cshrc" >> $GITHUB_ENV
+          # 1. Prepend the icepack environment binaries directly to global PATH
+          echo "$HOME/miniconda/envs/icepack/bin" >> $GITHUB_PATH
+          # 2. Export active Conda variables expected by icepack.setup
+          echo "CONDA_PREFIX=$HOME/miniconda/envs/icepack" >> $GITHUB_ENV
+          echo "CONDA_EXE=$HOME/miniconda/bin/conda" >> $GITHUB_ENV
+          echo "CONDA_DEFAULT_ENV=icepack" >> $GITHUB_ENV
       - name: check conda env
         shell: /bin/bash {0}
         run: |
