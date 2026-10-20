@@ -109,14 +109,14 @@ jobs:
             endif
           end
           exit $cnt
-      - name: setup conda env
+#      - name: setup conda env
 #        id: micromamba
-#        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
-        uses: mamba-org/setup-micromamba@v3
-        with:
-          environment-file: configuration/scripts/machines/environment.yml
-          cache-environment: true
-          init-shell: none
+##        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
+#        uses: mamba-org/setup-micromamba@v3
+#        with:
+#          environment-file: configuration/scripts/machines/environment.yml
+#          cache-environment: true
+#          init-shell: none
       - name: activate conda env
         shell: /bin/bash {0}
         run: |
