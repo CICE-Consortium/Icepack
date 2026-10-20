@@ -24,26 +24,40 @@ jobs:
     name: "IcepackTesting"
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
 #        os: [macos-latest, ubuntu-latest]
         os: [macos-latest]
+#        os: [macos-latest, macos-13]
 #        os: [ubuntu-latest]
         include: 
           - os: macos-latest
             envdef: macos
-            minicond: Miniconda3-latest-MacOSX-x86_64.sh
+            minicond: Miniconda3-latest-MacOSX-arm64.sh
+            testsuites: "travis_suite,io_suite"
+#          - os: macos-13
+#            envdef: macos
+#            minicond: Miniconda3-latest-MacOSX-x86_64.sh
+#            testsuites: "quick_suite"
 #          - os: ubuntu-latest
 #            envdef: linux
 #            minicond: Miniconda3-latest-Linux-x86_64.sh
+#            testsuites: "quick_suite"
     steps:
-      - name: reset macos toolchain to commandlinetools
+      - name: install macos xcode
         shell: /bin/bash {0}
         if: contains( matrix.envdef, 'macos')
         run: |
-          sudo xcode-select -r
-          sudo xcode-select -s /Library/Developer/CommandLineTools
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
           echo "xcode-select -p: $(xcode-select -p)"
+      - name: install linux csh
+        shell: /bin/bash {0}
+        if: contains( matrix.envdef, 'linux')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y csh
       - name: system info
         shell: /bin/bash {0}
         run: |
@@ -65,15 +79,17 @@ jobs:
           wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
           bash ~/miniconda.sh -b -p $HOME/miniconda
       - name: clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
       - name: link
+        shell: /bin/bash {0}
         run: |
-           ln -s ${GITHUB_WORKSPACE}/../Icepack ${HOME}/icepack
+           ln -s "${GITHUB_WORKSPACE}/../Icepack" "${HOME}/icepack"
 #           ls -al ${HOME}/
 #           ls -al ${GITHUB_WORKSPACE}/
       - name: check for tabs
+        shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
           set cnt = 0
@@ -96,16 +112,24 @@ jobs:
           cd $HOME/icepack
           conda env create -f configuration/scripts/machines/environment.yml
       - name: check conda env
+        shell: /bin/bash {0}
         run: |
-          conda activate icepack && which clang && which gfortran && which make
-          gfortran --version
+          conda activate icepack
+          which clang
           clang --version
+          which gcc
+          gcc --version
+          which gfortran
+          gfortran --version
+          which make
           make --version
       - name: check setup case
+        shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0 --pes 1x1 -s diag1
       - name: check setup test
+        shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
           ./icepack.setup -m conda -e ${{ matrix.envdef }} --test smoke --testid c0
@@ -116,6 +140,7 @@ jobs:
 #          cd case1
 #          ./icepack.build
       - name: download input data
+        shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack-dirs/input
           wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz && tar xvfz ICEPACK_data-20200326.tar.gz
@@ -127,10 +152,12 @@ jobs:
 #          cd case1
 #          ./icepack.run
       - name: run suite
+        shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite travis_suite,io_suite --testid ${{ matrix.os }}
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.os }}
       - name: write output
+        shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
           ./.github/workflows/write_logfiles.csh
