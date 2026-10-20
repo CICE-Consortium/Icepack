@@ -116,7 +116,7 @@ jobs:
         with:
           environment-file: configuration/scripts/machines/environment.yml
           cache-environment: true
-          init-shell: none
+#          init-shell: none
       - name: activate conda env
         shell: /bin/bash {0}
         run: |
