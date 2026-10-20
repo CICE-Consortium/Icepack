@@ -15,6 +15,10 @@ on:
     types:
       - created
 
+# Establish a secure, read-only baseline for the repository token
+permissions:
+  contents: read
+
 defaults:
   run:
     shell: /bin/csh -e {0}
@@ -79,7 +83,7 @@ jobs:
           wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
           bash ~/miniconda.sh -b -p $HOME/miniconda
       - name: clone
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: 'recursive'
       - name: link
