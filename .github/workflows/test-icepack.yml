@@ -109,6 +109,14 @@ jobs:
             endif
           end
           exit $cnt
+      - name: setup conda env
+        shell: /bin/bash {0}
+        run: |
+#          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
+          source $HOME/miniconda/bin/activate
+          conda init tcsh
+          cd $HOME/icepack
+          conda env create -f configuration/scripts/machines/environment.yml
 #      - name: setup conda env
 #        id: micromamba
 ##        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
