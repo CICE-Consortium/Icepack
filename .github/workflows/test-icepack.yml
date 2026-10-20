@@ -78,11 +78,6 @@ jobs:
           echo "OS: ${{ matrix.os }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
           echo "MINICOND: ${{ matrix.minicond }}"
-#      - name : install miniconda
-#        shell: /bin/bash {0}
-#        run: |
-#          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
-#          bash ~/miniconda.sh -b -p $HOME/miniconda
       - name: clone
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -109,14 +104,6 @@ jobs:
             endif
           end
           exit $cnt
-#      - name: setup conda env
-#        shell: /bin/bash {0}
-#        run: |
-#          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
-#          source $HOME/miniconda/bin/activate
-#          conda init tcsh
-#          cd $HOME/icepack
-#          conda env create -f configuration/scripts/machines/environment.yml
       - name: setup conda env
         id: micromamba
 #        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
@@ -128,11 +115,6 @@ jobs:
       - name: activate conda env
         shell: /bin/bash {0}
         run: |
-#          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
-#          source $HOME/miniconda/bin/activate
-#          conda init tcsh
-#          cd $HOME/icepack
-#          conda env create -f configuration/scripts/machines/environment.yml
           echo "CONDA_PREFIX=${{ steps.micromamba.outputs.environment-path }}" >> $GITHUB_ENV
           echo "${{ steps.micromamba.outputs.environment-path }}/bin" >> $GITHUB_PATH
       - name: check conda env
