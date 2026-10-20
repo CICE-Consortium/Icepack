@@ -117,16 +117,16 @@ jobs:
 #          environment-file: configuration/scripts/machines/environment.yml
 #          cache-environment: true
 #          init-shell: none
-      - name: activate conda env
-        shell: /bin/bash {0}
-        run: |
-#          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
-#          source $HOME/miniconda/bin/activate
-#          conda init tcsh
-#          cd $HOME/icepack
-#          conda env create -f configuration/scripts/machines/environment.yml
-          echo "CONDA_PREFIX=${{ steps.micromamba.outputs.environment-path }}" >> $GITHUB_ENV
-          echo "${{ steps.micromamba.outputs.environment-path }}/bin" >> $GITHUB_PATH
+#      - name: activate conda env
+#        shell: /bin/bash {0}
+#        run: |
+##          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
+##          source $HOME/miniconda/bin/activate
+##          conda init tcsh
+##          cd $HOME/icepack
+##          conda env create -f configuration/scripts/machines/environment.yml
+#          echo "CONDA_PREFIX=${{ steps.micromamba.outputs.environment-path }}" >> $GITHUB_ENV
+#          echo "${{ steps.micromamba.outputs.environment-path }}/bin" >> $GITHUB_PATH
       - name: check conda env
         shell: /bin/bash {0}
         run: |
