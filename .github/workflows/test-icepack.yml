@@ -78,11 +78,11 @@ jobs:
           echo "OS: ${{ matrix.os }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
           echo "MINICOND: ${{ matrix.minicond }}"
-#      - name : install miniconda
-#        shell: /bin/bash {0}
-#        run: |
-#          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
-#          bash ~/miniconda.sh -b -p $HOME/miniconda
+      - name : install miniconda
+        shell: /bin/bash {0}
+        run: |
+          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
+          bash ~/miniconda.sh -b -p $HOME/miniconda
       - name: clone
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
