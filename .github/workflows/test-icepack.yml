@@ -7,7 +7,7 @@ name: GHActions
 on:
   push:
     branches:
-      - master
+      - main
       - 'Icepack*'
       - 'ghactions*'
   pull_request:
@@ -38,7 +38,8 @@ jobs:
           - os: macos-latest
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-arm64.sh
-            testsuites: "travis_suite,io_suite"
+#tcx debug            testsuites: "travis_suite,io_suite"
+            testsuites: "quick_suite"
 #          - os: macos-13
 #            envdef: macos
 #            minicond: Miniconda3-latest-MacOSX-x86_64.sh
@@ -77,21 +78,22 @@ jobs:
           echo "OS: ${{ matrix.os }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
           echo "MINICOND: ${{ matrix.minicond }}"
-      - name : install miniconda
-        shell: /bin/bash {0}
-        run: |
-          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
-          bash ~/miniconda.sh -b -p $HOME/miniconda
+#      - name : install miniconda
+#        shell: /bin/bash {0}
+#        run: |
+#          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
+#          bash ~/miniconda.sh -b -p $HOME/miniconda
       - name: clone
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: 'recursive'
-      - name: link
+      - name: create directories
         shell: /bin/bash {0}
         run: |
-           ln -s "${GITHUB_WORKSPACE}/../Icepack" "${HOME}/icepack"
-#           ls -al ${HOME}/
-#           ls -al ${GITHUB_WORKSPACE}/
+          ln -s "${GITHUB_WORKSPACE}/../Icepack" "${HOME}/icepack"
+          mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
+#          ls -al ${HOME}/
+#          ls -al ${GITHUB_WORKSPACE}/
       - name: check for tabs
         shell: /bin/csh -e {0}
         run: |
@@ -108,17 +110,27 @@ jobs:
           end
           exit $cnt
       - name: setup conda env
+        id: micromamba
+#        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
+        uses: mamba-org/setup-micromamba@v3 # v3
+        with:
+          environment-file: configuration/scripts/machines/environment.yml
+          cache-environment: true
+          init-shell: none
+      - name: activate conda env
         shell: /bin/bash {0}
         run: |
-          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
-          source $HOME/miniconda/bin/activate
-          conda init tcsh
-          cd $HOME/icepack
-          conda env create -f configuration/scripts/machines/environment.yml
+#          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
+#          source $HOME/miniconda/bin/activate
+#          conda init tcsh
+#          cd $HOME/icepack
+#          conda env create -f configuration/scripts/machines/environment.yml
+          echo "CONDA_PREFIX=${{ steps.micromamba.outputs.environment-path }}" >> $GITHUB_ENV
+          echo "${{ steps.micromamba.outputs.environment-path }}/bin" >> $GITHUB_PATH
       - name: check conda env
         shell: /bin/bash {0}
         run: |
-          conda activate icepack
+#          conda activate icepack
           which clang
           clang --version
           which gcc
