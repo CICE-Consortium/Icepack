@@ -90,7 +90,7 @@ jobs:
       - name: create directories
         shell: /bin/bash {0}
         run: |
-          ln -s "${GITHUB_WORKSPACE}/../Icepack" "${HOME}/icepack"
+           ln -s "${GITHUB_WORKSPACE}/../Icepack" "${HOME}/icepack"
 #          mkdir -p ${HOME}/icepack-dirs/runs ${HOME}/icepack-dirs/baseline ${HOME}/icepack-dirs/input
 #          ls -al ${HOME}/
 #          ls -al ${GITHUB_WORKSPACE}/
@@ -138,7 +138,7 @@ jobs:
       - name: check conda env
         shell: /bin/bash {0}
         run: |
-#          conda activate icepack
+          conda activate icepack
           which clang
           clang --version
           which gcc
