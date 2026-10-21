@@ -39,18 +39,17 @@ jobs:
           - os: macos-latest
             envdef: macos
             testid: M00
-#tcx debug            testsuites: "travis_suite,io_suite"
-            testsuites: "quickz_suite"
+            testsuites: "quick_suite"
             experimental: true
           - os: macos-15
             envdef: macos
             testid: M15
-            testsuites: "quick_suite"
+            testsuites: "travis_suite,io_suite"
             experimental: false
           - os: ubuntu-latest
             envdef: linux
             testid: L00
-            testsuites: "quick_suite"
+            testsuites: "travis_suite,io_suite"
             experimental: false
     steps:
       - name: install macos xcode
