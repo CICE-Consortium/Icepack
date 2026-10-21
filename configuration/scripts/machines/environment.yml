@@ -11,5 +11,6 @@ dependencies:
 # Plotting dependencies
   - gnuplot
 # Python dependencies for building the HTML documentation
-  - sphinx
-  - sphinxcontrib-bibtex
+  - pip
+  - pip:
+    - -r doc/requirements.txt
