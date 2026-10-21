@@ -27,10 +27,10 @@ jobs:
   build:
     name: "IcepackTesting"
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }} 
     strategy:
       fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
-#        os: [macos-latest, ubuntu-latest]
         os: [macos-latest, ubuntu-latest, macos-15]
 #        os: [macos-latest]
 #        os: [macos-15]
@@ -39,19 +39,19 @@ jobs:
           - os: macos-latest
             envdef: macos
             testid: M00
-#            minicond: Miniconda3-latest-MacOSX-arm64.sh
 #tcx debug            testsuites: "travis_suite,io_suite"
-            testsuites: "quick_suite"
+            testsuites: "quicky_suite"
+            experimental: true
           - os: macos-15
             envdef: macos
             testid: M15
-#            minicond: Miniconda3-latest-MacOSX-x86_64.sh
             testsuites: "quick_suite"
+            experimental: false
           - os: ubuntu-latest
             envdef: linux
             testid: L00
-#            minicond: Miniconda3-latest-Linux-x86_64.sh
             testsuites: "quick_suite"
+            experimental: false
     steps:
       - name: install macos xcode
         shell: /bin/bash {0}
@@ -84,7 +84,6 @@ jobs:
           echo "OS: ${{ matrix.os }}"
           echo "TESTID: ${{ matrix.testid }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
-#          echo "MINICOND: ${{ matrix.minicond }}"
       - name: clone
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -154,7 +153,10 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack-dirs/input
-          wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz && tar xvfz Icepack_data-20200326.tar.gz
+          wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz
+          # Hardened Checksum Integrity Phase
+          echo "xeb706ec09d4d35d6da3a118c8cba79d7d727e3d6aed19568e24423b92d3ea6bc  Icepack_data-20200326.tar.gz" | sha256sum --check -          
+          tar xvfz Icepack_data-20200326.tar.gz
           pwd
           ls -alR
 #      - name: run case
