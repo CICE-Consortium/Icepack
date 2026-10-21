@@ -38,18 +38,18 @@ jobs:
         include: 
           - os: macos-latest
             envdef: macos
-            testid: maclat
+            testid: M00
 #            minicond: Miniconda3-latest-MacOSX-arm64.sh
 #tcx debug            testsuites: "travis_suite,io_suite"
             testsuites: "quick_suite"
           - os: macos-15
             envdef: macos
-            testid: mac15
+            testid: M15
 #            minicond: Miniconda3-latest-MacOSX-x86_64.sh
             testsuites: "quick_suite"
           - os: ubuntu-latest
             envdef: linux
-            testid: linux
+            testid: L00
 #            minicond: Miniconda3-latest-Linux-x86_64.sh
             testsuites: "quick_suite"
     steps:
@@ -138,7 +138,7 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0 --pes 1x1 -s diag1
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0{{ matrix.testid }} --pes 1x1 -s diag1
       - name: check setup test
         shell: /bin/csh -e {0}
         run: |
