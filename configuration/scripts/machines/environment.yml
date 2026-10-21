@@ -13,4 +13,4 @@ dependencies:
 # Python dependencies for building the HTML documentation
   - pip
   - pip:
-    - -r doc/requirements.txt
+    - -r ../../../doc/requirements.txt
