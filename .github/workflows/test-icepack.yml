@@ -155,7 +155,12 @@ jobs:
           cd $HOME/icepack-dirs/input
           wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz
           # Hardened Checksum Integrity Phase
-          echo "xeb706ec09d4d35d6da3a118c8cba79d7d727e3d6aed19568e24423b92d3ea6bc  Icepack_data-20200326.tar.gz" | sha256sum --check -          
+          set shaval = "xeb706ec09d4d35d6da3a118c8cba79d7d727e3d6aed19568e24423b92d3ea6bc"
+          set shacmp = `sha256sum Icepack_data-20200326.tar.gz | cut -f 1 -d " "`
+          if ( "${shaval}" != "${shacmp}" ) then
+            echo "Download failure"
+            exit 1
+          endif
           tar xvfz Icepack_data-20200326.tar.gz
           pwd
           ls -alR
