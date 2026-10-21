@@ -30,8 +30,8 @@ jobs:
     strategy:
       fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
-#        os: [macos-latest, ubuntu-latest]
-        os: [macos-latest]
+        os: [macos-latest, ubuntu-latest]
+#        os: [macos-latest]
 #        os: [macos-latest, macos-13]
 #        os: [ubuntu-latest]
         include: 
@@ -44,10 +44,10 @@ jobs:
 #            envdef: macos
 #            minicond: Miniconda3-latest-MacOSX-x86_64.sh
 #            testsuites: "quick_suite"
-#          - os: ubuntu-latest
-#            envdef: linux
+          - os: ubuntu-latest
+            envdef: linux
 #            minicond: Miniconda3-latest-Linux-x86_64.sh
-#            testsuites: "quick_suite"
+            testsuites: "quick_suite"
     steps:
       - name: install macos xcode
         shell: /bin/bash {0}
@@ -57,12 +57,12 @@ jobs:
           echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
           echo "xcode-select -p: $(xcode-select -p)"
-      - name: install linux csh
+      - name: install linux tcsh
         shell: /bin/bash {0}
         if: contains( matrix.envdef, 'linux')
         run: |
           sudo apt-get update
-          sudo apt-get install -y csh
+          sudo apt-get install -y tcsh
       - name: system info
         shell: /bin/bash {0}
         run: |
