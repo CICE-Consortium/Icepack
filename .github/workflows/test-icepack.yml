@@ -37,15 +37,18 @@ jobs:
         include: 
           - os: macos-latest
             envdef: macos
+            testid: maclat
 #            minicond: Miniconda3-latest-MacOSX-arm64.sh
 #tcx debug            testsuites: "travis_suite,io_suite"
             testsuites: "quick_suite"
 #          - os: macos-13
 #            envdef: macos
+#            testid: mac13
 #            minicond: Miniconda3-latest-MacOSX-x86_64.sh
 #            testsuites: "quick_suite"
           - os: ubuntu-latest
             envdef: linux
+            testid: linux
 #            minicond: Miniconda3-latest-Linux-x86_64.sh
             testsuites: "quick_suite"
     steps:
@@ -76,6 +79,7 @@ jobs:
           echo "HOME: $HOME"
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           echo "OS: ${{ matrix.os }}"
+          echo "TESTID: ${{ matrix.testid }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
 #          echo "MINICOND: ${{ matrix.minicond }}"
       - name: clone
@@ -136,7 +140,7 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} --test smoke --testid c0
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} --test smoke --testid c0${{ matrix.testid }}
 #      - name: compile case
 #        run: |
 #          cd $HOME/icepack
@@ -159,13 +163,13 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.os }}
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.testid }}
       - name: write output
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
           ./.github/workflows/write_logfiles.csh
-          cd testsuite.${{ matrix.os }}
+          cd testsuite.${{ matrix.testid }}
           ./results.csh
       - name: successful run
         if: ${{ success() }}
