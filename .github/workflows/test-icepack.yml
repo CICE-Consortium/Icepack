@@ -30,9 +30,10 @@ jobs:
     strategy:
       fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
-        os: [macos-latest, ubuntu-latest]
+#        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, macos-15]
 #        os: [macos-latest]
-#        os: [macos-latest, macos-13]
+#        os: [macos-15]
 #        os: [ubuntu-latest]
         include: 
           - os: macos-latest
@@ -41,11 +42,11 @@ jobs:
 #            minicond: Miniconda3-latest-MacOSX-arm64.sh
 #tcx debug            testsuites: "travis_suite,io_suite"
             testsuites: "quick_suite"
-#          - os: macos-13
-#            envdef: macos
-#            testid: mac13
+          - os: macos-15
+            envdef: macos
+            testid: mac15
 #            minicond: Miniconda3-latest-MacOSX-x86_64.sh
-#            testsuites: "quick_suite"
+            testsuites: "quick_suite"
           - os: ubuntu-latest
             envdef: linux
             testid: linux
@@ -56,7 +57,9 @@ jobs:
         shell: /bin/bash {0}
         if: contains( matrix.envdef, 'macos')
         run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          XCODE_DEV_PATH=$(xcode-select -p)
+          echo "XCODE_DEV_PATH = $XCODE_DEV_PATH"
+          sudo xcode-select -s "$XCODE_DEV_PATH"
           echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
           echo "xcode-select -p: $(xcode-select -p)"
