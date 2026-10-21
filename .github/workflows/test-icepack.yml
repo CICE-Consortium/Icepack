@@ -40,7 +40,7 @@ jobs:
             envdef: macos
             testid: M00
 #tcx debug            testsuites: "travis_suite,io_suite"
-            testsuites: "quicky_suite"
+            testsuites: "quickz_suite"
             experimental: true
           - os: macos-15
             envdef: macos
