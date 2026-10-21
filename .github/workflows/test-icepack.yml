@@ -147,8 +147,10 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack-dirs/input
-          wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz && tar xvfz ICEPACK_data-20200326.tar.gz
+          wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz
           pwd
+          ls -alR
+          tar xvfz ICEPACK_data-20200326.tar.gz
           ls -alR
 #      - name: run case
 #        run: |
