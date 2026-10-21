@@ -368,15 +368,17 @@ endif
 #---------------------------------------------------------------------
 # Setup tsfile and test suite support stuff
 
+set tsdir  = "."
+set tsfile = "caselist.${sdate}-${stime}"
 if ( ${dosuite} == 1 ) then
   set tsdir  = "testsuite.${testid}"
   set tsfile = "testsuite.${testid}.${sdate}-${stime}.list"
-else if ( ${dotest} == 1 ) then
-  set tsdir  = "."
-  set tsfile = "testsuite.${testid}.${sdate}-${stime}.list"
-else if ( ${docase} == 1 ) then
-  set tsdir  = "."
-  set tsfile = "${case}.list.${sdate}-${stime}.list"
+#else if ( ${dotest} == 1 ) then
+#  set tsdir  = "."
+#  set tsfile = "testsuite.${testid}.${sdate}-${stime}.list"
+#else if ( ${docase} == 1 ) then
+#  set tsdir  = "."
+#  set tsfile = "${case}.list.${sdate}-${stime}.list"
 endif
 if ( ${tdir} != ${spval} ) then
   set tsdir = ${tdir}
