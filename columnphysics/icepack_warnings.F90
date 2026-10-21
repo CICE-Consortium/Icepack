@@ -114,7 +114,7 @@ contains
       end subroutine icepack_warnings_clear
 
 !=======================================================================
-!autodocument_start icepack_warnings_clear
+!autodocument_start icepack_warnings_getall
 ! return an array of all the current warning messages
 
       subroutine icepack_warnings_getall(warningsOut)
