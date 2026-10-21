@@ -138,7 +138,7 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0 --pes 1x1 -s diag1
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0${{ matrix.testid }} --pes 1x1 -s diag1
       - name: check setup test
         shell: /bin/csh -e {0}
         run: |
