@@ -370,20 +370,18 @@ endif
 
 if ( ${dosuite} == 1 ) then
   set tsdir  = "testsuite.${testid}"
-  set tsfile = "testsuite.${testid}.${sdate}-${stime}.list"
+  set tsfile = "caselist.${testid}.${sdate}-${stime}.list"
 else if ( ${dotest} == 1 ) then
   set tsdir  = "."
-  set tsfile = "testsuite.${testid}.${sdate}-${stime}.list"
+  set tsfile = "caselist.${testid}.${sdate}-${stime}.list"
 else if ( ${docase} == 1 ) then
   set tsdir  = "."
-  set tsfile = "${case}.list.${sdate}-${stime}.list"
+  set tsfile = "caselist.${case:t}.${sdate}-${stime}.list"
 endif
 if ( ${tdir} != ${spval} ) then
   set tsdir = ${tdir}
 endif
 if (-e ${tsfile}) then
-  echo "${0}: tsfile = ${tsfile}"
-  ls -al
   echo "${0}: ERROR in tsfile, this should never happen"
   exit -1
 endif

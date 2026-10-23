@@ -22,12 +22,12 @@ updates:
 #      timezone: "America/New_York"
 #    open-pull-requests-limit: 3
 
-   # Check requirements.txt inside doc directory
-   - package-ecosystem: "pip"
-     directory: "/doc"
-     schedule:
-       interval: "weekly"
-       day: "tuesday"
-       time: "04:00"
-       timezone: "America/New_York"
-     open-pull-requests-limit: 3
+  # Check requirements.txt inside doc directory
+  - package-ecosystem: "pip"
+    directory: "/doc"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "04:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 3

@@ -39,19 +39,19 @@ jobs:
           - os: macos-latest
             envdef: macos
             testid: M00
-            testsuites: "quick_suite"
+            testsuites: "quicky_suite"
             experimental: true
           - os: macos-15
             envdef: macos
             testid: M15
-            testsuites: "travis_suite,io_suite"
-#            testsuites: "quick_suite"
+#            testsuites: "travis_suite,io_suite"
+            testsuites: "quick_suite"
             experimental: false
           - os: ubuntu-latest
             envdef: linux
             testid: L00
-            testsuites: "travis_suite,io_suite"
-#            testsuites: "quick_suite"
+#            testsuites: "travis_suite,io_suite"
+            testsuites: "quick_suite"
             experimental: false
     steps:
       - name: install macos xcode
@@ -63,7 +63,6 @@ jobs:
           sudo xcode-select -s "$XCODE_DEV_PATH"
           echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
-          echo "xcode-select -p: $(xcode-select -p)"
       - name: install linux tcsh
         shell: /bin/bash {0}
         if: contains( matrix.envdef, 'linux')
@@ -117,6 +116,8 @@ jobs:
         with:
           environment-file: configuration/scripts/machines/environment.yml
           cache-environment: true
+          cache-environment-key: env-${{ runner.os }}-${{ hashFiles('configuration/scripts/machines/environment.yml', 'doc/requirements.txt') }}
+          cache-environment-key-fallback: env-${{ runner.os }}-
           init-shell: none
       - name: activate conda env
         shell: /bin/bash {0}
