@@ -2019,6 +2019,17 @@ icepack_prep_radiation
 
 icepack_step_radiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Coupled Gregorian solar geometry requires ``solar_ymd`` (coded YYYYMMDD),
+``solar_tod`` (seconds since midnight), ``solar_declination`` (radians), and
+``solar_valid``. The host must evaluate declination at that full scheduled
+timestamp using its configured orbital mode and year alignment. These optional
+arguments preserve existing positional interfaces; they are required for an
+active Gregorian shortwave calculation. The hour angle uses ``solar_tod``, not
+the current column time. An inactive ``nextsw_cday`` leaves the geometry
+unchanged. Uncoupled Gregorian solar geometry is rejected rather than evaluated
+with the fixed-365-day formula.
+
 .. code-block:: fortran
 
   ! Computes radiation fields
@@ -2060,7 +2071,11 @@ icepack_step_radiation
                                           dhsn,     ffracn,    &
                                           rsnow,               &
                                           l_print_point,       &
-                                          initonly)
+                                          initonly, solar_ymd, solar_tod, solar_declination, solar_valid)
+
+        integer(kind=int_kind), intent(in), optional :: solar_ymd
+        real(kind=dbl_kind), intent(in), optional :: solar_tod, solar_declination
+        logical(kind=log_kind), intent(in), optional :: solar_valid
   
         real (kind=dbl_kind), intent(in) :: &
            dt        , & ! time step (s)

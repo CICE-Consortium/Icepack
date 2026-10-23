@@ -873,7 +873,14 @@
                           dhsn,     ffracn,    &
                           rsnow,               &
                           l_print_point,       &
-                          initonly)
+                          initonly, solar_ymd, solar_tod, solar_declination, solar_valid, &
+                          solar_eot_seconds, solar_use_eot)
+
+      integer(kind=int_kind), intent(in), optional :: solar_ymd
+      real(kind=dbl_kind), intent(in), optional :: solar_tod, solar_declination
+      logical(kind=log_kind), intent(in), optional :: solar_valid
+      real(kind=dbl_kind), intent(in), optional :: solar_eot_seconds
+      logical(kind=log_kind), intent(in), optional :: solar_use_eot
 
       integer (kind=int_kind), intent(in) :: &
          sec        ! elapsed seconds into date
@@ -1013,9 +1020,12 @@
       ! cosine of the zenith angle
 #ifdef CESMCOUPLED
       call compute_coszen (TLAT, TLON, yday,  sec, coszen,  &
-                           days_per_year, nextsw_cday, calendar_type)
+                    days_per_year, nextsw_cday, calendar_type, &
+                    solar_ymd, solar_tod, solar_declination, solar_valid, solar_eot_seconds, solar_use_eot)
 #else
-      call compute_coszen (TLAT, TLON, yday,  sec, coszen)
+       call compute_coszen(TLAT, TLON, yday, sec, coszen, calendar_type=calendar_type, &
+          solar_ymd=solar_ymd, solar_tod=solar_tod, solar_declination=solar_declination, solar_valid=solar_valid, &
+          solar_eot_seconds=solar_eot_seconds, solar_use_eot=solar_use_eot)
 #endif
       if (icepack_warnings_aborted(subname)) return
 
@@ -3737,7 +3747,14 @@
                                         dhsn,     ffracn,    &
                                         rsnow,               &
                                         l_print_point,       &
-                                        initonly)
+                                        initonly, solar_ymd, solar_tod, solar_declination, solar_valid, &
+                                        solar_eot_seconds, solar_use_eot)
+
+      integer(kind=int_kind), intent(in), optional :: solar_ymd
+      real(kind=dbl_kind), intent(in), optional :: solar_tod, solar_declination
+      logical(kind=log_kind), intent(in), optional :: solar_valid
+      real(kind=dbl_kind), intent(in), optional :: solar_eot_seconds
+      logical(kind=log_kind), intent(in), optional :: solar_use_eot
 
       real (kind=dbl_kind), intent(in) :: &
          dt        , & ! time step (s)
@@ -3913,6 +3930,9 @@
                           alidrn,       alidfn,         &
                           fswsfcn,      fswintn,        &
                           fswthrun=fswthrun,            &
+                          solar_ymd=solar_ymd, solar_tod=solar_tod, &
+                          solar_declination=solar_declination, solar_valid=solar_valid, &
+                          solar_eot_seconds=solar_eot_seconds, solar_use_eot=solar_use_eot, &
                           fswthrun_vdr=fswthrun_vdr,    &
                           fswthrun_vdf=fswthrun_vdf,    &
                           fswthrun_idr=fswthrun_idr,    &

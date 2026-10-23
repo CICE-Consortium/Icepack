@@ -9,7 +9,7 @@
       module icepack_orbital
 
       use icepack_kinds
-      use icepack_parameters, only: c2, p5, pi, secday
+      use icepack_parameters, only: c0, c2, p5, pi, secday
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -145,7 +145,10 @@
       subroutine compute_coszen (tlat,          tlon,        &
                                  yday,  sec, coszen,     &
                                  days_per_year, nextsw_cday, &
-                                 calendar_type)
+                                 calendar_type, solar_ymd, solar_tod, solar_declination, solar_valid, &
+                                 solar_eot_seconds, solar_use_eot)
+
+      use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
 
 #ifdef CESMCOUPLED
       use shr_orb_mod, only: shr_orb_decl
@@ -173,10 +176,16 @@
 
       character (len=char_len), intent(in), optional :: &
          calendar_type       ! differentiates Gregorian from other calendars
+      integer(kind=int_kind), intent(in), optional :: solar_ymd
+      real(kind=dbl_kind), intent(in), optional :: solar_tod, solar_declination
+      logical(kind=log_kind), intent(in), optional :: solar_valid
+      real(kind=dbl_kind), intent(in), optional :: solar_eot_seconds
+      logical(kind=log_kind), intent(in), optional :: solar_use_eot
 
       ! local variables
 
       real (kind=dbl_kind) :: ydayp1 ! day of year plus one time step
+      logical :: apply_eot
 
       logical (kind=log_kind), save :: &
          first_call = .true.   ! first call flag
@@ -185,6 +194,8 @@
 
 ! Solar declination for next time step
 
+   apply_eot = .false.
+   if (present(solar_use_eot)) apply_eot = solar_use_eot
 #ifdef CESMCOUPLED
       if (icepack_chkoptargflag(first_call)) then
          if (.not.(present(days_per_year) .and. &
@@ -196,21 +207,62 @@
          endif
       endif
 
-      if (calendar_type == "GREGORIAN") then
-         ydayp1 = min(nextsw_cday, real(days_per_year,kind=dbl_kind))
-      else
-         ydayp1 = nextsw_cday
-      endif
+      ydayp1 = nextsw_cday
 
       !--- update coszen when nextsw_cday valid
       if (ydayp1 > -0.5_dbl_kind) then
-         call shr_orb_decl(ydayp1, eccen, mvelpp, lambm0, &
-                           obliqr, decln, eccf)
-         coszen = sin(tlat)*sin(decln) &
-                + cos(tlat)*cos(decln) &
-                *cos((sec/secday-p5)*c2*pi + tlon) !cos(hour angle)
+         if (calendar_type == 'GREGORIAN' .or. apply_eot) then
+            if (.not.(present(solar_ymd) .and. present(solar_tod) .and. &
+                 present(solar_declination) .and. present(solar_valid))) then
+               call icepack_warnings_add(subname//' Gregorian calendar requires full solar timestamp and declination')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            end if
+            if (.not. solar_valid .or. solar_tod < c0 .or. solar_tod >= secday) then
+               call icepack_warnings_add(subname//' invalid Gregorian solar timestamp')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            end if
+            decln = solar_declination
+            if (apply_eot) then
+               if (.not. present(solar_eot_seconds)) then
+                  call icepack_warnings_add(subname//' EOT requires a coupled equation-of-time value')
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  return
+               end if
+               if (.not. ieee_is_finite(solar_eot_seconds)) then
+                  call icepack_warnings_add(subname//' non-finite equation-of-time value')
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  return
+               end if
+               coszen = sin(tlat)*sin(decln) + cos(tlat)*cos(decln) &
+                    *cos((solar_tod/secday-p5)*c2*pi + tlon + c2*pi*solar_eot_seconds/secday)
+            else
+            coszen = sin(tlat)*sin(decln) &
+                   + cos(tlat)*cos(decln) &
+                   *cos((solar_tod/secday-p5)*c2*pi + tlon)
+            end if
+         else
+            call shr_orb_decl(ydayp1, eccen, mvelpp, lambm0, &
+                              obliqr, decln, eccf)
+            coszen = sin(tlat)*sin(decln) &
+                   + cos(tlat)*cos(decln) &
+                   *cos((sec/secday-p5)*c2*pi + tlon) !cos(hour angle)
+         end if
       endif
 #else
+   if (apply_eot) then
+      call icepack_warnings_add(subname//' uncoupled EOT geometry requires an explicit orbital context')
+      call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+      return
+   end if
+      if (present(calendar_type)) then
+         if (calendar_type == 'GREGORIAN') then
+            call icepack_warnings_add(subname//' uncoupled Gregorian solar geometry is not supported')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         end if
+      end if
       ydayp1 = yday + sec/secday
       call icepack_orb_decl(ydayp1, eccen, mvelpp, lambm0, &
                             obliqr, decln, eccf)
