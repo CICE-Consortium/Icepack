@@ -695,7 +695,7 @@ and solving for the new pond area tracer :math:`a_{pnd}^\prime` given
 the newly formed ice area :math:`\Delta a_i = \Delta a_{lvl}`.
 
 Sea-level pond formulation (``tr_pond_sealvl`` = true)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The sea-level meltpond parameterization was developed based on the
 following observations from field studies and high-resolution (<=1 m)

@@ -106,7 +106,7 @@ be done in practice.
 
    - Define ``tr_xyz`` and ``nt_xyz`` variables in subroutine input_data
 
-   - Add a logical namelist variable ``tr_xyz` to tracer_nml
+   - Add a logical namelist variable ``tr_xyz`` to tracer_nml
 
    - Add a line to initialize ``tr_xyz=.false.``
 

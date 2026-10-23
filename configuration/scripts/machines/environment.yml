@@ -3,6 +3,8 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
+# Core Runtime Environment
+  - python=3.11
 # Build dependencies
   - compilers
   - netcdf-fortran
@@ -11,5 +13,6 @@ dependencies:
 # Plotting dependencies
   - gnuplot
 # Python dependencies for building the HTML documentation
-  - sphinx
-  - sphinxcontrib-bibtex
+  - pip
+  - pip:
+    - -r ../../../doc/requirements.txt

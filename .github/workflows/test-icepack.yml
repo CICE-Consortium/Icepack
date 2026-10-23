@@ -7,13 +7,17 @@ name: GHActions
 on:
   push:
     branches:
-      - master
+      - main
       - 'Icepack*'
       - 'ghactions*'
   pull_request:
   release:
     types:
       - created
+
+# Establish a secure, read-only baseline for the repository token
+permissions:
+  contents: read
 
 defaults:
   run:
@@ -23,41 +27,48 @@ jobs:
   build:
     name: "IcepackTesting"
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }} 
     strategy:
       fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
-#        os: [macos-latest, ubuntu-latest]
-        os: [macos-latest]
-#        os: [macos-latest, macos-13]
+        os: [macos-latest, ubuntu-latest, macos-15]
+#        os: [macos-latest]
+#        os: [macos-15]
 #        os: [ubuntu-latest]
         include: 
           - os: macos-latest
             envdef: macos
-            minicond: Miniconda3-latest-MacOSX-arm64.sh
+            testid: M00
+            testsuites: "quick_suite"
+            experimental: true
+          - os: macos-15
+            envdef: macos
+            testid: M15
             testsuites: "travis_suite,io_suite"
-#          - os: macos-13
-#            envdef: macos
-#            minicond: Miniconda3-latest-MacOSX-x86_64.sh
 #            testsuites: "quick_suite"
-#          - os: ubuntu-latest
-#            envdef: linux
-#            minicond: Miniconda3-latest-Linux-x86_64.sh
+            experimental: false
+          - os: ubuntu-latest
+            envdef: linux
+            testid: L00
+            testsuites: "travis_suite,io_suite"
 #            testsuites: "quick_suite"
+            experimental: false
     steps:
       - name: install macos xcode
         shell: /bin/bash {0}
         if: contains( matrix.envdef, 'macos')
         run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          XCODE_DEV_PATH=$(xcode-select -p)
+          echo "XCODE_DEV_PATH = $XCODE_DEV_PATH"
+          sudo xcode-select -s "$XCODE_DEV_PATH"
           echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
-          echo "xcode-select -p: $(xcode-select -p)"
-      - name: install linux csh
+      - name: install linux tcsh
         shell: /bin/bash {0}
         if: contains( matrix.envdef, 'linux')
         run: |
           sudo apt-get update
-          sudo apt-get install -y csh
+          sudo apt-get install -y tcsh
       - name: system info
         shell: /bin/bash {0}
         run: |
@@ -71,23 +82,19 @@ jobs:
           echo "HOME: $HOME"
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           echo "OS: ${{ matrix.os }}"
+          echo "TESTID: ${{ matrix.testid }}"
           echo "ENVDEF: ${{ matrix.envdef }}"
-          echo "MINICOND: ${{ matrix.minicond }}"
-      - name : install miniconda
-        shell: /bin/bash {0}
-        run: |
-          wget https://repo.anaconda.com/miniconda/${{ matrix.minicond }} -O ~/miniconda.sh
-          bash ~/miniconda.sh -b -p $HOME/miniconda
       - name: clone
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: 'recursive'
-      - name: link
+      - name: create directories
         shell: /bin/bash {0}
         run: |
-           ln -s "${GITHUB_WORKSPACE}/../Icepack" "${HOME}/icepack"
-#           ls -al ${HOME}/
-#           ls -al ${GITHUB_WORKSPACE}/
+          ln -s "${GITHUB_WORKSPACE}/../Icepack" "${HOME}/icepack"
+          mkdir -p ${HOME}/icepack-dirs/runs ${HOME}/icepack-dirs/baseline ${HOME}/icepack-dirs/input
+#          ls -al ${HOME}/
+#          ls -al ${GITHUB_WORKSPACE}/
       - name: check for tabs
         shell: /bin/csh -e {0}
         run: |
@@ -104,17 +111,22 @@ jobs:
           end
           exit $cnt
       - name: setup conda env
+        id: micromamba
+        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
+        with:
+          environment-file: configuration/scripts/machines/environment.yml
+          cache-environment: true
+          cache-environment-key: env-${{ runner.os }}-${{ hashFiles('configuration/scripts/machines/environment.yml', 'doc/requirements.txt') }}
+          cache-environment-fallback-key: env-${{ runner.os }}-
+          init-shell: none
+      - name: activate conda env
         shell: /bin/bash {0}
         run: |
-          cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
-          source $HOME/miniconda/bin/activate
-          conda init tcsh
-          cd $HOME/icepack
-          conda env create -f configuration/scripts/machines/environment.yml
+          echo "CONDA_PREFIX=${{ steps.micromamba.outputs.environment-path }}" >> $GITHUB_ENV
+          echo "${{ steps.micromamba.outputs.environment-path }}/bin" >> $GITHUB_PATH
       - name: check conda env
         shell: /bin/bash {0}
         run: |
-          conda activate icepack
           which clang
           clang --version
           which gcc
@@ -127,12 +139,12 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0 --pes 1x1 -s diag1
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} -c case0${{ matrix.testid }} --pes 1x1 -s diag1
       - name: check setup test
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} --test smoke --testid c0
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} --test smoke --testid c0${{ matrix.testid }}
 #      - name: compile case
 #        run: |
 #          cd $HOME/icepack
@@ -143,7 +155,15 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack-dirs/input
-          wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz && tar xvfz ICEPACK_data-20200326.tar.gz
+          wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz
+          # Hardened Checksum Integrity Phase
+          set shaval = "eb706ec09d4d35d6da3a118c8cba79d7d727e3d6aed19568e24423b92d3ea6bc"
+          set shacmp = `sha256sum Icepack_data-20200326.tar.gz | cut -f 1 -d " "`
+          if ( "${shaval}" != "${shacmp}" ) then
+            echo "Download sha256sum error"
+            exit 1
+          endif
+          tar xvfz Icepack_data-20200326.tar.gz
           pwd
           ls -alR
 #      - name: run case
@@ -155,13 +175,13 @@ jobs:
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.os }}
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite ${{ matrix.testsuites }} --testid ${{ matrix.testid }}
       - name: write output
         shell: /bin/csh -e {0}
         run: |
           cd $HOME/icepack
           ./.github/workflows/write_logfiles.csh
-          cd testsuite.${{ matrix.os }}
+          cd testsuite.${{ matrix.testid }}
           ./results.csh
       - name: successful run
         if: ${{ success() }}
