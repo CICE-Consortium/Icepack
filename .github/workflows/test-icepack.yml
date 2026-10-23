@@ -27,7 +27,7 @@ jobs:
   build:
     name: "IcepackTesting"
     runs-on: ${{ matrix.os }}
-#    continue-on-error: ${{ matrix.experimental }} 
+    continue-on-error: ${{ matrix.experimental }} 
     strategy:
       fail-fast: false   # <-- Keeps other matrix jobs running if one fails
       matrix:
