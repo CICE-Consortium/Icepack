@@ -791,8 +791,8 @@ icepack_init_parameters
            cpl_frazil_in, semi_implicit_Tsfc_in, vapor_flux_correction_in, &
            Rac_rapid_mode_in, aspect_rapid_mode_in, &
            dSdt_slow_mode_in, phi_c_slow_mode_in, &
-           phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
-           albicev_in, albicei_in, albsnowv_in, &
+           phi_i_mushy_in, ratio_Wm2_m_in, cold_temp_flag_in, shortwave_in, albedo_type_in, &
+           albsnowi_in, albicev_in, albicei_in, albsnowv_in, &
            ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
            kalg_in, R_gC2molC_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
            atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
@@ -938,7 +938,9 @@ icepack_init_parameters
            aspect_rapid_mode_in , & ! aspect ratio for rapid drainage mode (larger=wider)
            dSdt_slow_mode_in    , & ! slow mode drainage strength (m s-1 K-1)
            phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
-           phi_i_mushy_in           ! liquid fraction of congelation ice
+           phi_i_mushy_in       , & ! liquid fraction of congelation ice
+           ratio_Wm2_m_in       , & ! max conductive flux/depth ratio (W m)
+           cold_temp_flag_in        ! min temp used to limit the conductive flux (C)
   
         character(len=*), intent(in), optional :: &
            congel_freeze_in         ! congelation computation
@@ -1353,8 +1355,9 @@ icepack_query_parameters
            Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
            ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, &
            Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
-           phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, semi_implicit_Tsfc_out, &
-           albedo_type_out, albicev_out, albicei_out, albsnowv_out, vapor_flux_correction_out, &
+           phi_c_slow_mode_out, phi_i_mushy_out, ratio_Wm2_m_out, cold_temp_flag_out, &
+           shortwave_out, semi_implicit_Tsfc_out, albedo_type_out, albicev_out, &
+           albicei_out, albsnowv_out, vapor_flux_correction_out, &
            albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
            rsnw_mlt_out, dEdd_algae_out, &
            kalg_out, R_gC2molC_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
@@ -1509,7 +1512,9 @@ icepack_query_parameters
            aspect_rapid_mode_out , & ! aspect ratio for rapid drainage mode (larger=wider)
            dSdt_slow_mode_out    , & ! slow mode drainage strength (m s-1 K-1)
            phi_c_slow_mode_out   , & ! liquid fraction porosity cutoff for slow mode
-           phi_i_mushy_out           ! liquid fraction of congelation ice
+           phi_i_mushy_out       , & ! liquid fraction of congelation ice
+           ratio_Wm2_m_out       , & ! max conductive flux/depth ratio (W m)
+           cold_temp_flag_out        ! min temp used to limit the conductive flux (C)
   
         character(len=*), intent(out), optional :: &
            congel_freeze_out         ! congelation computation
@@ -3321,9 +3326,9 @@ icepack_warnings_clear
   
  
 
-.. _icepack_warnings_clear:
+.. _icepack_warnings_getall:
 
-icepack_warnings_clear
+icepack_warnings_getall
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
