@@ -137,7 +137,7 @@
          dSdt_slow_mode    = -1.5e-7_dbl_kind,&! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode   =    0.05_dbl_kind,&! critical liquid fraction porosity cutoff
          phi_i_mushy       =    0.85_dbl_kind,&! liquid fraction of congelation ice
-         ratio_Wm2_m       =  1000.0_dbl_kind,&! max condutive flux/depth ratio (W m)
+         ratio_Wm2_m       =  1000.0_dbl_kind,&! max conductive flux/depth ratio (W m)
          cold_temp_flag    =   -60.0_dbl_kind  ! min temp used to limit the conductive flux (C)
 
       integer (kind=int_kind), public :: &
@@ -735,7 +735,7 @@
          dSdt_slow_mode_in    , & ! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_in       , & ! liquid fraction of congelation ice
-         ratio_Wm2_m_in       , & ! max condutive flux/depth ratio (W m)
+         ratio_Wm2_m_in       , & ! max conductive flux/depth ratio (W m)
          cold_temp_flag_in        ! min temp used to limit the conductive flux (C)
 
       character(len=*), intent(in), optional :: &
@@ -1762,7 +1762,7 @@
          dSdt_slow_mode_out    , & ! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode_out   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_out       , & ! liquid fraction of congelation ice
-         ratio_Wm2_m_out       , & ! max condutive flux/depth ratio (W m)
+         ratio_Wm2_m_out       , & ! max conductive flux/depth ratio (W m)
          cold_temp_flag_out        ! min temp used to limit the conductive flux (C)
 
       character(len=*), intent(out), optional :: &
