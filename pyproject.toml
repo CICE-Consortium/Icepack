@@ -1,11 +1,11 @@
-
 [project]
-name = "icepack-docs"
+name = "icepack-stuff"
 version = "0.1.0"
-description = "Documentation for icepack"
+description = "Environment for icepack"
 requires-python = ">=3.12,<3.13" 
 
-dependencies = [
+[dependency-groups]
+docs-runtime = [
     "sphinx>=7.4.0",
     "sphinxcontrib-bibtex>=2.7.0,<3.0.0"
 ]

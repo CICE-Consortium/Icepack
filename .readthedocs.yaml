@@ -7,9 +7,9 @@ version: 2
 
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-22.04
-  tools:
-    python: "3.12"
+   os: ubuntu-22.04
+   tools:
+     python: "3.12"
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
@@ -22,6 +22,8 @@ formats:
 # Optionally declare the Python requirements required to build your docs
 python:
    install:
-   - method: pip
-     path: .
+     - method: uv
+       command: sync
+       groups:
+         - docs-runtime  # 🎯 Tells it to just pull the packages from your TOML group
 
