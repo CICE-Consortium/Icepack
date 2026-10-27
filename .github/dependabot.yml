@@ -24,11 +24,11 @@ updates:
 
   # Check requirements.txt inside doc directory
   - package-ecosystem: "pip"
-    directory: "/doc"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "tuesday"
       time: "04:00"
       timezone: "America/New_York"
     # silences version updates but forces PRs for security patches
-    open-pull-requests-limit: 0
+    # open-pull-requests-limit: 0
