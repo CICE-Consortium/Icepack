@@ -54,15 +54,6 @@ jobs:
 #            testsuites: "quick_suite"
             experimental: false
     steps:
-      - name: install macos xcode
-        shell: /bin/bash {0}
-        if: contains( matrix.envdef, 'macos')
-        run: |
-          XCODE_DEV_PATH=$(xcode-select -p)
-          echo "XCODE_DEV_PATH = $XCODE_DEV_PATH"
-          sudo xcode-select -s "$XCODE_DEV_PATH"
-          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
-          echo "xcrun --show-sdk-path: $(xcrun --show-sdk-path)"
       - name: install linux tcsh
         shell: /bin/bash {0}
         if: contains( matrix.envdef, 'linux')
