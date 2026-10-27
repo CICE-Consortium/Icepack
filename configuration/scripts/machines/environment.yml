@@ -13,6 +13,7 @@ dependencies:
 # Plotting dependencies
   - gnuplot
 # Python dependencies for building the HTML documentation
-  - pip
-  - pip:
-    - -r ../../../doc/requirements.txt
+# Moved to .readthedocs.yaml to decouple from Icepack build/run environment
+#  - pip
+#  - pip:
+#    - -r ../../../doc/requirements.txt
