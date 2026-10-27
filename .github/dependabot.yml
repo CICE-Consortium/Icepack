@@ -31,4 +31,4 @@ updates:
       time: "04:00"
       timezone: "America/New_York"
     # silences version updates but forces PRs for security patches
-    # open-pull-requests-limit: 0
+    open-pull-requests-limit: 0
