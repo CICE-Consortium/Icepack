@@ -1,7 +1,7 @@
 [project]
 name = "icepack-docs"
 version = "0.1.0"
-description = "Environment for icepack"
+description = "Environment for icepack documentation"
 requires-python = ">=3.12,<3.15" 
 
 [dependency-groups]
