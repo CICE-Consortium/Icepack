@@ -70,15 +70,11 @@ To summarize the steps in greater detail **assuming use of conda in a Mac or Lin
 
 * Setup the conda environment (done once per machine), see :ref:`laptops`::
 
-    curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o ~/Downloads/miniconda.sh
-    bash ~/Downloads/miniconda.sh
-    source $HOME/miniconda3/bin/activate
-    conda init bash
-    conda config --set auto_activate_base false
-    source $HOME/miniconda3/bin/activate
+    curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+    bash Miniforge3-$(uname)-$(uname -m).sh    (answer "yes" to initialize conda, then reopen your terminal)
+    xcode-select --install                     (macOS only, if the Xcode Command Line Tools are not installed)
     cd ~/icepack-dirs/Icepack
     conda env create -f configuration/scripts/machines/environment.yml
-    conda activate icepack 
 
 **NOTE:**  If you have a Windows machine, we recommend using the Ubuntu Linux application, https://ubuntu.com/desktop/wsl.
 
@@ -86,8 +82,8 @@ Again, there are many options for setting up the model on hardware, see the Icep
 
 * Set Up an Icepack Simulation.  See :ref:`quickstart` and :ref:`running_icepack`::
 
-    cd ~/Icepack
-    ./icepack.setup --case icepack_test0 --mach conda --env macos
+    cd ~/icepack-dirs/Icepack
+    ./icepack.setup --case ~/icepack-dirs/cases/icepack_test0 --mach conda --env macos    (use --env linux on GNU/Linux)
     cd ~/icepack-dirs/cases/icepack_test0
     ./icepack.build
     ./icepack.submit
@@ -100,7 +96,7 @@ Look at the output.  Go to the ICE_RUNDIR (defined in **icepack.settings**). A s
 
     cd $ICE_RUNDIR
     conda activate icepack
-    ${ICE_SANDBOX}/configurations/scripts/tests/timeseries.csh ice_diag.full_ITD
+    ${ICE_SANDBOX}/configuration/scripts/tests/timeseries.csh ice_diag.full_ITD
 
 **Note:** that you can run the plotting script on any of the four ice_diag.* files.  The .png files are created in the ICE_RUNDIR directory. View the png files.
 
@@ -129,7 +125,7 @@ Modify the Configuration or Code
 
 * Revert your latest code changes::
 
-    cd ~/Icepack
+    cd ~/icepack-dirs/Icepack
     git status
     git checkout columnphysics/icepack_mechred.F90
     git status

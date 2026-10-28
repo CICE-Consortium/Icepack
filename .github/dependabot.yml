@@ -22,9 +22,9 @@ updates:
 #      timezone: "America/New_York"
 #    open-pull-requests-limit: 3
 
-  # Check requirements.txt inside doc directory
+  # Check pyproject.toml inside doc directory
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/doc"
     schedule:
       interval: "weekly"
       day: "tuesday"

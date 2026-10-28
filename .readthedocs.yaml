@@ -24,6 +24,7 @@ python:
    install:
      - method: uv
        command: sync
+       path: doc
        groups:
          - docs-runtime
 
