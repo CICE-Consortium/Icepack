@@ -25,5 +25,5 @@ python:
      - method: uv
        command: sync
        groups:
-         - docs-runtime  # 🎯 Tells it to just pull the packages from your TOML group
+         - docs-runtime
 

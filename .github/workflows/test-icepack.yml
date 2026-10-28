@@ -107,7 +107,7 @@ jobs:
         with:
           environment-file: configuration/scripts/machines/environment.yml
           cache-environment: true
-          cache-environment-key: env-${{ runner.os }}-${{ hashFiles('configuration/scripts/machines/environment.yml', 'doc/requirements.txt') }}
+          cache-environment-key: env-${{ runner.os }}-${{ hashFiles('configuration/scripts/machines/environment.yml') }}
           init-shell: none
       - name: activate conda env
         shell: /bin/bash {0}
