@@ -1,5 +1,5 @@
 [project]
-name = "icepack-stuff"
+name = "icepack-docs"
 version = "0.1.0"
 description = "Environment for icepack"
 requires-python = ">=3.12,<3.15" 
