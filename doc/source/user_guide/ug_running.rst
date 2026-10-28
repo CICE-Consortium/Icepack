@@ -527,12 +527,13 @@ Building the documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The HTML documentation is built with Sphinx.
-Its Python requirements are kept separate from the ``icepack`` environment, in the ``docs-runtime`` dependency group of the ``pyproject.toml`` file at the top of the Icepack repository.
+Its Python requirements are kept separate from the ``icepack`` environment, in the ``docs-runtime`` dependency group of ``doc/pyproject.toml``.
 To build the documentation locally, create a separate ``icepack-docs`` conda environment and install the requirements with pip (version 25.1 or later):
 
 .. code-block:: bash
 
   # From the top directory of your Icepack clone
+  cd doc
   conda create -n icepack-docs python=3.12 pip
   conda activate icepack-docs
   pip install --group docs-runtime
@@ -542,7 +543,7 @@ This step needs to be done only once. Then, to build the documentation:
 .. code-block:: bash
 
   conda activate icepack-docs
-  cd doc
+  cd doc  # from the top directory of your Icepack clone
   make html
   # Open build/html/index.html in your browser
   conda deactivate  # to deactivate the environment
