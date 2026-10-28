@@ -938,8 +938,8 @@
          ratio_Fe2DON_in      , &   ! Fe to N of DON (nmol/umol)
          ratio_Fe2DOC_s_in    , &   ! Fe to C of DOC (nmol/umol) saccharids
          ratio_Fe2DOC_l_in    , &   ! Fe to C of DOC (nmol/umol) lipids
-         tau_min_in           , &   ! rapid mobile to stationary exchanges (s) = 1.5 hours
-         tau_max_in           , &   ! long time mobile to stationary exchanges (s) = 2 days
+         tau_min_in           , &   ! rapid mobile to stationary exchanges (s)
+         tau_max_in           , &   ! long time mobile to stationary exchanges (s)
          chlabs_diatoms_in   , & ! chl absorption (1/m/(mg/m^3))
          chlabs_sp_in        , & !
          chlabs_phaeo_in     , & !
@@ -1967,8 +1967,8 @@
          ratio_Fe2DON_out      , &   ! Fe to N of DON (nmol/umol)
          ratio_Fe2DOC_s_out    , &   ! Fe to C of DOC (nmol/umol) saccharids
          ratio_Fe2DOC_l_out    , &   ! Fe to C of DOC (nmol/umol) lipids
-         tau_min_out           , &   ! rapid mobile to stationary exchanges (s) = 1.5 hours
-         tau_max_out           , &   ! long time mobile to stationary exchanges (s) = 2 days
+         tau_min_out           , &   ! rapid mobile to stationary exchanges (s)
+         tau_max_out           , &   ! long time mobile to stationary exchanges (s)
          chlabs_diatoms_out   , & ! chl absorption (1/m/(mg/m^3))
          chlabs_sp_out        , & !
          chlabs_phaeo_out     , & !

@@ -1769,9 +1769,9 @@
                 if (it==3) &
                    frazil_conc = isoice_alpha(c0,'H2_18O',isotope_frac_method)*H2_18O_ocn
 
-                trcrn(nt_isoice+it-1,1) &
-                  = (trcrn(nt_isoice+it-1,1)*vice1) &
-                  + frazil_conc*rhoi*vi0new/vicen(1)
+                trcrn(nt_isoice+it-1,n) &
+                  = (trcrn(nt_isoice+it-1,n)*vice1) &
+                  + frazil_conc*rhoi*vi0new/vicen(n)
 
                 fiso_ocn(it) = fiso_ocn(it) &
                              - frazil_conc*rhoi*vi0new/dt

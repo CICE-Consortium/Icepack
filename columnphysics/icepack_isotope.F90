@@ -321,7 +321,7 @@
 
          dzice = dzice - meltt
          if (dzice <= c0) then   ! ice ice melts away
-            fiso_ocnn(:) = fiso_ocnn(:)+isoice(:)
+            fiso_ocnn(:) = fiso_ocnn(:)+isoice(:)/dt
             isoice(:) = c0
             dzice = c0
          endif
@@ -332,7 +332,7 @@
       if (meltb > c0) then
          do k=1,n_iso
             sloss1=c0
-            if (dzice > puny) sloss1=max(meltb-dzice,c0) * isoice(k)/dzice
+            if (dzice > puny) sloss1=isoice(k) * min(meltb,dzice)/dzice
             if (isoice(k) >= sloss1) then
                isoice(k) = isoice(k)-sloss1
             else
@@ -344,7 +344,7 @@
 
          dzice = dzice - meltb
          if (dzice <= c0) then   ! ice ice melts away
-            fiso_ocnn(:) = fiso_ocnn(:) + isoice(:)
+            fiso_ocnn(:) = fiso_ocnn(:) + isoice(:)/dt
             isoice(:) = c0
             dzice = c0
          endif

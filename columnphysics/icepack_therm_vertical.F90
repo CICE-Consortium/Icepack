@@ -2981,7 +2981,7 @@
             ! Translate changes in apond into apnd tracer
             if (tr_pond_lvl) then
                if (alvl(n) > puny) then
-                  apnd(n) = max(apond(n) / alvl(n), c1)
+                  apnd(n) = min(apond(n) / alvl(n), c1)
                else
                   apnd(n) = c0
                endif
