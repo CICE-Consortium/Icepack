@@ -222,7 +222,7 @@
             call icepack_init_orbit()
             call icepack_warnings_flush(nu_diag)
             if (icepack_warnings_aborted()) &
-               call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
+               call icedrv_system_abort(string=subname, file=__FILE__, line=__LINE__)
 
             if (trim(shortwave) == 'dEdd_snicar_ad') then
                call icepack_init_parameters(snw_ssp_table_in=snw_ssp_table)

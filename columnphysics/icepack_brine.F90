@@ -172,8 +172,6 @@
          cqin            ! enthalpy ()
 
       real (kind=dbl_kind), dimension (nblyr+2) :: &
-         zTin        , & ! Temperature of ice layers on bgrid (C)
-         zSin        , & ! Salinity of ice layers on bgrid (C)
          bqin            ! enthalpy on the bgrid ()
 
       real (kind=dbl_kind), dimension (nblyr+1) :: &
@@ -184,8 +182,7 @@
 
       real (kind=dbl_kind) :: &
          surface_S   , & ! salinity of ice above hin > hbr
-         hinc_old    , & ! mean ice thickness before current melt/growth (m)
-         hbrc_old        ! mean brine thickness before current melt/growth (m)
+         hinc_old        ! mean ice thickness before current melt/growth (m)
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: & ! nblyr+2)
          trtmp_s     , & ! temporary, remapped tracers

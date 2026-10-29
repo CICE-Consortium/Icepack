@@ -48,7 +48,7 @@
       subroutine update_isotope(dt,                   &
                                 meltt,    melts,      &
                                 meltb,    congel,     &
-                                snoice,   evap,       &
+                                snoice, &
                                 fsnow,    Tsfc,       &
                                 Qref_iso,             &
                                 isosno,   isoice,     &
@@ -72,7 +72,6 @@
         meltb,      & ! bottom melt
         congel,     & ! congelation ice growth    (m/step)
         snoice,     & ! ice thickness increase    (m/step)
-        evap,       & ! surface evaporation
         fsnow,      & ! snowfall       (kg/m^2/s of water)
         vicen,      & ! volume per unit area of ice    (m)
         vsnon,      & ! volume per unit area of snow   (m)
@@ -146,11 +145,6 @@
          dhs_snoice = snoice*rhoi/rhos
       endif
 
-!     if (hs > puny) then
-!        evaps = evap*dt/rhos
-!     else
-!        evapi = evap*dt/rhoi
-!     endif
       evaps = hs - (hs_old - melts - dhs_snoice + fsnow/rhos*dt)
       evapi = hi - (hi_old - meltt - meltb + congel + snoice)
 
@@ -321,7 +315,7 @@
 
          dzice = dzice - meltt
          if (dzice <= c0) then   ! ice ice melts away
-            fiso_ocnn(:) = fiso_ocnn(:)+isoice(:)
+            fiso_ocnn(:) = fiso_ocnn(:)+isoice(:)/dt
             isoice(:) = c0
             dzice = c0
          endif
@@ -332,7 +326,7 @@
       if (meltb > c0) then
          do k=1,n_iso
             sloss1=c0
-            if (dzice > puny) sloss1=max(meltb-dzice,c0) * isoice(k)/dzice
+            if (dzice > puny) sloss1=isoice(k) * min(meltb,dzice)/dzice
             if (isoice(k) >= sloss1) then
                isoice(k) = isoice(k)-sloss1
             else
@@ -344,7 +338,7 @@
 
          dzice = dzice - meltb
          if (dzice <= c0) then   ! ice ice melts away
-            fiso_ocnn(:) = fiso_ocnn(:) + isoice(:)
+            fiso_ocnn(:) = fiso_ocnn(:) + isoice(:)/dt
             isoice(:) = c0
             dzice = c0
          endif
