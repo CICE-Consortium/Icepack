@@ -384,7 +384,7 @@ Once you have installed conda and created the ``icepack`` conda environment by f
 Installing conda
 ~~~~~~~~~~~~~~~~
 
-If you already have a working conda installation (Miniforge, Miniconda or Anaconda), you can skip this step.
+If you already have a working conda installation (Miniforge, Miniconda, Anaconda, etc.), you can skip this step.
 
 Otherwise, we recommend `Miniforge <https://github.com/conda-forge/miniforge>`_, a minimal conda installer that uses the community `conda-forge <https://conda-forge.org/>`_ channel by default.
 The ``environment.yml`` file only uses conda-forge packages.
