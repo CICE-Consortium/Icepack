@@ -48,7 +48,7 @@
       subroutine update_isotope(dt,                   &
                                 meltt,    melts,      &
                                 meltb,    congel,     &
-                                snoice,   evap,       &
+                                snoice, &
                                 fsnow,    Tsfc,       &
                                 Qref_iso,             &
                                 isosno,   isoice,     &
@@ -72,7 +72,6 @@
         meltb,      & ! bottom melt
         congel,     & ! congelation ice growth    (m/step)
         snoice,     & ! ice thickness increase    (m/step)
-        evap,       & ! surface evaporation
         fsnow,      & ! snowfall       (kg/m^2/s of water)
         vicen,      & ! volume per unit area of ice    (m)
         vsnon,      & ! volume per unit area of snow   (m)
@@ -146,11 +145,6 @@
          dhs_snoice = snoice*rhoi/rhos
       endif
 
-!     if (hs > puny) then
-!        evaps = evap*dt/rhos
-!     else
-!        evapi = evap*dt/rhoi
-!     endif
       evaps = hs - (hs_old - melts - dhs_snoice + fsnow/rhos*dt)
       evapi = hi - (hi_old - meltt - meltb + congel + snoice)
 

@@ -1121,9 +1121,6 @@
 
       ! local data
 
-      integer (kind=int_kind) :: &
-         dim1, dim2, dim3   ! array dimension sizes
-
       character(len=*),parameter :: subname='(icepack_init_parameters)'
 
       if (present(argcheck_in)          ) argcheck         = argcheck_in

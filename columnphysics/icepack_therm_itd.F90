@@ -965,7 +965,6 @@
 
       real (kind=dbl_kind) :: &
          sicen,        &
-         etot,         & ! column energy per itd cat, for FSD code
          elapsed_t,    & ! FSD subcycling
          subdt           ! FSD timestep (s)
 
@@ -1538,8 +1537,7 @@
             ! update vi0new, without change to afsdn or aicen
             call fsd_lateral_growth(dt,       aice,         &
                                   aicen,      vicen,        &
-                                  vi0new,     frazil,       &
-                                  afsdn,        &
+                                  vi0new,     afsdn,        &
                                   lead_area,  latsurf_area, &
                                   G_radial,   d_an_latg,    &
                                   tot_latg)
