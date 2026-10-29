@@ -4,7 +4,7 @@ channels:
   - nodefaults
 dependencies:
 # Core Runtime Environment
-  - python=3.11
+  - python=3.12
 # Build dependencies
   - compilers
   - netcdf-fortran
@@ -12,7 +12,3 @@ dependencies:
   - make
 # Plotting dependencies
   - gnuplot
-# Python dependencies for building the HTML documentation
-  - pip
-  - pip:
-    - -r ../../../doc/requirements.txt

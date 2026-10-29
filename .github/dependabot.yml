@@ -10,7 +10,7 @@ updates:
       day: "tuesday"         # Options: monday, tuesday, wednesday, thursday, friday, saturday, sunday
       time: "03:00"          # The time of day to check for updates (HH:MM)
       timezone: "America/New_York" # Explicitly sets the timezone for the execution time
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
 
 #  # Check Git submodules for updates
 #  - package-ecosystem: "gitsubmodule"
@@ -22,7 +22,7 @@ updates:
 #      timezone: "America/New_York"
 #    open-pull-requests-limit: 3
 
-  # Check requirements.txt inside doc directory
+  # Check pyproject.toml inside doc directory
   - package-ecosystem: "pip"
     directory: "/doc"
     schedule:
@@ -30,4 +30,5 @@ updates:
       day: "tuesday"
       time: "04:00"
       timezone: "America/New_York"
-    open-pull-requests-limit: 3
+    # silences version updates but forces PRs for security patches
+    open-pull-requests-limit: 0
