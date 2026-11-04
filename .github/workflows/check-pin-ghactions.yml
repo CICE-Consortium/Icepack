@@ -23,7 +23,20 @@ jobs:
         env:
           # Default token used only to query GitHub API for SHAs; no push access needed
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx pin-github-action --allow-no-actions .github/workflows/
+        run: |
+          set -euo pipefail
+
+          # 1. Find all workflow files that contain an active 'uses:' directive
+          FILES=$(grep -rl '^\s*uses:' .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null || true)
+
+          # 2. Execute pin-github-action only if action files exist
+          if [ -n "$FILES" ]; then
+            echo "Found action steps in: $FILES"
+            # Explicitly pass file list; fails natively if unpinned actions are found
+            npx pin-github-action $FILES
+          else
+            echo "No third-party 'uses:' directives found across workflows. Skipping pin check."
+          fi
 
       - name: Check for unpinned actions and print diff
         run: |
