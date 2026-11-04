@@ -23,7 +23,7 @@ jobs:
         env:
           # Default token used only to query GitHub API for SHAs; no push access needed
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx pin-github-action .github/workflows/
+        run: npx pin-github-action --allow-no-actions .github/workflows/
 
       - name: Check for unpinned actions and print diff
         run: |
