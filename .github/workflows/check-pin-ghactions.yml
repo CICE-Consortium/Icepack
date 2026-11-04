@@ -1,4 +1,8 @@
 name: Check Pinned Actions
+
+# This script checks that all github actions are pinned and will create
+# an error message if not.
+
 on:
   push:
     paths:

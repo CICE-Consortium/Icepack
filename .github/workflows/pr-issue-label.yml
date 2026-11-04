@@ -1,5 +1,26 @@
 name: PR Label Slash Commands
 
+# This workflow is triggered by comments on PRs and Issues.  It supports
+# setting labels by the /label and /unlabel string in comment text boxes.
+# It support both forward and backslash, single or double quotes, and ignores 
+# cases and spaces. So
+#
+#    /label "Priority : high"
+#
+# and
+#
+#    \label 'priority:HIGH'
+#
+# and
+#
+#    \label priority:high
+#
+# should all turn on the "Priority: High" label.  /unlabel works the same
+# but removes the label on the issue or PR.  It parses the comment and updates labels in the 
+# order they occur in the comment. It adds a thumbs up or thumbs down to the comment 
+# depending on the outcome of the labeling script.
+
+
 on:
   issue_comment:
     types: [created]
