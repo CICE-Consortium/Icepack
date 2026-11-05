@@ -1507,10 +1507,10 @@
     write(warning,*)
     call icepack_warnings_add(warning)
 
-    write(warning,*) "Snow: zTsn0(k), zTsn(k), zqsn0(k), ks(k), Sswabs(k)"
+    write(warning,*) "Snow: zTsn0(k), zTsn(k), zqsn0(k), zqsn(k), ks(k), Sswabs(k)"
     call icepack_warnings_add(warning)
     do k = 1, nslyr
-       write(warning,*) k, zTsn0(k), zTsn(k), zqsn0(k), ks(k), Sswabs(k)
+       write(warning,*) k, zTsn0(k), zTsn(k), zqsn0(k), zqsn(k), ks(k), Sswabs(k)
        call icepack_warnings_add(warning)
     enddo ! k
     write(warning,*)

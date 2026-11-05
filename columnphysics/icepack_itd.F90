@@ -1205,8 +1205,7 @@
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
                           dfiso_ocn,               &
-                          dflux_bio,               &
-                          aicen(n))
+                          dflux_bio)
             if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1378,16 +1377,13 @@
                           dfresh,     dfhocn,   &
                           dfaero_ocn, tr_aero,  &
                           dfiso_ocn,            &
-                          dflux_bio,  aicen)
+                          dflux_bio)
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          trcrn        ! ice tracers
-
-      real (kind=dbl_kind), intent(in) :: &
-         aicen        ! ice area fraction
 
       real (kind=dbl_kind), intent(inout) :: &
          vsnon    , & ! volume per unit area of snow         (m)
@@ -1574,8 +1570,7 @@
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
                           dfiso_ocn,               &
-                          dflux_bio,               &
-                          aicen(n))
+                          dflux_bio)
             if (icepack_warnings_aborted(subname)) return
 
       enddo ! n

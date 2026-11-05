@@ -531,7 +531,7 @@
             hi = c0
             if (aice_old > c0) hs = vsnon/aice_old
          endif
-         hilyr = hi/real(nblyr,kind=dbl_kind)
+         hilyr = hi/real(nilyr,kind=dbl_kind)
          hslyr = hs/real(nslyr,kind=dbl_kind)
          dzssl_new  = hslyr/c2
          dhs_melts  = -melts

@@ -46,7 +46,7 @@
                                     vsno,  vsnon,       &
                                     meltt,       &
                                     fsurf, fpond,       &
-                                    Tsfcn, Tf,          &
+                                    Tsfcn, &
                                     qicen, sicen,       &
                                     apnd,  hpnd, ipnd   )
 
@@ -58,8 +58,7 @@
 
       real (kind=dbl_kind), intent(in) :: &
          aice, &    ! total ice area fraction
-         vsno, &    ! total snow volume (m)
-         Tf   ! ocean freezing temperature [= ice bottom temperature] (degC)
+         vsno       ! total snow volume (m)
 
       real (kind=dbl_kind), intent(inout) :: &
          vice, &    ! total ice volume (m)

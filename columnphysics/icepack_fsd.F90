@@ -512,7 +512,6 @@
       subroutine fsd_lateral_growth (dt,        aice,         &
                                      aicen,     vicen,        &
                                      vi0new,                  &
-                                     frazil,                  &
                                      afsdn,                   &
                                      lead_area, latsurf_area, &
                                      G_radial,  d_an_latg,    &
@@ -530,8 +529,7 @@
          afsdn              ! floe size distribution tracer
 
       real (kind=dbl_kind), intent(inout) :: &
-         vi0new         , & ! volume of new ice added to cat 1 (m)
-         frazil             ! frazil ice growth        (m/step-->cm/day)
+         vi0new             ! volume of new ice added to cat 1 (m)
 
       real (kind=dbl_kind), dimension(ncat), intent(out) :: &
          d_an_latg          ! change in aicen occuring due to lateral growth

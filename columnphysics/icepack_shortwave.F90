@@ -1510,9 +1510,9 @@
                srftyp = 1
                if (trim(shortwave) == 'dEdd_snicar_ad') then
                 call compute_dEdd_5bd(                          &
-                      klev,   klevp,   zbio,   fnidr,  coszen,  &
+                      klev,   klevp,   zbio,   coszen,          &
                       swvdr,  swvdf,   swidr,  swidf,  srftyp,  &
-                      hs,     rhosnw,  rsnw,   hi,     hp,      &
+                      hs,     rhosnw,  rsnw,   hi,              &
                       fs,     aero_mp, avdrl,  avdfl,           &
                       aidrl,  aidfl,   fswsfc, fswint, fswthru, &
                       fswthru_vdr,     fswthru_vdf,             &
@@ -4406,9 +4406,9 @@
 ! 2325-2343, https://doi.org/10.5194/tc-13-2325-2019, 2019.
 
       subroutine compute_dEdd_5bd(                          &
-                      klev,   klevp,   zbio,   fnidr,  coszen,  &
+                      klev,   klevp,   zbio,   coszen,          &
                       swvdr,  swvdf,   swidr,  swidf,  srftyp,  &
-                      hs,     rhosnw,  rsnw,   hi,     hp,      &
+                      hs,     rhosnw,  rsnw,   hi,              &
                       fi,     aero_mp, alvdr,  alvdf,           &
                       alidr,  alidf,   fswsfc, fswint, fswthru, &
                       fswthru_vdr,     fswthru_vdf,             &
@@ -4421,7 +4421,6 @@
                    ! (0 layer is included also)
 
       real (kind=dbl_kind), intent(in) :: &
-         fnidr , & ! fraction of direct to total down flux in nir
          coszen, & ! cosine solar zenith angle
          swvdr , & ! shortwave down at surface, visible, direct  (W/m^2)
          swvdf , & ! shortwave down at surface, visible, diffuse (W/m^2)
@@ -4442,7 +4441,6 @@
 
       real (kind=dbl_kind), intent(in) :: &
          hi    , & ! ice thickness (m)
-         hp    , & ! pond depth (m)
          fi        ! snow/bare ice fractional coverage (0 to 1)
 
       real (kind=dbl_kind), intent(inout) :: &
@@ -4633,7 +4631,6 @@
          refk    , & ! interface k multiple scattering term
          delr    , & ! snow grain radius interpolation parameter
       ! inherent optical properties (iop) for snow
-         Qs      , & ! Snow extinction efficiency
          ks      , & ! Snow mass extinction coefficient (m^2/kg)
          ws      , & ! Snow single scattering albedo
          gs          ! Snow asymmetry parameter
@@ -4661,12 +4658,6 @@
       real (kind=dbl_kind) :: &
          albodr  , & ! spectral ocean albedo to direct rad
          albodf      ! spectral ocean albedo to diffuse rad
-
-      ! for melt pond transition to bare sea ice for small pond depths
-      real (kind=dbl_kind) :: &
-         sig_i   , & ! ice scattering coefficient (/m)
-         sig_p   , & ! pond scattering coefficient (/m)
-         kext        ! weighted extinction coefficient (/m)
 
       ! aerosol optical properties from Mark Flanner, 26 June 2008
       ! order assumed: hydrophobic black carbon, hydrophilic black carbon,
@@ -5707,8 +5698,8 @@
       logical (kind=log_kind) :: &
          found         ! search flag
 
-      character (len=512) :: &
-         tmpstr        ! temporary string
+!     character (len=512) :: &
+!        tmpstr        ! temporary string
 
       character(len=*),parameter :: subname='(shortwave_search)'
 

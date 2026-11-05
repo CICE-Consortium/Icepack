@@ -2981,7 +2981,7 @@
             ! Translate changes in apond into apnd tracer
             if (tr_pond_lvl) then
                if (alvl(n) > puny) then
-                  apnd(n) = max(apond(n) / alvl(n), c1)
+                  apnd(n) = min(apond(n) / alvl(n), c1)
                else
                   apnd(n) = c0
                endif
@@ -3023,7 +3023,7 @@
                call update_isotope (dt = dt, &
                                     meltt = melttn(n),melts = meltsn(n),   &
                                     meltb = meltbn(n),congel=congeln(n),   &
-                                    snoice=snoicen(n),evap=evapn,          &
+                                    snoice=snoicen(n),                     &
                                     fsnow=fsnow,      Tsfc=Tsfc(n),        &
                                     Qref_iso=Qrefn_iso(:),                 &
                                     isosno=isosno(:,n),isoice=isoice(:,n), &
@@ -3284,7 +3284,7 @@
                                  vsno,     vsnon,                &
                                  meltt,                          &
                                  fsurf,    fpond,                &
-                                 Tsfc,     Tf,                   &
+                                 Tsfc,                           &
                                  zqin,     zSin,                 &
                                  apnd,     hpnd,      ipnd       )
          if (icepack_warnings_aborted(subname)) return

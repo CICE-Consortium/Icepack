@@ -965,7 +965,6 @@
 
       real (kind=dbl_kind) :: &
          sicen,        &
-         etot,         & ! column energy per itd cat, for FSD code
          elapsed_t,    & ! FSD subcycling
          subdt           ! FSD timestep (s)
 
@@ -1538,8 +1537,7 @@
             ! update vi0new, without change to afsdn or aicen
             call fsd_lateral_growth(dt,       aice,         &
                                   aicen,      vicen,        &
-                                  vi0new,     frazil,       &
-                                  afsdn,        &
+                                  vi0new,     afsdn,        &
                                   lead_area,  latsurf_area, &
                                   G_radial,   d_an_latg,    &
                                   tot_latg)
@@ -1769,9 +1767,9 @@
                 if (it==3) &
                    frazil_conc = isoice_alpha(c0,'H2_18O',isotope_frac_method)*H2_18O_ocn
 
-                trcrn(nt_isoice+it-1,1) &
-                  = (trcrn(nt_isoice+it-1,1)*vice1) &
-                  + frazil_conc*rhoi*vi0new/vicen(1)
+                trcrn(nt_isoice+it-1,n) &
+                  = (trcrn(nt_isoice+it-1,n)*vice1) &
+                  + frazil_conc*rhoi*vi0new/vicen(n)
 
                 fiso_ocn(it) = fiso_ocn(it) &
                              - frazil_conc*rhoi*vi0new/dt

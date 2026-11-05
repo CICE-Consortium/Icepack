@@ -100,8 +100,6 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: n
-
       character (len=*),parameter :: subname='(icepack_shortwave_init_dEdd3band)'
 
       nmbrad_snw = 32 ! number of snow grain radii in tables
@@ -443,8 +441,6 @@
       subroutine icepack_shortwave_init_dEdd5band
 
       ! local variables
-
-      integer (kind=int_kind) :: n
 
       character (len=*),parameter :: subname='(icepack_shortwave_init_dEdd5band)'
 
