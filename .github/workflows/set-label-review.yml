@@ -23,11 +23,6 @@ name: Issue/PR Label and PR Reviewer Slash Commands
 # each add reviewer abcd.
 
 on:
-# Need more logic to handle labels when opening a PR or issue, do not support for now.
-#  pull_request:
-#    types: [opened, edited]
-#  issues:
-#    types: [opened, edited]
   issue_comment:
     types: [created, edited]
 
@@ -66,12 +61,10 @@ jobs:
               res = subprocess.run(["gh"] + args, capture_output=True, text=True)
               return res.returncode == 0, res.stdout.strip(), res.stderr.strip()
 
-          # Helper functions for key normalization
           normalize_label = lambda s: re.sub(r"\s+", "", s.lower())
 
-          # Regex matches: /label, /unlabel, /review, /unreview (with / or \)
           command_regex = re.compile(
-              r"[/\\](label|unlabel|review|unreview)\s+(?:\"([^\"]+)\"|'([^']+)'|([^\s\n]+))", 
+              r"[/\\](label|unlabel|review|unreview)\s+(?:\"([^\"]+)\"|'([^']+)'|([^\s\n]+))",
               re.IGNORECASE
           )
 
@@ -79,9 +72,7 @@ jobs:
           if not matches:
               raise SystemExit(0)
 
-          # Lazy-load repository resources based on command presence
           has_label_cmds = any(m.group(1).lower() in ("label", "unlabel") for m in matches)
-
           valid_labels_map = {}
 
           if has_label_cmds:
@@ -94,7 +85,6 @@ jobs:
           success_count = 0
           error_count = 0
 
-          # Process commands sequentially in exact order of appearance
           for match in matches:
               command = match.group(1).lower()
               raw_target = match.group(2) or match.group(3) or match.group(4)
@@ -105,27 +95,29 @@ jobs:
               if command in ("label", "unlabel"):
                   canonical_label = valid_labels_map.get(normalize_label(raw_target))
                   if not canonical_label:
-                      print(f'Skipped: Label "{raw_target}" does not exist in repository.')
+                      print(f'SKIPPED: Label "{raw_target}" does not exist in repository.')
                       error_count += 1
                       continue
 
                   if command == "label":
                       ok, _, err = run_gh(["issue", "edit", issue_number, "--repo", repo, "--add-label", canonical_label])
                       if ok:
+                          print(f'SUCCESS: Added label "{canonical_label}" to issue/PR #{issue_number}.')
                           success_count += 1
                       else:
-                          print(f'Failed to add label "{canonical_label}": {err}')
+                          print(f'FAILED: to add label "{canonical_label}": {err}')
                           error_count += 1
                   elif command == "unlabel":
                       ok, _, err = run_gh(["issue", "edit", issue_number, "--repo", repo, "--remove-label", canonical_label])
                       if ok:
+                          print(f'SUCCESS: Removed label "{canonical_label}" from issue/PR #{issue_number}.')
                           success_count += 1
                       else:
                           if "not found" in err.lower() or "404" in err:
-                              print(f'Label "{canonical_label}" was already absent.')
+                              print(f'OK: Label "{canonical_label}" was already absent.')
                               success_count += 1
                           else:
-                              print(f'Failed to remove label "{canonical_label}": {err}')
+                              print(f'FAILED: to remove label "{canonical_label}": {err}')
                               error_count += 1
 
               # --- REVIEWER COMMANDS ---
@@ -142,19 +134,20 @@ jobs:
                   if command == "review":
                       ok, _, err = run_gh(["pr", "edit", issue_number, "--repo", repo, "--add-reviewer", target_user])
                       if ok:
+                          print(f'SUCCESS: Added reviewer "{target_user}" to PR #{issue_number}.')
                           success_count += 1
                       else:
-                          print(f'Failed to add reviewer "{target_user}": {err}')
+                          print(f'FAILED: to add reviewer "{target_user}": {err}')
                           error_count += 1
                   elif command == "unreview":
                       ok, _, err = run_gh(["pr", "edit", issue_number, "--repo", repo, "--remove-reviewer", target_user])
                       if ok:
+                          print(f'SUCCESS: Removed reviewer "{target_user}" from PR #{issue_number}.')
                           success_count += 1
                       else:
-                          print(f'Failed to remove reviewer "{target_user}": {err}')
+                          print(f'FAILED: to remove reviewer "{target_user}": {err}')
                           error_count += 1
 
-          # Add emoji reaction based on outcome
           if success_count > 0 and error_count == 0:
               ok, _, err = run_gh([
                   "api",
@@ -162,7 +155,7 @@ jobs:
                   "-f", "content=+1"
               ])
               if not ok:
-                  print(f"Failed to add thumbs-up reaction: {err}")
+                  print(f"FAILED: to add thumbs-up reaction: {err}")
 
           elif error_count > 0:
               ok, _, err = run_gh([
@@ -171,6 +164,6 @@ jobs:
                   "-f", "content=-1"
               ])
               if not ok:
-                  print(f"Failed to add thumbs-down reaction: {err}")
+                  print(f"FAILED: to add thumbs-down reaction: {err}")
 
           EOF
